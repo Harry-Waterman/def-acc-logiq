@@ -1,0 +1,66 @@
+We will use this dataset - https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset
+
+## Project Goals
+
+Initially this will be for testing/benchmarking purposes however future development could involve fine tuning or using RAG to create a model that is better at figuring out what is a phising email.
+
+## Dataset Information
+
+### Source
+- **Platform**: Kaggle
+- **Dataset Name**: Phishing Email Dataset
+- **Creator**: naserabdullahalam
+- **URL**: https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset
+
+### Dataset Overview
+This dataset was compiled by researchers to study phishing email tactics. It combines emails from a variety of sources to create a comprehensive resource for analysis. The dataset contains email samples labeled as phishing or legitimate emails, designed for training and evaluating machine learning models to detect phishing attempts.
+
+### Typical Dataset Characteristics (to be verified after download)
+- **Format**: Likely CSV or JSON containing email content and labels
+- **Features**: May include:
+  - Email subject lines
+  - Email body content
+  - Sender information
+  - URLs/links within emails
+  - Labels (phishing/legitimate)
+- **Size**: To be determined after dataset download
+- **Class Distribution**: To be analyzed (phishing vs legitimate email ratio)
+
+### Use Cases
+1. **Testing/Benchmarking**: Evaluate model performance on phishing detection
+2. **Fine-tuning**: Train models specifically for phishing email detection
+3. **RAG Implementation**: Use dataset for retrieval-augmented generation to improve phishing detection accuracy
+
+### Next Steps
+- Download and explore the dataset structure
+- Analyze data distribution and quality
+- Identify feature engineering opportunities
+- Prepare data for model training/testing
+
+## License & Credit
+
+### License
+- **License Type**: To be verified on the Kaggle dataset page
+- **Note**: Please check the dataset's license terms on Kaggle before use. Most Kaggle datasets are available under open licenses (CC0, CC BY, etc.), but specific terms may vary.
+
+### Attribution & Credit
+When using this dataset, please credit the original creator:
+
+**Dataset Creator**: naserabdullahalam  
+**Dataset**: Phishing Email Dataset  
+**Source**: Kaggle (https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset)
+
+### Academic Citation
+This dataset is associated with the following research paper:
+
+**Paper Citation:**
+```
+Al-Subaiey, A., Al-Thani, M., Alam, N. A., Antora, K. F., Khandakar, A., & Zaman, S. A. U. (2024, May 19). 
+Novel Interpretable and Robust Web-based AI Platform for Phishing Email Detection. ArXiv.org
+```
+
+**Dataset Citation:**
+```
+naserabdullahalam. (Year). Phishing Email Dataset. Kaggle. 
+Retrieved from https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset
+```
