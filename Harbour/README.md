@@ -21,6 +21,36 @@ The Neo4j database is configured with:
   - `neo4j_logs`: Log files
 - **Restart Policy**: `unless-stopped`
 
+## Database Schema
+
+The following diagram illustrates the Neo4j graph database schema structure:
+
+```mermaid
+flowchart LR
+ subgraph EmailGraph["EmailGraph"]
+        Email("Email
+        -----
+        dateTime: dateTime")
+        Address("Address")
+        Domain("Domain")
+        Url("Url")
+        Flag("Flag")
+        Score("Score")
+        installationId("installationId")
+        userId("userId")
+  end
+
+    Email -- FROM --> Address
+    Email -- TO --> Address
+    Address -- HAS_DOMAIN --> Domain
+    Email -- CONTAINS_URL --> Url
+    Url -- HAS_DOMAIN --> Domain
+    Email -- HAS_FLAG --> Flag
+    Email -- HAS_Score --> Score
+    userId -- INSTALLED_BY --> installationId 
+    Email -- OWNER --> installationId
+```
+
 ## Environment Variables
 
 The database credentials are loaded from the `.env` file in the project root:
