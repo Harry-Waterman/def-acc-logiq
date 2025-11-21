@@ -99,6 +99,26 @@ Once the Docker stack is running, you can access two user interfaces:
    - Neo4j Browser: `http://localhost:7474`
    - NeoDash Dashboard: `http://localhost:5005`
 
+## Loading Test Data
+
+To populate the database with sample test data that matches the schema:
+
+1. **Using Neo4j Browser** (Recommended):
+   - Open Neo4j Browser at `http://localhost:7474`
+   - Copy the contents of `test-data.cypher`
+   - Paste into the query editor and execute
+
+2. **Using cypher-shell** (Command Line):
+   ```bash
+   docker exec -i neo4j cypher-shell -u ${NEO4J_USERNAME} -p ${NEO4J_PASSWORD} < test-data.cypher
+   ```
+
+The test data includes:
+- 5 sample emails with various risk levels
+- Multiple addresses, domains, and URLs
+- Flags and scores for phishing detection
+- User and installation relationships
+
 ## Stopping the Database
 
 To stop the database:
