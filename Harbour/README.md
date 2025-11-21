@@ -21,6 +21,36 @@ The Neo4j database is configured with:
   - `neo4j_logs`: Log files
 - **Restart Policy**: `unless-stopped`
 
+## Database Schema
+
+The following diagram illustrates the Neo4j graph database schema structure:
+
+```mermaid
+flowchart LR
+ subgraph Database["Database"]
+        Email("Email
+        -----
+        dateTime: dateTime")
+        Address("Address")
+        Domain("Domain")
+        Url("Url")
+        Flag("Flag")
+        Score("Score")
+        installationId("installationId")
+        userId("userId")
+  end
+
+    Email -- FROM --> Address
+    Email -- TO --> Address
+    Address -- HAS_DOMAIN --> Domain
+    Email -- CONTAINS_URL --> Url
+    Url -- HAS_DOMAIN --> Domain
+    Email -- HAS_FLAG --> Flag
+    Email -- HAS_Score --> Score
+    userId -- INSTALLED_BY --> installationId 
+    Email -- OWNER --> installationId
+```
+
 ## Environment Variables
 
 The database credentials are loaded from the `.env` file in the project root:
@@ -68,6 +98,26 @@ Once the Docker stack is running, you can access two user interfaces:
 4. Access the UIs:
    - Neo4j Browser: `http://localhost:7474`
    - NeoDash Dashboard: `http://localhost:5005`
+
+## Loading Test Data
+
+To populate the database with sample test data that matches the schema:
+
+1. **Using Neo4j Browser** (Recommended):
+   - Open Neo4j Browser at `http://localhost:7474`
+   - Copy the contents of `test-data.cypher`
+   - Paste into the query editor and execute
+
+2. **Using cypher-shell** (Command Line):
+   ```bash
+   docker exec -i neo4j cypher-shell -u ${NEO4J_USERNAME} -p ${NEO4J_PASSWORD} < test-data.cypher
+   ```
+
+The test data includes:
+- 5 sample emails with various risk levels
+- Multiple addresses, domains, and URLs
+- Flags and scores for phishing detection
+- User and installation relationships
 
 ## Stopping the Database
 
