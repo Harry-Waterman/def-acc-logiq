@@ -27,7 +27,7 @@ The following diagram illustrates the Neo4j graph database schema structure:
 
 ```mermaid
 flowchart LR
- subgraph EmailGraph["EmailGraph"]
+ subgraph Database["Database"]
         Email("Email
         -----
         dateTime: dateTime")
