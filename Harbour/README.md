@@ -30,6 +30,23 @@ The database credentials are loaded from the `.env` file in the project root:
 
 These are used to configure `NEO4J_AUTH` in the format `${NEO4J_USERNAME}/${NEO4J_PASSWORD}`.
 
+## Accessing the UIs
+
+Once the Docker stack is running, you can access two user interfaces:
+
+### Neo4j Browser
+- **URL**: `http://localhost:7474`
+- **Purpose**: Interactive Cypher query interface and graph visualization
+- **Login**: Use your Neo4j credentials from the `.env` file
+
+### NeoDash Dashboard
+- **URL**: `http://localhost:5005`
+- **Purpose**: Low-code dashboard builder for creating interactive visualizations
+- **Connection Settings**:
+  - **URI**: `bolt://localhost:7687`
+  - **Username/Password**: Use your Neo4j credentials from the `.env` file
+- **Features**: Create dashboards with tables, graphs, bar charts, line charts, maps, and more
+
 ## Setup
 
 1. Ensure you have a `.env` file in the project root with the required credentials:
@@ -43,12 +60,14 @@ These are used to configure `NEO4J_AUTH` in the format `${NEO4J_USERNAME}/${NEO4
    cd Harbour
    ```
 
-3. Start the database:
+3. Start the services:
    ```bash
    docker-compose up -d
    ```
 
-4. Access the Neo4j Browser at `http://localhost:7474`
+4. Access the UIs:
+   - Neo4j Browser: `http://localhost:7474`
+   - NeoDash Dashboard: `http://localhost:5005`
 
 ## Stopping the Database
 
