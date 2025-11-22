@@ -177,7 +177,7 @@ def print_evaluation_report(evaluation_results: Dict, detailed: bool = False):
         print("\nDetailed Results:")
         print("-" * 60)
         for i, result in enumerate(evaluation_results['detailed_results'][:10]):  # Show first 10
-            status = "✓" if result['correct'] else "✗"
+            status = "[PASS]" if result['correct'] else "[FAIL]"
             print(f"{status} Sample {i+1}: Predicted '{result['predicted']}' | "
                   f"Ground Truth '{result['ground_truth']}'")
         if len(evaluation_results['detailed_results']) > 10:

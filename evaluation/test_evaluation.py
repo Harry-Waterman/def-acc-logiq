@@ -6,9 +6,21 @@ Tests the provided model output.
 import sys
 from pathlib import Path
 
-# Add parent directory to path so we can import evaluation
-parent_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(parent_dir))
+# Add the correct directory to path so we can import evaluation
+# Handle both cases: running from root or from evaluation folder
+script_dir = Path(__file__).parent.absolute()
+parent_dir = script_dir.parent
+
+# Check if we're in def-acc-logiq/evaluation or def-acc-hackathon/def-acc-logiq/evaluation
+if parent_dir.name == 'def-acc-logiq':
+    # We're in def-acc-logiq/evaluation, add def-acc-logiq to path
+    sys.path.insert(0, str(parent_dir))
+elif parent_dir.parent.name == 'def-acc-logiq':
+    # We're in def-acc-hackathon/def-acc-logiq/evaluation, add def-acc-logiq to path
+    sys.path.insert(0, str(parent_dir))
+else:
+    # Fallback: add parent directory
+    sys.path.insert(0, str(parent_dir))
 
 # Import only functions that don't require pandas for basic testing
 try:
