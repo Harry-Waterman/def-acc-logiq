@@ -314,7 +314,7 @@ export async function createEmailGraph(emailData) {
         ON MATCH SET s.value = $value
         WITH s
         MATCH (e:Email {id: $emailId})
-        MERGE (e)-[r:HAS_Score]->(s)
+        MERGE (e)-[r:HAS_SCORE]->(s)
         RETURN r
       `;
       await session.run(scoreQuery, {

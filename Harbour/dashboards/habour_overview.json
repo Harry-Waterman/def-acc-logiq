@@ -81,7 +81,7 @@
                 "type"
               ],
               [
-                "HAS_Score"
+                "HAS_SCORE"
               ],
               [
                 "Score",
@@ -99,7 +99,7 @@
           {
             "id": "7699d731-598d-4c49-a798-8de040ef69e6",
             "title": "Emails",
-            "query": "Match (n:Email)-[:HAS_Score]->(m)\nOPTIONAL MATCH (n)-[:HAS_FLAG]->(o)\nWITH\n  n,\n  m,\n  collect(DISTINCT o.type) AS Flags\nReturn \n  n.id as Email,\n  m.value as Score,\n  Flags\nORDER BY Score DESC\n  \n\n\n",
+            "query": "Match (n:Email)-[:HAS_SCORE]->(m)\nOPTIONAL MATCH (n)-[:HAS_FLAG]->(o)\nWITH\n  n,\n  m,\n  collect(DISTINCT o.type) AS Flags\nReturn \n  n.id as Email,\n  m.value as Score,\n  Flags\nORDER BY Score DESC\n  \n\n\n",
             "width": 14,
             "height": 4,
             "x": 10,
@@ -132,7 +132,7 @@
           {
             "id": "ad680aab-96a1-4f77-9268-68b76a2bd402",
             "title": "Classification of Emails",
-            "query": "MATCH (n:Email)-[:HAS_Score]->(m)\nWITH\n  n,\n  CASE\n    WHEN m.value >= 0  AND m.value <= 50 THEN 'Benign'\n    WHEN m.value >= 51 AND m.value <= 80 THEN 'Suspicious'\n    ELSE 'Phishing'\n  END AS Risk\nRETURN\n  Risk,\n  count(DISTINCT n) AS Count",
+            "query": "MATCH (n:Email)-[:HAS_SCORE]->(m)\nWITH\n  n,\n  CASE\n    WHEN m.value >= 0  AND m.value <= 50 THEN 'Benign'\n    WHEN m.value >= 51 AND m.value <= 80 THEN 'Suspicious'\n    ELSE 'Phishing'\n  END AS Risk\nRETURN\n  Risk,\n  count(DISTINCT n) AS Count",
             "width": 8,
             "height": 4,
             "x": 16,

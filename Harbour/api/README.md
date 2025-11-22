@@ -121,7 +121,7 @@ Relationships are created according to the schema:
 - Email → CONTAINS_URL → Url
 - Url → HAS_DOMAIN → Domain
 - Email → HAS_FLAG → Flag
-- Email → HAS_Score → Score
+- Email → HAS_SCORE → Score
 - Email → OWNER → installationId
 - userId → INSTALLED_BY → installationId
 

@@ -46,7 +46,7 @@ flowchart LR
     Email -- CONTAINS_URL --> Url
     Url -- HAS_DOMAIN --> Domain
     Email -- HAS_FLAG --> Flag
-    Email -- HAS_Score --> Score
+    Email -- HAS_SCORE --> Score
     userId -- INSTALLED_BY --> installationId 
     Email -- OWNER --> installationId
 ```
@@ -269,7 +269,7 @@ The Harbour Dashboard provides a comprehensive view of email data with the follo
 1. **Graph Visualization**
    - Interactive graph showing the complete email network structure
    - Displays nodes for: Email, Address, Domain, Url, Flag, Score, and installationId
-   - Shows relationships: FROM, TO, HAS_DOMAIN, CONTAINS_URL, HAS_FLAG, HAS_Score, OWNER
+   - Shows relationships: FROM, TO, HAS_DOMAIN, CONTAINS_URL, HAS_FLAG, HAS_SCORE, OWNER
    - Auto-refreshes every 30 seconds
    - Fullscreen mode enabled
 
