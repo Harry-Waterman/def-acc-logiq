@@ -30,7 +30,7 @@ services:
     networks:
       - harbour-network
 
-  api:
+  harbour-api:
     build:
       context: ./api
       dockerfile: Dockerfile
