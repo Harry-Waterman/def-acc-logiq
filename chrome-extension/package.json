@@ -4,7 +4,11 @@
   "description": "",
   "private": true,
   "scripts": {
-    "build": "parcel build src/manifest.json --config @parcel/config-webextension"
+    "prebuild": "node scripts/check-model.js",
+    "build": "parcel build src/manifest.json --config @parcel/config-webextension",
+    "postbuild": "node scripts/copy-models.js",
+    "download-model": "node download-model.js",
+    "setup": "npm install && npm run download-model && npm run build"
   },
   "author": "",
   "license": "ISC",

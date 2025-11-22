@@ -32,7 +32,7 @@
   "host_permissions": ["http://*/", "https://*/"],
   "web_accessible_resources": [
     {
-      "resources": ["popup.html"],
+      "resources": ["popup.html", "models/**/*"],
       "matches": ["<all_urls>"]
     }
   ]

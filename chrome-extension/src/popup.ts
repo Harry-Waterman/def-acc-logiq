@@ -5,6 +5,7 @@
 // https://github.com/jessedi0n/openai-chatgpt-chrome-extension
 
 import "./popup.css";
+import "./cache-polyfill";
 
 import {
   MLCEngineInterface,
@@ -12,7 +13,9 @@ import {
   CreateMLCEngine,
   ChatCompletionMessageParam,
   prebuiltAppConfig,
+  AppConfig,
 } from "@mlc-ai/web-llm";
+import modelConfig from "../model-config.json";
 import { Line } from "progressbar.js";
 
 // modified setLabel to not throw error
@@ -114,14 +117,49 @@ let initProgressCallback = (report: InitProgressReport) => {
 };
 
 // initially selected model
-let selectedModel = "Qwen2-0.5B-Instruct-q4f16_1-MLC";
+let selectedModel = modelConfig.modelName;
+
+// Configure app to use local model files
+// Model files should be in src/models/<modelName>/ and will be bundled in dist/models/
+const localModelPath = chrome.runtime.getURL(`models/${modelConfig.modelName}/`);
+// WebLLM expects HuggingFace-style URLs ending with /resolve/<branch>/
+// Append a fake resolve/main/ segment followed by ../../ so the final resolved URL
+// still points at our local folder but satisfies their validation logic.
+const localModelBaseForWebLLM = `${localModelPath}resolve/main/../../`;
+
+// Find the prebuilt model entry to get the correct model_lib URL
+const prebuiltModel = prebuiltAppConfig.model_list.find(
+  m => m.model_id === modelConfig.modelName
+);
+
+// Use the prebuilt model_lib URL (WASM file) but override model_url to use local files
+const appConfig: AppConfig = {
+  ...prebuiltAppConfig,
+  model_list: [
+    {
+      model_id: modelConfig.modelName,
+      model: localModelBaseForWebLLM,
+      model_lib: prebuiltModel?.model_lib || modelConfig.modelLibUrl,
+      // Include other properties from prebuilt model if they exist
+      ...(prebuiltModel ? {
+        vram_required_MB: prebuiltModel.vram_required_MB,
+        low_resource_required: prebuiltModel.low_resource_required,
+        overrides: prebuiltModel.overrides,
+        required_features: prebuiltModel.required_features,
+      } : {}),
+    },
+    // Keep other prebuilt models as fallback
+    ...prebuiltAppConfig.model_list.filter(m => m.model_id !== modelConfig.modelName),
+  ],
+};
 
 // populate model-selection
 const modelSelector = getElementAndCheck(
   "model-selection",
 ) as HTMLSelectElement;
-for (let i = 0; i < prebuiltAppConfig.model_list.length; ++i) {
-  const model = prebuiltAppConfig.model_list[i];
+// Use appConfig instead of prebuiltAppConfig to include local model
+for (let i = 0; i < appConfig.model_list.length; ++i) {
+  const model = appConfig.model_list[i];
   const opt = document.createElement("option");
   opt.value = model.model_id;
   opt.innerHTML = model.model_id;
@@ -141,6 +179,7 @@ let engine: MLCEngineInterface;
   modelName.innerText = "Loading initial model...";
   engine = await CreateMLCEngine(selectedModel, {
     initProgressCallback: initProgressCallback,
+    appConfig: appConfig,
   });
   modelName.innerText = "Now chatting with " + modelDisplayName;
 })();
@@ -306,7 +345,9 @@ async function handleSelectChange() {
 
   requestInProgress = true;
   modelName.innerText = "Reloading with new model...";
-  await engine.reload(selectedModel);
+  await engine.reload(selectedModel, {
+    appConfig: appConfig,
+  });
   requestInProgress = false;
   modelName.innerText = "Now chatting with " + modelDisplayName;
 }
