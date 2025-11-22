@@ -58,18 +58,18 @@ MATCH (u:Url {url: 'https://trusted-service.io/dashboard'}), (d:Domain {name: 't
 CREATE (u)-[:HAS_DOMAIN]->(d);
 
 // Create Flags
-CREATE (f1:Flag {type: 'PHISHING', severity: 'HIGH'})
-CREATE (f2:Flag {type: 'SPAM', severity: 'MEDIUM'})
-CREATE (f3:Flag {type: 'SAFE', severity: 'LOW'})
-CREATE (f4:Flag {type: 'SUSPICIOUS', severity: 'MEDIUM'})
-CREATE (f5:Flag {type: 'LEGITIMATE', severity: 'LOW'});
+CREATE (f1:Flag {type: 'PHISHING'})
+CREATE (f2:Flag {type: 'SPAM'})
+CREATE (f3:Flag {type: 'SAFE'})
+CREATE (f4:Flag {type: 'SUSPICIOUS'})
+CREATE (f5:Flag {type: 'LEGITIMATE'});
 
 // Create Scores
-CREATE (s1:Score {value: 0.95, category: 'PHISHING_RISK'})
-CREATE (s2:Score {value: 0.65, category: 'SPAM_RISK'})
-CREATE (s3:Score {value: 0.15, category: 'PHISHING_RISK'})
-CREATE (s4:Score {value: 0.80, category: 'PHISHING_RISK'})
-CREATE (s5:Score {value: 0.10, category: 'PHISHING_RISK'});
+CREATE (s1:Score {value: 0.95})
+CREATE (s2:Score {value: 0.65})
+CREATE (s3:Score {value: 0.15})
+CREATE (s4:Score {value: 0.80})
+CREATE (s5:Score {value: 0.10});
 
 // Create Installation IDs and User IDs
 CREATE (i1:installationId {id: 'inst-001'})
@@ -91,126 +91,127 @@ MATCH (u:userId {id: 'user-003'}), (i:installationId {id: 'inst-003'})
 CREATE (u)-[:INSTALLED_BY]->(i);
 
 // Create Emails
+// Email IDs are generated from from|to|dateTime hash
+// e1: sender@example.com | recipient@legitimate-company.org | 2024-01-15T10:30:00Z
 CREATE (e1:Email {
-    dateTime: datetime('2024-01-15T10:30:00Z'),
-    subject: 'Verify Your Account',
-    messageId: 'email-001'
+    id: 'a1b2c3d4e5f6g7h8',
+    dateTime: datetime('2024-01-15T10:30:00Z')
 })
+// e2: phisher@suspicious-site.net | victim@example.com | 2024-01-16T14:20:00Z
 CREATE (e2:Email {
-    dateTime: datetime('2024-01-16T14:20:00Z'),
-    subject: 'Urgent: Update Required',
-    messageId: 'email-002'
+    id: 'b2c3d4e5f6g7h8i9',
+    dateTime: datetime('2024-01-16T14:20:00Z')
 })
+// e3: user@trusted-service.io | recipient@legitimate-company.org | 2024-01-17T09:15:00Z
 CREATE (e3:Email {
-    dateTime: datetime('2024-01-17T09:15:00Z'),
-    subject: 'Welcome to Our Service',
-    messageId: 'email-003'
+    id: 'c3d4e5f6g7h8i9j0',
+    dateTime: datetime('2024-01-17T09:15:00Z')
 })
+// e4: phisher@suspicious-site.net | victim@example.com | 2024-01-18T16:45:00Z
 CREATE (e4:Email {
-    dateTime: datetime('2024-01-18T16:45:00Z'),
-    subject: 'Security Alert',
-    messageId: 'email-004'
+    id: 'd4e5f6g7h8i9j0k1',
+    dateTime: datetime('2024-01-18T16:45:00Z')
 })
+// e5: sender@example.com | recipient@legitimate-company.org | 2024-01-19T11:00:00Z
 CREATE (e5:Email {
-    dateTime: datetime('2024-01-19T11:00:00Z'),
-    subject: 'Monthly Newsletter',
-    messageId: 'email-005'
+    id: 'e5f6g7h8i9j0k1l2',
+    dateTime: datetime('2024-01-19T11:00:00Z')
 });
 
 // Link Emails to Addresses (FROM)
-MATCH (e:Email {messageId: 'email-001'}), (a:Address {email: 'sender@example.com'})
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (a:Address {email: 'sender@example.com'})
 CREATE (e)-[:FROM]->(a);
 
-MATCH (e:Email {messageId: 'email-002'}), (a:Address {email: 'phisher@suspicious-site.net'})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (a:Address {email: 'phisher@suspicious-site.net'})
 CREATE (e)-[:FROM]->(a);
 
-MATCH (e:Email {messageId: 'email-003'}), (a:Address {email: 'user@trusted-service.io'})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (a:Address {email: 'user@trusted-service.io'})
 CREATE (e)-[:FROM]->(a);
 
-MATCH (e:Email {messageId: 'email-004'}), (a:Address {email: 'phisher@suspicious-site.net'})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (a:Address {email: 'phisher@suspicious-site.net'})
 CREATE (e)-[:FROM]->(a);
 
-MATCH (e:Email {messageId: 'email-005'}), (a:Address {email: 'sender@example.com'})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (a:Address {email: 'sender@example.com'})
 CREATE (e)-[:FROM]->(a);
 
 // Link Emails to Addresses (TO)
-MATCH (e:Email {messageId: 'email-001'}), (a:Address {email: 'recipient@legitimate-company.org'})
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (a:Address {email: 'recipient@legitimate-company.org'})
 CREATE (e)-[:TO]->(a);
 
-MATCH (e:Email {messageId: 'email-002'}), (a:Address {email: 'victim@example.com'})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (a:Address {email: 'victim@example.com'})
 CREATE (e)-[:TO]->(a);
 
-MATCH (e:Email {messageId: 'email-003'}), (a:Address {email: 'recipient@legitimate-company.org'})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (a:Address {email: 'recipient@legitimate-company.org'})
 CREATE (e)-[:TO]->(a);
 
-MATCH (e:Email {messageId: 'email-004'}), (a:Address {email: 'victim@example.com'})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (a:Address {email: 'victim@example.com'})
 CREATE (e)-[:TO]->(a);
 
-MATCH (e:Email {messageId: 'email-005'}), (a:Address {email: 'recipient@legitimate-company.org'})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (a:Address {email: 'recipient@legitimate-company.org'})
 CREATE (e)-[:TO]->(a);
 
 // Link Emails to URLs
-MATCH (e:Email {messageId: 'email-001'}), (u:Url {url: 'https://example.com/verify-account'})
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (u:Url {url: 'https://example.com/verify-account'})
 CREATE (e)-[:CONTAINS_URL]->(u);
 
-MATCH (e:Email {messageId: 'email-002'}), (u:Url {url: 'http://suspicious-site.net/steal-data'})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (u:Url {url: 'http://suspicious-site.net/steal-data'})
 CREATE (e)-[:CONTAINS_URL]->(u);
 
-MATCH (e:Email {messageId: 'email-003'}), (u:Url {url: 'https://legitimate-company.org/login'})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (u:Url {url: 'https://legitimate-company.org/login'})
 CREATE (e)-[:CONTAINS_URL]->(u);
 
-MATCH (e:Email {messageId: 'email-004'}), (u:Url {url: 'https://phishing-attack.com/fake-login'})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (u:Url {url: 'https://phishing-attack.com/fake-login'})
 CREATE (e)-[:CONTAINS_URL]->(u);
 
-MATCH (e:Email {messageId: 'email-005'}), (u:Url {url: 'https://trusted-service.io/dashboard'})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (u:Url {url: 'https://trusted-service.io/dashboard'})
 CREATE (e)-[:CONTAINS_URL]->(u);
 
 // Link Emails to Flags
-MATCH (e:Email {messageId: 'email-001'}), (f:Flag {type: 'SUSPICIOUS'})
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (f:Flag {type: 'SUSPICIOUS'})
 CREATE (e)-[:HAS_FLAG]->(f);
 
-MATCH (e:Email {messageId: 'email-002'}), (f:Flag {type: 'PHISHING'})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (f:Flag {type: 'PHISHING'})
 CREATE (e)-[:HAS_FLAG]->(f);
 
-MATCH (e:Email {messageId: 'email-003'}), (f:Flag {type: 'LEGITIMATE'})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (f:Flag {type: 'LEGITIMATE'})
 CREATE (e)-[:HAS_FLAG]->(f);
 
-MATCH (e:Email {messageId: 'email-004'}), (f:Flag {type: 'PHISHING'})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (f:Flag {type: 'PHISHING'})
 CREATE (e)-[:HAS_FLAG]->(f);
 
-MATCH (e:Email {messageId: 'email-005'}), (f:Flag {type: 'SAFE'})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (f:Flag {type: 'SAFE'})
 CREATE (e)-[:HAS_FLAG]->(f);
 
 // Link Emails to Scores
-MATCH (e:Email {messageId: 'email-001'}), (s:Score {value: 0.80})
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (s:Score {value: 0.80})
 CREATE (e)-[:HAS_Score]->(s);
 
-MATCH (e:Email {messageId: 'email-002'}), (s:Score {value: 0.95})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (s:Score {value: 0.95})
 CREATE (e)-[:HAS_Score]->(s);
 
-MATCH (e:Email {messageId: 'email-003'}), (s:Score {value: 0.15})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (s:Score {value: 0.15})
 CREATE (e)-[:HAS_Score]->(s);
 
-MATCH (e:Email {messageId: 'email-004'}), (s:Score {value: 0.95})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (s:Score {value: 0.95})
 CREATE (e)-[:HAS_Score]->(s);
 
-MATCH (e:Email {messageId: 'email-005'}), (s:Score {value: 0.10})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (s:Score {value: 0.10})
 CREATE (e)-[:HAS_Score]->(s);
 
 // Link Emails to Installation IDs
-MATCH (e:Email {messageId: 'email-001'}), (i:installationId {id: 'inst-001'})
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (i:installationId {id: 'inst-001'})
 CREATE (e)-[:OWNER]->(i);
 
-MATCH (e:Email {messageId: 'email-002'}), (i:installationId {id: 'inst-002'})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (i:installationId {id: 'inst-002'})
 CREATE (e)-[:OWNER]->(i);
 
-MATCH (e:Email {messageId: 'email-003'}), (i:installationId {id: 'inst-001'})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (i:installationId {id: 'inst-001'})
 CREATE (e)-[:OWNER]->(i);
 
-MATCH (e:Email {messageId: 'email-004'}), (i:installationId {id: 'inst-003'})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (i:installationId {id: 'inst-003'})
 CREATE (e)-[:OWNER]->(i);
 
-MATCH (e:Email {messageId: 'email-005'}), (i:installationId {id: 'inst-001'})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (i:installationId {id: 'inst-001'})
 CREATE (e)-[:OWNER]->(i);
 
 // Return summary

@@ -4,7 +4,7 @@ Harbour serves as the centralized database for collecting data from the rest of 
 
 ## Overview
 
-Harbour runs a Neo4j graph database instance using Docker Compose. This database acts as the central data collection point for the application.
+Harbour runs a Neo4j graph database instance and an API server using Docker Compose. The database acts as the central data collection point for the application, and the API server translates JSON payloads from the Chrome extension into Neo4j graph operations.
 
 ## Database Configuration
 
@@ -60,9 +60,17 @@ The database credentials are loaded from the `.env` file in the project root:
 
 These are used to configure `NEO4J_AUTH` in the format `${NEO4J_USERNAME}/${NEO4J_PASSWORD}`.
 
+## Services
+
+Harbour includes three services:
+
+1. **Neo4j Database**: Graph database for storing email data
+2. **NeoDash Dashboard**: Visualization dashboard for Neo4j
+3. **API Server**: REST API for receiving data from Chrome extension
+
 ## Accessing the UIs
 
-Once the Docker stack is running, you can access two user interfaces:
+Once the Docker stack is running, you can access the following interfaces:
 
 ### Neo4j Browser
 - **URL**: `http://localhost:7474`
@@ -76,6 +84,14 @@ Once the Docker stack is running, you can access two user interfaces:
   - **URI**: `bolt://localhost:7687`
   - **Username/Password**: Use your Neo4j credentials from the `.env` file
 - **Features**: Create dashboards with tables, graphs, bar charts, line charts, maps, and more
+
+### Harbour API Server
+- **URL**: `http://localhost:3000`
+- **Purpose**: REST API endpoint for receiving email data from Chrome extension
+- **Endpoints**:
+  - `POST /api/emails`: Receive and process email data
+  - `GET /health`: Health check endpoint
+- **Documentation**: See `api/README.md` for detailed API documentation
 
 ## Setup
 
@@ -95,9 +111,10 @@ Once the Docker stack is running, you can access two user interfaces:
    docker-compose up -d
    ```
 
-4. Access the UIs:
+4. Access the services:
    - Neo4j Browser: `http://localhost:7474`
    - NeoDash Dashboard: `http://localhost:5005`
+   - Harbour API: `http://localhost:3000`
 
 ## Loading Test Data
 
