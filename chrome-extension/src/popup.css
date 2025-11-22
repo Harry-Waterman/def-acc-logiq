@@ -1,0 +1,267 @@
+/* CSS Variables for Theming (Light Mode Default) */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #323130; /* Neutral Dark */
+  --border-color: #d1d1d1;
+  --input-bg: #ffffff;
+  --input-border: #8a8886;
+  --primary-color: #0078d4; /* Outlook Blue */
+  --primary-hover: #106ebe;
+  --primary-text: #ffffff;
+  --answer-bg: #f3f2f1; /* Light Gray */
+  --answer-text: #201f1e;
+  --secondary-text: #605e5c;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
+  --radius: 4px;
+}
+
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #292929; /* Dark Gray/Black */
+    --text-color: #ffffff;
+    --border-color: #484644;
+    --input-bg: #3b3a39;
+    --input-border: #8a8886;
+    --primary-color: #2899f5; /* Lighter Blue for Dark Mode */
+    --primary-hover: #4cb0f9;
+    --primary-text: #000000;
+    --answer-bg: #323130;
+    --answer-text: #f3f2f1;
+    --secondary-text: #a19f9d;
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-color);
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  background-color: var(--bg-color);
+  width: 100%;
+  min-width: 350px;
+  font-size: 14px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+p {
+  margin-bottom: 8px;
+}
+
+/* SCROLLBAR STYLING (Subtle) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+/* SELECT & INPUTS */
+#model-selection {
+  width: 100%;
+  padding: 6px 10px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* LOADING BAR */
+#loadingContainer {
+  margin: 10px 0 15px 0;
+  width: 100%;
+  height: 4px;
+  background-color: var(--border-color); /* Track color */
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* Text updates */
+#init-label, #model-name {
+  font-size: 12px;
+  color: var(--secondary-text);
+  margin-bottom: 4px;
+}
+
+/* CHECKBOX */
+label[for="disable-thinking"] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* INPUT AREA */
+.input-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+#query-input {
+  flex-grow: 1;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+#query-input:focus {
+  outline: 2px solid var(--primary-color);
+  border-color: transparent;
+}
+
+/* BUTTON */
+.btn {
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  border: none;
+  padding: 8px 16px;
+  transition: background-color 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn:disabled {
+  background-color: var(--border-color);
+  color: var(--secondary-text);
+  cursor: default;
+}
+
+/* LOADING DOTS (Update colors) */
+.stage {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+#loading-indicator {
+  display: none;
+}
+
+.dot-flashing {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 5px;
+  background-color: var(--primary-color);
+  color: var(--primary-color);
+  animation: dot-flashing 0.4s infinite linear alternate;
+  animation-delay: 0.2s;
+}
+
+.dot-flashing::before,
+.dot-flashing::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 5px;
+  background-color: var(--primary-color);
+  color: var(--primary-color);
+  animation: dot-flashing 0.4s infinite alternate;
+}
+
+.dot-flashing::before {
+  left: -12px;
+  animation-delay: 0s;
+}
+
+.dot-flashing::after {
+  left: 12px;
+  animation-delay: 0.4s;
+}
+
+@keyframes dot-flashing {
+  0% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* DEBUG BOX */
+#debug-status {
+  background-color: var(--answer-bg);
+  border-color: var(--border-color) !important;
+  color: var(--secondary-text) !important;
+}
+
+/* ANSWER AREA */
+#answerWrapper {
+  display: none;
+  background-color: var(--answer-bg);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-top: 16px;
+  box-shadow: var(--shadow);
+}
+
+#answer {
+  color: var(--answer-text);
+  line-height: 1.5;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+.copyRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+}
+
+#timestamp {
+  font-size: 11px;
+  color: var(--secondary-text);
+}
+
+.copyButton {
+  background-color: transparent;
+  color: var(--primary-color);
+  padding: 4px 8px;
+}
+
+.copyButton:hover {
+  background-color: rgba(0,0,0,0.05);
+  color: var(--primary-hover);
+}
+
+@media (prefers-color-scheme: dark) {
+  .copyButton:hover {
+    background-color: rgba(255,255,255,0.1);
+  }
+}
