@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 "use strict";
 
-// This code is partially adapted from the openai-chatgpt-chrome-extension repo:
-// https://github.com/jessedi0n/openai-chatgpt-chrome-extension
-
 import "./popup.css";
 
 import {
@@ -11,9 +8,7 @@ import {
   InitProgressReport,
   CreateMLCEngine,
   ChatCompletionMessageParam,
-  prebuiltAppConfig,
 } from "@mlc-ai/web-llm";
-import { Line } from "progressbar.js";
 
 // modified setLabel to not throw error
 function setLabel(id: string, text: string) {
@@ -31,14 +26,46 @@ function getElementAndCheck(id: string): HTMLElement {
   return element;
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const queryInput = getElementAndCheck("query-input")!;
-const submitButton = getElementAndCheck("submit-button")!;
 const modelName = getElementAndCheck("model-name");
 
+// SYSTEM_PROMPT adapted for email phishing classification with detailed multi-line guidelines
+const SYSTEM_PROMPT = `
+SYSTEM:
+You are an email security classifier.
+You receive:
+from address
+subject
+recipients
+attachment name
+urls
+body
+
+Your task: rate the email on a confidence score scale of 0-100 based on how many malicious indicators it has with 0 being benign and 100 being very confident the email is malicious
+
+Define  higher scores as emails that clearly try to:
+get money, bank details, card details, crypto, or account credentials
+promise large unexpected sums (lotteries, inheritances, business deals, investments, 419-style stories)
+get the user to click links or open files to fix, verify, unlock, or secure something
+impersonate banks, governments, large companies, or senior executives to pressure the user
+
+You must output ONLY valid JSON, no extra text:
+{
+  "score": "0-100",
+  "reasons": ["reason 1", "reason 2"]
+}
+
+Rules for "reasons":
+Select from the following list of reasons, pick as many that are relevant based on the context of the email; 
+["Suspicious Sender Address","Generic Greetings","Urgent or threatening language","Suspicious urls","suspicious attachment names","spelling and grammar mistakes", "too good to be true offers", "requests for personal information"]
+Do NOT output placeholders like "reason1" or "reason2".
+Do NOT copy reasons from the example; adapt them to the current email.
+IF the confidence score you have given the email is below 50 then you do not have to provide reasons 
+
+END_EXAMPLE
+NOW CLASSIFY THIS EMAIL:
+`;
+
 let context = "";
-let modelDisplayName = "";
 
 // throws runtime.lastError if you refresh extension AND try to access a webpage that is already open
 fetchPageContents();
@@ -56,294 +83,156 @@ function updateDebugStatus(msg: string, data?: string) {
   }
 }
 
+// Modified to trigger classification automatically
 function fetchPageContents() {
   updateDebugStatus("Attempting to connect to page...");
   chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-    if (!tabs[0].id) {
-      updateDebugStatus("Error: No active tab found.");
-      return;
-    }
+    if (!tabs[0].id) return;
     
     try {
       const port = chrome.tabs.connect(tabs[0].id, { name: "channelName" });
-      updateDebugStatus("Connected to page. Requesting content...");
-      
       port.postMessage({});
       
       port.onMessage.addListener(function (msg) {
         console.log("Page contents received:", msg.contents);
         context = msg.contents;
-        updateDebugStatus("Success! Metadata extracted.", msg.contents);
-      });
-      
-      // Add a fallback timeout in case content.js is dead
-      setTimeout(() => {
-        if (!context) {
-           updateDebugStatus("Timeout: No response from page. Try refreshing the Outlook tab.");
+        updateDebugStatus("Success! Metadata extracted.");
+        
+        // If engine is ready, start classification immediately
+        if (engine) {
+          classifyEmail();
+        } else {
+          modelName.innerText = "Content received. Waiting for model...";
         }
-      }, 2000);
-      
+      });
     } catch (e) {
        updateDebugStatus("Connection Failed: " + e);
     }
   });
 }
 
-(<HTMLButtonElement>submitButton).disabled = true;
-
-let progressBar: InstanceType<typeof Line> = new Line("#loadingContainer", {
-  strokeWidth: 4,
-  easing: "easeInOut",
-  duration: 1400,
-  color: "#ffd166",
-  trailColor: "#eee",
-  trailWidth: 1,
-  svgStyle: { width: "100%", height: "100%" },
-});
-
-let isLoadingParams = true;
-
 let initProgressCallback = (report: InitProgressReport) => {
+  // Just update the text
   setLabel("init-label", report.text);
-  progressBar.animate(report.progress, {
-    duration: 50,
-  });
+  
+  // Check for completion
   if (report.progress == 1.0) {
-    enableInputs();
+    setLabel("init-label", "Model Loaded ✅");
   }
 };
 
 // initially selected model
-let selectedModel = "Qwen2-0.5B-Instruct-q4f16_1-MLC";
-
-// populate model-selection
-const modelSelector = getElementAndCheck(
-  "model-selection",
-) as HTMLSelectElement;
-for (let i = 0; i < prebuiltAppConfig.model_list.length; ++i) {
-  const model = prebuiltAppConfig.model_list[i];
-  const opt = document.createElement("option");
-  opt.value = model.model_id;
-  opt.innerHTML = model.model_id;
-  opt.selected = false;
-
-  // set initial selection as the initially selected model
-  if (model.model_id == selectedModel) {
-    opt.selected = true;
-  }
-
-  modelSelector.appendChild(opt);
-}
+const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
 
 let engine: MLCEngineInterface;
 
 (async () => {
-  modelName.innerText = "Loading initial model...";
+  modelName.innerText = "Loading classifier model...";
+  
+  // Initialize engine
   engine = await CreateMLCEngine(selectedModel, {
     initProgressCallback: initProgressCallback,
   });
-  modelName.innerText = "Now chatting with " + modelDisplayName;
+  
+  modelName.innerText = "Model loaded. Waiting for email content...";
+  
+  // Check if we already have context (page might have loaded faster than model)
+  if (context) {
+    classifyEmail();
+  }
 })();
 
-let chatHistory: ChatCompletionMessageParam[] = [];
 
-function enableInputs() {
-  if (isLoadingParams) {
-    sleep(500);
-    isLoadingParams = false;
-  }
+// New function to handle classification
+async function classifyEmail() {
+  if (!context || !engine) return;
 
-  // remove loading bar and loading bar descriptors, if exists
-  const initLabel = document.getElementById("init-label");
-  initLabel?.remove();
-  const loadingBarContainer = document.getElementById("loadingContainer")!;
-  loadingBarContainer?.remove();
-  queryInput.focus();
-
-  const modelNameArray = selectedModel.split("-");
-  modelDisplayName = modelNameArray[0];
-  let j = 1;
-  while (j < modelNameArray.length && modelNameArray[j][0] != "q") {
-    modelDisplayName = modelDisplayName + "-" + modelNameArray[j];
-    j++;
-  }
-}
-
-let requestInProgress = false;
-
-// Disable submit button if input field is empty
-queryInput.addEventListener("keyup", () => {
-  if (
-    (<HTMLInputElement>queryInput).value === "" ||
-    requestInProgress ||
-    isLoadingParams
-  ) {
-    (<HTMLButtonElement>submitButton).disabled = true;
-  } else {
-    (<HTMLButtonElement>submitButton).disabled = false;
-  }
-});
-
-// If user presses enter, click submit button
-queryInput.addEventListener("keyup", (event) => {
-  if (event.code === "Enter") {
-    event.preventDefault();
-    submitButton.click();
-  }
-});
-
-// Listen for clicks on submit button
-async function handleClick() {
-  requestInProgress = true;
-  (<HTMLButtonElement>submitButton).disabled = true;
-
-  // Get the message from the input field
-  const message = (<HTMLInputElement>queryInput).value;
-  console.log("message", message);
-  // Clear the answer
-  document.getElementById("answer")!.innerHTML = "";
-  // Hide the answer
-  document.getElementById("answerWrapper")!.style.display = "none";
-  // Show the loading indicator
+  modelName.innerText = "Classifying email...";
   document.getElementById("loading-indicator")!.style.display = "block";
+  document.getElementById("resultWrapper")!.style.display = "none";
 
-  // Generate response
-  let inp = message;
-  if (context.length > 0) {
-    inp =
-      "Use only the following context when answering the question at the end. Don't use any other knowledge.\n" +
-      context +
-      "\n\nQuestion: " +
-      message +
-      "\n\nHelpful Answer: ";
-  }
-  console.log("Input:", inp);
-  chatHistory.push({ role: "user", content: inp });
+  const messages: ChatCompletionMessageParam[] = [
+    { role: "system", content: SYSTEM_PROMPT },
+    { role: "user", content: `Analyze this email:\n${context}` }
+  ];
 
-  let curMessage = "";
-  // Check if the user wants to disable thinking
-  const disableThinkingCheckbox = document.getElementById(
-    "disable-thinking",
-  ) as HTMLInputElement;
-  const shouldDisableThinking = disableThinkingCheckbox
-    ? disableThinkingCheckbox.checked
-    : false;
 
-  const completion = await engine.chat.completions.create({
-    stream: true,
-    messages: chatHistory,
-    extra_body: {
-      enable_thinking: !shouldDisableThinking,
-    },
-  });
-  for await (const chunk of completion) {
-    const curDelta = chunk.choices[0].delta.content;
-    if (curDelta) {
-      curMessage += curDelta;
-    }
-    updateAnswer(curMessage);
-  }
-  const response = await engine.getMessage();
-  chatHistory.push({ role: "assistant", content: await engine.getMessage() });
-  console.log("response", response);
+  console.log("Messages:", messages);
+  // Read the disable-thinking checkbox
+  const disableThinkingCheckbox = document.getElementById("disable-thinking") as HTMLInputElement;
+  const shouldDisableThinking = disableThinkingCheckbox ? disableThinkingCheckbox.checked : false;
 
-  requestInProgress = false;
-  (<HTMLButtonElement>submitButton).disabled = false;
-}
-submitButton.addEventListener("click", handleClick);
-
-// listen for changes in modelSelector
-async function handleSelectChange() {
-  if (isLoadingParams) {
-    return;
-  }
-
-  modelName.innerText = "";
-
-  const initLabel = document.createElement("p");
-  initLabel.id = "init-label";
-  initLabel.innerText = "Initializing model...";
-  const loadingContainer = document.createElement("div");
-  loadingContainer.id = "loadingContainer";
-
-  const loadingBox = getElementAndCheck("loadingBox");
-  loadingBox.appendChild(initLabel);
-  loadingBox.appendChild(loadingContainer);
-
-  isLoadingParams = true;
-  (<HTMLButtonElement>submitButton).disabled = true;
-
-  if (requestInProgress) {
-    engine.interruptGenerate();
-  }
-  engine.resetChat();
-  chatHistory = [];
-  await engine.unload();
-
-  selectedModel = modelSelector.value;
-
-  progressBar = new Line("#loadingContainer", {
-    strokeWidth: 4,
-    easing: "easeInOut",
-    duration: 1400,
-    color: "#ffd166",
-    trailColor: "#eee",
-    trailWidth: 1,
-    svgStyle: { width: "100%", height: "100%" },
-  });
-
-  initProgressCallback = (report: InitProgressReport) => {
-    setLabel("init-label", report.text);
-    progressBar.animate(report.progress, {
-      duration: 50,
+  try {
+    const completion = await engine.chat.completions.create({
+      stream: false, 
+      messages: messages,
+      temperature: 0.1, // <--- Add this line to reduce randomness
+      response_format: { type: "json_object" },
+      extra_body: {
+        enable_thinking: !shouldDisableThinking,
+      },
     });
-    if (report.progress == 1.0) {
-      enableInputs();
+
+    let resultText = completion.choices[0].message.content || "{}"; // changed const to let
+    console.log("Raw LLM Response:", resultText);
+    
+    // Remove <think>...</think> blocks if they exist
+    resultText = resultText.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+
+    try {
+      const result = JSON.parse(resultText);
+      displayResult(result, resultText);
+    } catch (e) {
+      console.error("JSON Parse Error", e);
+      displayResult({ score: "Error", reasons: ["Failed to parse LLM response"] }, resultText);
     }
-  };
 
-  engine.setInitProgressCallback(initProgressCallback);
-
-  requestInProgress = true;
-  modelName.innerText = "Reloading with new model...";
-  await engine.reload(selectedModel);
-  requestInProgress = false;
-  modelName.innerText = "Now chatting with " + modelDisplayName;
-}
-modelSelector.addEventListener("change", handleSelectChange);
-
-// Listen for messages from the background script
-chrome.runtime.onMessage.addListener(({ answer, error }) => {
-  if (answer) {
-    updateAnswer(answer);
+  } catch (err) {
+    console.error("Classification Error:", err);
+    modelName.innerText = "Error classifying email.";
+  } finally {
+    document.getElementById("loading-indicator")!.style.display = "none";
+    modelName.innerText = "Classification complete.";
   }
-});
+}
 
-function updateAnswer(answer: string) {
-  // Show answer
-  document.getElementById("answerWrapper")!.style.display = "block";
-  const answerWithBreaks = answer.replace(/\n/g, "<br>");
-  document.getElementById("answer")!.innerHTML = answerWithBreaks;
-  // Add event listener to copy button
-  document.getElementById("copyAnswer")!.addEventListener("click", () => {
-    // Get the answer text
-    const answerText = answer;
-    // Copy the answer text to the clipboard
-    navigator.clipboard
-      .writeText(answerText)
-      .then(() => console.log("Answer text copied to clipboard"))
-      .catch((err) => console.error("Could not copy text: ", err));
-  });
-  const options: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  };
-  const time = new Date().toLocaleString("en-US", options);
-  // Update timestamp
-  document.getElementById("timestamp")!.innerText = time;
-  // Hide loading indicator
-  document.getElementById("loading-indicator")!.style.display = "none";
+function displayResult(data: any, rawText: string) {
+  const wrapper = document.getElementById("resultWrapper")!;
+  const scoreDisplay = document.getElementById("score-display")!;
+  const reasonsList = document.getElementById("reasons-list")!;
+  const rawJson = document.getElementById("raw-json")!;
+
+  wrapper.style.display = "block";
+  
+  // Basic styling based on score
+  const score = parseInt(data.score) || 0;
+  if (score > 70) {
+    wrapper.style.backgroundColor = "#ffebee"; // Red-ish
+    wrapper.style.border = "1px solid #ef9a9a";
+    scoreDisplay.style.color = "#c62828";
+    scoreDisplay.innerText = `⚠️ Malicious (Score: ${score})`;
+  } else if (score > 30) {
+    wrapper.style.backgroundColor = "#fff3e0"; // Orange-ish
+    wrapper.style.border = "1px solid #ffe0b2";
+    scoreDisplay.style.color = "#ef6c00";
+    scoreDisplay.innerText = `⚠️ Suspicious (Score: ${score})`;
+  } else {
+    wrapper.style.backgroundColor = "#e8f5e9"; // Green-ish
+    wrapper.style.border = "1px solid #c8e6c9";
+    scoreDisplay.style.color = "#2e7d32";
+    scoreDisplay.innerText = `✅ Benign (Score: ${score})`;
+  }
+
+  // Render reasons
+  reasonsList.innerHTML = "";
+  if (data.reasons && Array.isArray(data.reasons)) {
+    data.reasons.forEach((r: string) => {
+      const li = document.createElement("li");
+      li.innerText = r;
+      reasonsList.appendChild(li);
+    });
+  }
+
+  // Debug raw output
+  rawJson.innerText = "Raw Output:\n" + rawText;
 }

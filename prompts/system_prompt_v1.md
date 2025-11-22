@@ -32,22 +32,22 @@ IF the confidence score you have given the email is below 50 then you do not hav
 EXAMPLE (NON-MALICIOUS):
 INPUT:
 {
-  "from_address": "news@trustedshop.com",
-  "subject": "Your order has been shipped",
-  "recipients": ["you@example.com"],
-  "body": "Hi Harry, your parcel is on its way. Track it in your account dashboard. If you have any questions, reply to this email."
+  "subject": "[example-user/example-repo] Email Dataset discovery (Issue #6)",
+  "sender": {
+    "displayName": "ExampleUser",
+    "email": "notifications@example.com"
+  },
+  "recipients": "example-user/example-repo <example-repo@noreply.example.com>",
+  "urls": [
+    "https://example.com/example-user/example-repo/issues/6#issuecomment-1234567890",
+    "https://example.com/notifications/unsubscribe-auth/EXAMPLEUNSUBSCRIBE1234567890"
+  ],
+  "attachments": ["example_file.pdf"],
+  "body": "ExampleUser\nleft a comment\n(example-user/example-repo#6)\n\nAdded dataset.\nCan add more examples for legitimate emails if required (e.g. current dataset may not be fully representative).\n\n—\nReply to this email directly, view it on the project site, or unsubscribe.\nYou are receiving this because you authored the thread."
 }
 OUTPUT:
 {
   "score": "0",
 }
 END_EXAMPLE
-NOW CLASSIFY THIS EMAIL.
-INPUT:
-{
-  "from_address": "",
-  "subject": "",
-  "recipients": [""],
-  "body": ""
-}
-END_INPUT
+NOW CLASSIFY THIS EMAIL:

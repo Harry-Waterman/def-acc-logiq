@@ -10,16 +10,14 @@
     />
   </head>
   <body>
-    <select id="model-selection"></select>
     <div style="margin: 10px 0;">
       <label for="disable-thinking" style="font-family: sans-serif; font-size: 14px;">
-        <input type="checkbox" id="disable-thinking" />
+        <input type="checkbox" id="disable-thinking" checked />
         Disable Thinking
       </label>
     </div>
     <div id="loadingBox">
       <p id="init-label">Initializing model...</p>
-      <div id="loadingContainer"></div>
     </div>
     
     <!-- New Debug Status Area -->
@@ -28,22 +26,19 @@
     </div>
 
     <p id="model-name"></p>
-    <div class="input-container form-group">
-      <input
-        type="search"
-        id="query-input"
-        placeholder="What's on your mind?"
-      />
-      <button id="submit-button" class="btn">
-        <i class="fa fa-comments"></i>
-      </button>
-    </div>
-
+  
     <div class="stage">
-      <div id="loading-indicator" class="dot-flashing"></div>
+      <div id="loading-indicator" class="dot-flashing" style="display: none;"></div>
     </div>
 
-    <div id="answerWrapper">
+    <!-- Classification Result Area -->
+    <div id="resultWrapper" style="display: none; padding: 15px; border-radius: 8px; margin-top: 10px;">
+      <h2 id="score-display" style="margin: 0 0 10px 0;"></h2>
+      <ul id="reasons-list" style="padding-left: 20px; margin: 0;"></ul>
+      <div id="raw-json" style="font-family: monospace; font-size: 10px; margin-top: 10px; color: #666; white-space: pre-wrap;"></div>
+    </div>
+
+    <div id="answerWrapper" style="display: none;">
       <div id="answer"></div>
       <div class="copyRow">
         <span id="timestamp"></span>
