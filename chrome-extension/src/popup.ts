@@ -6,7 +6,6 @@ import "./popup.css";
 import {
   MLCEngineInterface,
   InitProgressReport,
-  CreateExtensionServiceWorkerMLCEngine, // CHANGE THIS
   ChatCompletionMessageParam,
 } from "@mlc-ai/web-llm";
 
