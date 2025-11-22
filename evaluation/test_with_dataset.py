@@ -1,7 +1,8 @@
 """
-Test evaluation module with actual CSV dataset.
+Test evaluation module with the Nigerian Fraud email dataset.
 
-This script loads the actual phishing email dataset and tests model outputs against it.
+This script loads the dataset (sender/receiver/date/subject/body/urls/label) and
+tests model outputs against it.
 """
 
 import sys
@@ -18,6 +19,35 @@ from evaluation.config import DATASET_CONFIG, LABEL_MAPPING, LABELS, EXAMPLE_REA
 
 # Dataset path from config
 DATASET_PATH = parent_dir / DATASET_CONFIG["path"]
+EMAIL_FIELDS = DATASET_CONFIG.get("email_fields", [])
+TEXT_FIELDS = DATASET_CONFIG.get("text_fields") or [DATASET_CONFIG["text_column"]]
+
+
+def build_email_text(row):
+    """Combine relevant text fields (subject/body) into a single string."""
+    parts = []
+    for field in TEXT_FIELDS:
+        if field in row and pd.notna(row[field]):
+            value = str(row[field]).strip()
+            if value:
+                parts.append(value)
+    if not parts and DATASET_CONFIG["text_column"] in row and pd.notna(row[DATASET_CONFIG["text_column"]]):
+        parts.append(str(row[DATASET_CONFIG["text_column"]]).strip())
+    return " ".join(parts)
+
+
+def print_email_metadata(row):
+    """Pretty-print configured email fields."""
+    for field in EMAIL_FIELDS:
+        value = row.get(field, "") if hasattr(row, "get") else row[field]
+        if pd.isna(value):
+            continue
+        value_str = str(value).strip()
+        if not value_str:
+            continue
+        if field == "body" and len(value_str) > 120:
+            value_str = f"{value_str[:120]}..."
+        print(f"  {field.title()}: {value_str}")
 
 def load_sample_data(n_samples=10):
     """Load a balanced sample of data from the dataset."""
@@ -31,13 +61,20 @@ def load_sample_data(n_samples=10):
     
     # Get balanced sample (half phishing, half legitimate)
     label_col = DATASET_CONFIG['label_column']
-    phishing_samples = df_full[df_full[label_col] == 1].head(n_samples // 2)
-    legitimate_samples = df_full[df_full[label_col] == 0].head(n_samples // 2)
+    half = max(1, n_samples // 2)
+    phishing_samples = df_full[df_full[label_col] == 1].head(half)
+    legitimate_samples = df_full[df_full[label_col] == 0].head(half)
     
-    # Combine and shuffle
-    df = pd.concat([phishing_samples, legitimate_samples]).sample(frac=1).reset_index(drop=True)
+    balanced = len(phishing_samples) > 0 and len(legitimate_samples) > 0
+    if not balanced:
+        print("Warning: Could not find balanced classes; sampling consecutive rows instead.")
+        df = df_full.head(n_samples)
+    else:
+        # Combine and shuffle
+        df = pd.concat([phishing_samples, legitimate_samples]).sample(frac=1).reset_index(drop=True)
     
-    print(f"Loaded {len(df)} samples (balanced)")
+    status = "balanced" if balanced else "unbalanced"
+    print(f"Loaded {len(df)} samples ({status})")
     print(f"Columns: {df.columns.tolist()}")
     print(f"Label distribution:\n{df[label_col].value_counts()}")
     
@@ -54,7 +91,7 @@ def create_sample_model_outputs(df):
     
     for idx, row in df.iterrows():
         label = row[DATASET_CONFIG['label_column']]
-        text = row[DATASET_CONFIG['text_column']]
+        text = build_email_text(row)
         
         # Simulate model prediction based on label (in real use, model would analyze text)
         # For testing, we'll create some correct and some incorrect predictions
@@ -98,11 +135,11 @@ def main():
     print("Sample Data Preview:")
     print("-" * 60)
     label_col = DATASET_CONFIG['label_column']
-    text_col = DATASET_CONFIG['text_column']
     for i in range(min(3, len(df))):
         label = df.iloc[i][label_col]
-        text = df.iloc[i][text_col]
+        text = build_email_text(df.iloc[i])
         print(f"\nSample {i+1}:")
+        print_email_metadata(df.iloc[i])
         print(f"  Label: {label} ({LABEL_MAPPING[label]})")
         print(f"  Text preview: {text[:100]}...")
     
@@ -135,7 +172,9 @@ def main():
     
     for i in range(min(5, len(model_outputs))):
         print(f"\nSample {i+1}:")
-        print(f"  Email text: {df.iloc[i][DATASET_CONFIG['text_column']][:80]}...")
+        email_row = df.iloc[i]
+        print_email_metadata(email_row)
+        print(f"  Email text: {build_email_text(email_row)[:80]}...")
         is_correct, details = evaluate_model_response(
             model_outputs[i],
             ground_truth_labels[i]

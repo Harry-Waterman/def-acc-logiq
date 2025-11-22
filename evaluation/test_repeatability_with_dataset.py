@@ -1,8 +1,8 @@
 """
-Test repeatability benchmark with actual dataset.
+Test the repeatability benchmark with the Nigerian Fraud email dataset.
 
-This script loads emails from the dataset and tests model repeatability
-on real email inputs.
+Loads sender/receiver/date/subject/body/urls/label columns and assesses
+how consistently the sample model classifies the same email input.
 """
 
 import sys
@@ -20,6 +20,35 @@ from evaluation.config import DATASET_CONFIG, LABELS, EXAMPLE_REASONS, EVALUATIO
 
 # Dataset path from config
 DATASET_PATH = parent_dir / DATASET_CONFIG["path"]
+EMAIL_FIELDS = DATASET_CONFIG.get("email_fields", [])
+TEXT_FIELDS = DATASET_CONFIG.get("text_fields") or [DATASET_CONFIG["text_column"]]
+
+
+def build_email_text(row):
+    """Combine relevant text fields into a single string for model input."""
+    parts = []
+    for field in TEXT_FIELDS:
+        if field in row and pd.notna(row[field]):
+            value = str(row[field]).strip()
+            if value:
+                parts.append(value)
+    if not parts and DATASET_CONFIG["text_column"] in row and pd.notna(row[DATASET_CONFIG["text_column"]]):
+        parts.append(str(row[DATASET_CONFIG["text_column"]]).strip())
+    return " ".join(parts)
+
+
+def print_email_metadata(record):
+    """Pretty-print configured email fields for repeatability samples."""
+    for field in EMAIL_FIELDS:
+        value = record.get(field, "")
+        if pd.isna(value):
+            continue
+        value_str = str(value).strip()
+        if not value_str:
+            continue
+        if field == "body" and len(value_str) > 120:
+            value_str = f"{value_str[:120]}..."
+        print(f"  {field.title()}: {value_str}")
 
 
 def sample_model_with_variation(input_text):
@@ -65,17 +94,31 @@ def sample_model_with_variation(input_text):
 
 
 def load_sample_emails(n_samples=5):
-    """Load a sample of emails from the dataset."""
+    """Load a sample of emails (with metadata) from the dataset."""
     if not DATASET_PATH.exists():
         raise FileNotFoundError(f"Dataset not found at {DATASET_PATH}")
     
     # Load balanced sample
     df_full = pd.read_csv(DATASET_PATH)
+    label_col = DATASET_CONFIG['label_column']
+    half = max(1, n_samples // 2)
+    phishing_rows = df_full[df_full[label_col] == 1].head(half)
+    legitimate_rows = df_full[df_full[label_col] == 0].head(half)
     
-    phishing_samples = df_full[df_full[DATASET_CONFIG['label_column']] == 1][DATASET_CONFIG['text_column']].head(n_samples // 2).tolist()
-    legitimate_samples = df_full[df_full[DATASET_CONFIG['label_column']] == 0][DATASET_CONFIG['text_column']].head(n_samples // 2).tolist()
+    if len(phishing_rows) == 0 or len(legitimate_rows) == 0:
+        print("Warning: Could not find balanced classes; sampling consecutive rows instead.")
+        samples = df_full.head(n_samples).reset_index(drop=True)
+    else:
+        samples = pd.concat([phishing_rows, legitimate_rows]).sample(frac=1).reset_index(drop=True)
     
-    return phishing_samples + legitimate_samples
+    records = []
+    for _, row in samples.iterrows():
+        record = {field: row.get(field, "") for field in EMAIL_FIELDS if field in row}
+        record[label_col] = row[label_col]
+        record["text"] = build_email_text(row)
+        records.append(record)
+    
+    return records
 
 
 def main():
@@ -100,12 +143,13 @@ def main():
     for i, email in enumerate(sample_emails):
         print(f"\n{'='*60}")
         print(f"Email {i+1}:")
-        print(f"Preview: {email[:100]}...")
+        print_email_metadata(email)
+        print(f"Preview: {email['text'][:100]}...")
         print(f"{'='*60}")
         
         result = assess_repeatability(
             sample_model_with_variation,
-            email,
+            email["text"],
             num_runs=EVALUATION_CONFIG["default_num_runs"]
         )
         
@@ -118,7 +162,7 @@ def main():
     
     benchmark_result = benchmark_repeatability(
         sample_model_with_variation,
-        sample_emails,
+        [email["text"] for email in sample_emails],
         num_runs=EVALUATION_CONFIG["default_num_runs"]
     )
     

@@ -43,9 +43,13 @@ EXAMPLE_REASONS = {
 
 # Dataset configuration
 DATASET_CONFIG = {
-    "path": "dataset/phishing_email.csv",
+    "path": "dataset/Nigerian_Fraud.csv",
     "label_column": "label",
-    "text_column": "text_combined"
+    "text_column": "body",
+    # Ordered list of key email fields available in the dataset
+    "email_fields": ["sender", "receiver", "date", "subject", "body", "urls"],
+    # Fields that should be combined to produce the text passed to the model
+    "text_fields": ["subject", "body"]
 }
 
 # Evaluation configuration

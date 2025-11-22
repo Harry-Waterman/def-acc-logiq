@@ -45,13 +45,18 @@ print_repeatability_report(repeatability_result)
 
 ## Dataset
 
-**Location**: `dataset/phishing_email.csv` (not committed to git)
+**Location**: `dataset/Nigerian_Fraud.csv` (not committed to git)
 
 **Format**: CSV with columns:
-- `text_combined`: Email text content
-- `label`: 0 (legitimate) or 1 (phishing)
+- `sender`
+- `receiver`
+- `date`
+- `subject`
+- `body`
+- `urls`
+- `label` (0 = legitimate, 1 = phishing)
 
-**Download**: https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset
+**Source**: Nigerian Fraud email dataset (loaded locally in `dataset/Nigerian_Fraud.csv`)
 
 ## Accuracy Evaluation
 
@@ -82,7 +87,7 @@ from evaluation import evaluate_from_dataset, print_evaluation_report
 
 results = evaluate_from_dataset(
     model_outputs=your_predictions,
-    dataset_path="dataset/phishing_email.csv",
+    dataset_path="dataset/Nigerian_Fraud.csv",
     label_column="label",
     label_mapping={0: "not_malicious", 1: "malicious"}
 )
