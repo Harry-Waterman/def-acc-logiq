@@ -15,7 +15,10 @@ const openExtensionPopup = () => {
     return;
   }
 
-  const conversationContainer = document.querySelector('[data-app-section="ConversationContainer"]');
+  // Try to find either the ConversationContainer or ItemContainer (for single message view)
+  const conversationContainer = document.querySelector(
+    '[data-app-section="ConversationContainer"], [data-app-section="ItemContainer"]'
+  );
   
   if (conversationContainer && conversationContainer.parentElement) {
     const iframe = document.createElement("iframe");
