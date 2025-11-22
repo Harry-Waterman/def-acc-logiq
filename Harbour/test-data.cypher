@@ -18,6 +18,29 @@ CREATE (a3:Address {email: 'phisher@suspicious-site.net'})
 CREATE (a4:Address {email: 'user@trusted-service.io'})
 CREATE (a5:Address {email: 'victim@example.com'});
 
+// Create DisplayNames
+CREATE (dn1:DisplayName {name: 'John Sender'})
+CREATE (dn2:DisplayName {name: 'Legitimate Company Support'})
+CREATE (dn3:DisplayName {name: 'Security Alert'})
+CREATE (dn4:DisplayName {name: 'Trusted Service Team'})
+CREATE (dn5:DisplayName {name: 'Jane Victim'});
+
+// Link Addresses to DisplayNames
+MATCH (a:Address {email: 'sender@example.com'}), (dn:DisplayName {name: 'John Sender'})
+CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
+
+MATCH (a:Address {email: 'recipient@legitimate-company.org'}), (dn:DisplayName {name: 'Legitimate Company Support'})
+CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
+
+MATCH (a:Address {email: 'phisher@suspicious-site.net'}), (dn:DisplayName {name: 'Security Alert'})
+CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
+
+MATCH (a:Address {email: 'user@trusted-service.io'}), (dn:DisplayName {name: 'Trusted Service Team'})
+CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
+
+MATCH (a:Address {email: 'victim@example.com'}), (dn:DisplayName {name: 'Jane Victim'})
+CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
+
 // Link Addresses to Domains
 MATCH (a:Address {email: 'sender@example.com'}), (d:Domain {name: 'example.com'})
 CREATE (a)-[:HAS_DOMAIN]->(d);
@@ -91,7 +114,7 @@ MATCH (u:userId {id: 'user-003'}), (i:installationId {id: 'inst-003'})
 CREATE (u)-[:INSTALLED_BY]->(i);
 
 // Create Emails
-// Email IDs are generated from from|to|dateTime hash
+// Email IDs are generated from sender|recipients|dateTime hash
 // e1: sender@example.com | recipient@legitimate-company.org | 2024-01-15T10:30:00Z
 CREATE (e1:Email {
     id: 'a1b2c3d4e5f6g7h8',
@@ -218,6 +241,7 @@ CREATE (e)-[:OWNER]->(i);
 RETURN 'Test data created successfully!' AS message,
        count{(n:Email)} AS emails,
        count{(n:Address)} AS addresses,
+       count{(n:DisplayName)} AS displayNames,
        count{(n:Domain)} AS domains,
        count{(n:Url)} AS urls,
        count{(n:Flag)} AS flags,

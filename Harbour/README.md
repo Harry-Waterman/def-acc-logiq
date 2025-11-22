@@ -116,14 +116,16 @@ All Harbour services run within a Docker bridge network called `harbour-network`
 
 The Chrome extension sends email data as JSON payloads to the API server:
 
-```javascript
+```http
 POST http://localhost:3000/api/emails
 Content-Type: application/json
 
 {
-  "from": "sender@example.com",
-  "to": ["recipient@example.com"],
-  "dateTime": "2024-01-15T10:30:00Z",
+  "sender": "sender@example.com",
+  "displayName": "Sender",
+  "recipients": ["recipient@example.com"],
+  "dateTime": "Thu 11/13/2025 4:46 PM",
+  "attachments": [file.txt],
   "urls": ["https://example.com/link"],
   "flags": ["REQUESTING MONEY"],
   "score": 0.95,
