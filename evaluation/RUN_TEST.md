@@ -1,22 +1,15 @@
 # Running the Test Script
 
-## From the project root (D:\matth\def-acc-hackathon):
+## From the project root (def-acc-logiq directory):
 
 ```bash
-python def-acc-logiq/evaluation/test_evaluation.py
-```
-
-## From the def-acc-logiq directory:
-
-```bash
-cd def-acc-logiq
 python evaluation/test_evaluation.py
 ```
 
 ## From the evaluation directory:
 
 ```bash
-cd def-acc-logiq/evaluation
+cd evaluation
 python test_evaluation.py
 ```
 
