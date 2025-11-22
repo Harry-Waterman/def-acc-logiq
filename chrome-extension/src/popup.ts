@@ -43,6 +43,52 @@ let modelDisplayName = "";
 // throws runtime.lastError if you refresh extension AND try to access a webpage that is already open
 fetchPageContents();
 
+function updateDebugStatus(msg: string, data?: string) {
+  const statusDiv = document.getElementById("debug-status");
+  if (statusDiv) {
+    statusDiv.style.display = "block";
+    statusDiv.innerText = msg;
+    if (data) {
+       // Show full data, but in a scrollable way if needed via CSS
+       statusDiv.innerText += "\n\nData:\n" + data;
+       console.log("Full Context Data:", data);
+    }
+  }
+}
+
+function fetchPageContents() {
+  updateDebugStatus("Attempting to connect to page...");
+  chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+    if (!tabs[0].id) {
+      updateDebugStatus("Error: No active tab found.");
+      return;
+    }
+    
+    try {
+      const port = chrome.tabs.connect(tabs[0].id, { name: "channelName" });
+      updateDebugStatus("Connected to page. Requesting content...");
+      
+      port.postMessage({});
+      
+      port.onMessage.addListener(function (msg) {
+        console.log("Page contents received:", msg.contents);
+        context = msg.contents;
+        updateDebugStatus("Success! Metadata extracted.", msg.contents);
+      });
+      
+      // Add a fallback timeout in case content.js is dead
+      setTimeout(() => {
+        if (!context) {
+           updateDebugStatus("Timeout: No response from page. Try refreshing the Outlook tab.");
+        }
+      }, 2000);
+      
+    } catch (e) {
+       updateDebugStatus("Connection Failed: " + e);
+    }
+  });
+}
+
 (<HTMLButtonElement>submitButton).disabled = true;
 
 let progressBar: ProgressBar = new Line("#loadingContainer", {
@@ -171,9 +217,20 @@ async function handleClick() {
   chatHistory.push({ role: "user", content: inp });
 
   let curMessage = "";
+  // Check if the user wants to disable thinking
+  const disableThinkingCheckbox = document.getElementById(
+    "disable-thinking",
+  ) as HTMLInputElement;
+  const shouldDisableThinking = disableThinkingCheckbox
+    ? disableThinkingCheckbox.checked
+    : false;
+
   const completion = await engine.chat.completions.create({
     stream: true,
     messages: chatHistory,
+    extra_body: {
+      enable_thinking: !shouldDisableThinking,
+    },
   });
   for await (const chunk of completion) {
     const curDelta = chunk.choices[0].delta.content;
@@ -285,15 +342,4 @@ function updateAnswer(answer: string) {
   document.getElementById("timestamp")!.innerText = time;
   // Hide loading indicator
   document.getElementById("loading-indicator")!.style.display = "none";
-}
-
-function fetchPageContents() {
-  chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-    const port = chrome.tabs.connect(tabs[0].id, { name: "channelName" });
-    port.postMessage({});
-    port.onMessage.addListener(function (msg) {
-      console.log("Page contents:", msg.contents);
-      context = msg.contents;
-    });
-  });
 }
