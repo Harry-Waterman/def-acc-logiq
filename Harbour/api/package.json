@@ -1,0 +1,25 @@
+{
+  "name": "harbour-api",
+  "version": "1.0.0",
+  "description": "API server for Harbour to translate Chrome extension JSON payloads to Neo4j",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "neo4j",
+    "api",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "neo4j-driver": "^5.15.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+}
+

@@ -1,3 +1,6 @@
+# Environments
+.env
+
 # Dependencies
 node_modules/
 .pnp
@@ -26,3 +29,17 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Dataset files (should be downloaded separately from Kaggle)
+dataset/*.csv
+dataset/*.json
+dataset/*.xlsx
+dataset/*.parquet
+dataset/data/
+dataset/raw/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
