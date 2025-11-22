@@ -36,4 +36,10 @@ dataset/*.xlsx
 dataset/*.parquet
 dataset/data/
 dataset/raw/
-!dataset/dataset-investigation
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
