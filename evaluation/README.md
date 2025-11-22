@@ -147,6 +147,33 @@ python evaluation/test_repeatability_with_dataset.py
 ```
 Tests repeatability with actual dataset emails.
 
+## Node.js Benchmark App
+
+The `evaluation/node-app` package provides an Express server and CLI to run the
+LLM against the CSV datasets instead of live Outlook traffic.
+
+### Features
+- Load emails from any CSV that matches the configured schema
+- Run the model N times per email to measure accuracy and repeatability
+- REST endpoint (`POST /api/benchmark/run`) for automation
+- CLI helper: `npm run benchmark -- --sampleSize 10 --numRuns 50`
+
+### Setup
+```bash
+cd evaluation/node-app
+npm install
+cp env.example .env            # optional overrides
+npm run dev                    # starts http://localhost:4100
+```
+
+You can either run the evaluator directly (requires you to start an `mlc-llm serve ...` process)
+or use the bundled Docker Compose file (`evaluation/node-app/docker-compose.yml`) which launches an
+mlc-llm container plus the evaluator in one command. See the node-app README for details.
+
+By default the service calls an external [mlc-llm](https://github.com/mlc-ai/mlc-llm) REST server hosting
+the same Qwen model + system prompt used by the Chrome extension. That keeps the evaluator in sync with
+the real inference pipeline without needing a browser runtime.
+
 ## Integration
 
 ### Model Output Format

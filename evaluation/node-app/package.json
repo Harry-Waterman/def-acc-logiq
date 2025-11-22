@@ -1,0 +1,32 @@
+{
+  "name": "evaluation-node-app",
+  "version": "0.1.0",
+  "description": "Dataset-driven benchmarking server for the phishing classifier",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "dev": "nodemon --watch src --ext js,mjs ./src/server.js",
+    "benchmark": "node ./src/cli/run-benchmark.js"
+  },
+  "keywords": [
+    "evaluation",
+    "benchmark",
+    "mlc",
+    "phishing"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "type": "module",
+  "dependencies": {
+    "csv-parse": "^6.1.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "pino": "^10.1.0",
+    "yargs": "^18.0.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11",
+    "pino-pretty": "^13.1.2"
+  }
+}
