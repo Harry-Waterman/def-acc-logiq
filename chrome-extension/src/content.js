@@ -1,4 +1,108 @@
 // Only the content script is able to access the DOM
+const SCAN_BUTTON_ID = "webllm-scan-button";
+
+const isOutlookHost = () => {
+  const host = window.location.hostname || "";
+  return /outlook|office/i.test(host);
+};
+
+const openExtensionPopup = () => {
+  const popupUrl = chrome.runtime.getURL("popup.html");
+  window.open(
+    popupUrl,
+    "_blank",
+    "noopener,noreferrer,width=480,height=720",
+  );
+};
+
+const findCommandBar = () => {
+  const selectors = [
+    '[data-automationid="CommandBar"]',
+    '[aria-label="Message actions"]',
+    '[aria-label*="message actions" i]',
+    '[role="toolbar"][aria-label*="actions" i]',
+    '[data-log-name="ReadingPaneToolbar"]',
+  ];
+
+  const candidates = [];
+  for (const sel of selectors) {
+    document.querySelectorAll(sel).forEach((node) => candidates.push(node));
+  }
+  if (candidates.length === 0) return null;
+
+  candidates.sort((a, b) => {
+    const rectA = a.getBoundingClientRect();
+    const rectB = b.getBoundingClientRect();
+    const topA = Number.isFinite(rectA.top) ? rectA.top : Number.POSITIVE_INFINITY;
+    const topB = Number.isFinite(rectB.top) ? rectB.top : Number.POSITIVE_INFINITY;
+    return topA - topB;
+  });
+  return candidates[0];
+};
+
+const ensureScanButton = () => {
+  if (!isOutlookHost()) return;
+  if (document.getElementById(SCAN_BUTTON_ID)) return;
+
+  const commandBar = findCommandBar();
+  if (!commandBar) return;
+
+  const replyButton =
+    commandBar.querySelector('button[aria-label="Reply"]') ||
+    commandBar.querySelector('button[title="Reply"]') ||
+    commandBar.querySelector('[data-log-name="Reply"] button') ||
+    commandBar.querySelector('[data-icon-name="Reply"]') ||
+    document.querySelector('button[aria-label="Reply"]');
+
+  if (!replyButton || !replyButton.parentElement) return;
+
+  const scanBtn = document.createElement("button");
+  scanBtn.id = SCAN_BUTTON_ID;
+  scanBtn.type = "button";
+  scanBtn.textContent = "Scan";
+  scanBtn.className = `${replyButton.className || ""} webllm-scan-button`.trim();
+  scanBtn.style.marginInlineStart = "8px";
+  scanBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openExtensionPopup();
+  });
+
+  const buttonWrapper =
+    replyButton.closest('[role="menuitem"]') ||
+    replyButton.closest('[role="none"]') ||
+    replyButton.closest('[role="presentation"]') ||
+    replyButton;
+
+  const targetParent = buttonWrapper.parentElement || commandBar;
+  targetParent.insertBefore(scanBtn, buttonWrapper.nextSibling);
+};
+
+const initScanButtonObserver = () => {
+  if (!isOutlookHost()) return;
+
+  const inject = () => {
+    try {
+      ensureScanButton();
+    } catch (err) {
+      console.warn("WebLLM Extension: Failed to inject Scan button", err);
+    }
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", inject);
+  } else {
+    inject();
+  }
+
+  const observer = new MutationObserver(() => inject());
+  observer.observe(document.documentElement || document.body, {
+    childList: true,
+    subtree: true,
+  });
+};
+
+initScanButtonObserver();
+
 chrome.runtime.onConnect.addListener(function (port) {
   port.onMessage.addListener(function (msg) {
     console.log("WebLLM Extension: Starting smart content extraction...");
@@ -55,46 +159,99 @@ chrome.runtime.onConnect.addListener(function (port) {
       return Array.from(urls);
     };
 
+    const normalizeAttachmentLabel = (value) => {
+      if (!value) return "";
+      let normalized = cleanText(value);
+      normalized = normalized
+        .replace(/\bMore actions\b/gi, "")
+        .replace(/\bOpen\b/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+      return normalized;
+    };
+
     // Helper: Extract Attachments
     const extractAttachments = (container) => {
       const attachments = new Set();
 
-      // 1. Look for the main Attachment list container
-      // Outlook typically groups them in a div with aria-label="Attachments"
-      const attachmentLists = container.querySelectorAll('[aria-label="Attachments"]');
-      
-      if (attachmentLists.length > 0) {
-          for (const list of attachmentLists) {
-             // Check buttons or list items inside
-             // Outlook attachments are often buttons or have role="button"
-             const candidates = list.querySelectorAll('div[role="button"], button, li, [data-testid="attachment-card"]');
-             for (const item of candidates) {
-                 const text = cleanText(item.innerText);
-                 if (text) {
-                     // Sometimes text includes size like "File.pdf 2MB", which is fine context
-                     attachments.add(text);
-                 } else {
-                     // Try aria-label if text is empty
-                     const label = item.getAttribute('aria-label');
-                     if (label) attachments.add(cleanText(label));
-                 }
-             }
+      const addAttachmentText = (node) => {
+        if (!node) return;
+        const aria = node.getAttribute?.("aria-label");
+        const text = node.innerText;
+        const title = node.getAttribute?.("title");
+        const candidates = [aria, text, title];
+        for (const raw of candidates) {
+          const lowerRaw = raw?.toLowerCase();
+          if (
+            lowerRaw &&
+            (lowerRaw.includes("more actions") ||
+              lowerRaw.includes("open menu") ||
+              lowerRaw.includes("menu options"))
+          ) {
+            return;
           }
+          const normalized = normalizeAttachmentLabel(raw);
+          if (!normalized) continue;
+          attachments.add(normalized);
+          return; // prefer first useful descriptor (usually aria-label)
+        }
+      };
+
+      // 1. Look for attachment list containers (handle variations like "file attachments")
+      const listSelectors = [
+        '[aria-label="Attachments"]',
+        '[aria-label="Attachment"]',
+        '[aria-label*="attachment" i]',
+        '[data-testid*="attachment" i]',
+        '[data-test-id*="attachment" i]',
+      ];
+      const attachmentLists = new Set();
+      for (const sel of listSelectors) {
+        const matches = container.querySelectorAll(sel);
+        matches.forEach((node) => attachmentLists.add(node));
+      }
+
+      if (attachmentLists.size > 0) {
+        for (const list of attachmentLists) {
+          // Outlook/Gmail style attachments are often options or buttons
+          const candidateSelectors = [
+            '[role="button"]',
+            '[role="option"]',
+            'button',
+            'li',
+            '[data-testid="attachment-card"]',
+            '[data-test-id="attachment-card"]',
+            'a[download]',
+          ];
+          let foundChild = false;
+          for (const candidateSel of candidateSelectors) {
+            const candidates = list.querySelectorAll(candidateSel);
+            if (candidates.length === 0) continue;
+            foundChild = true;
+            for (const item of candidates) {
+              addAttachmentText(item);
+            }
+          }
+          if (!foundChild) {
+            // If we didn't find a child entry, treat the container itself as the attachment
+            addAttachmentText(list);
+          }
+        }
       }
 
       // 2. Fallback: Look for individual items labeled "Attachment: ..."
       // This catches cases where the list container might be missed
-      const labeledItems = container.querySelectorAll('[aria-label^="Attachment:"]');
+      const labeledItems = container.querySelectorAll('[aria-label^="Attachment:" i]');
       for (const item of labeledItems) {
-          let label = item.getAttribute('aria-label');
-          if (label) {
-            // Clean up "Attachment: " prefix
-            label = label.replace(/^Attachment:\s*/i, '');
-            attachments.add(cleanText(label));
-          }
+        let label = item.getAttribute("aria-label");
+        if (label) {
+          // Clean up "Attachment: " prefix
+          label = label.replace(/^Attachment:\s*/i, "");
+          attachments.add(cleanText(label));
+        }
       }
 
-      return Array.from(attachments);
+      return Array.from(attachments).filter(Boolean);
     };
 
     // Helper: Extract Outlook Metadata
@@ -204,6 +361,7 @@ chrome.runtime.onConnect.addListener(function (port) {
           }
           result.recipients = cleanText(rawTo);
         }
+
       }
 
       return result;

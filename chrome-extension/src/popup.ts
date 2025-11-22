@@ -13,7 +13,7 @@ import {
   ChatCompletionMessageParam,
   prebuiltAppConfig,
 } from "@mlc-ai/web-llm";
-import { ProgressBar, Line } from "progressbar.js";
+import { Line } from "progressbar.js";
 
 // modified setLabel to not throw error
 function setLabel(id: string, text: string) {
@@ -91,7 +91,7 @@ function fetchPageContents() {
 
 (<HTMLButtonElement>submitButton).disabled = true;
 
-let progressBar: ProgressBar = new Line("#loadingContainer", {
+let progressBar: InstanceType<typeof Line> = new Line("#loadingContainer", {
   strokeWidth: 4,
   easing: "easeInOut",
   duration: 1400,
@@ -135,11 +135,15 @@ for (let i = 0; i < prebuiltAppConfig.model_list.length; ++i) {
   modelSelector.appendChild(opt);
 }
 
-modelName.innerText = "Loading initial model...";
-const engine: MLCEngineInterface = await CreateMLCEngine(selectedModel, {
-  initProgressCallback: initProgressCallback,
-});
-modelName.innerText = "Now chatting with " + modelDisplayName;
+let engine: MLCEngineInterface;
+
+(async () => {
+  modelName.innerText = "Loading initial model...";
+  engine = await CreateMLCEngine(selectedModel, {
+    initProgressCallback: initProgressCallback,
+  });
+  modelName.innerText = "Now chatting with " + modelDisplayName;
+})();
 
 let chatHistory: ChatCompletionMessageParam[] = [];
 
