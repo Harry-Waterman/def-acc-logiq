@@ -1,6 +1,0 @@
-{
-  "modelName": "Qwen3-0.6B-q4f16_1-MLC",
-  "huggingFaceRepo": "mlc-ai/Qwen3-0.6B-q4f16_1-MLC",
-  "modelLibUrl": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0_2_48/Qwen3-0.6B-q4f16_1-ctx4k_cs1k-webgpu.wasm"
-}
-
