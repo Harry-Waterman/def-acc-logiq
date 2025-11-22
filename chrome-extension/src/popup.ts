@@ -25,7 +25,7 @@ function getElementAndCheck(id: string): HTMLElement {
   return element;
 }
 
-const modelName = getElementAndCheck("model-name");
+// Removed modelName element retrieval
 
 // SYSTEM_PROMPT adapted for email phishing classification with detailed multi-line guidelines
 const SYSTEM_PROMPT = `
@@ -93,22 +93,8 @@ let context = "";
 // throws runtime.lastError if you refresh extension AND try to access a webpage that is already open
 fetchPageContents();
 
-function updateDebugStatus(msg: string, data?: string) {
-  const statusDiv = document.getElementById("debug-status");
-  if (statusDiv) {
-    statusDiv.style.display = "block";
-    statusDiv.innerText = msg;
-    if (data) {
-       // Show full data, but in a scrollable way if needed via CSS
-       statusDiv.innerText += "\n\nData:\n" + data;
-       console.log("Full Context Data:", data);
-    }
-  }
-}
-
 // Modified to trigger classification automatically
 function fetchPageContents() {
-  updateDebugStatus("Attempting to connect to page...");
   chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
     if (!tabs[0].id) return;
     
@@ -119,28 +105,28 @@ function fetchPageContents() {
       port.onMessage.addListener(function (msg) {
         console.log("Page contents received:", msg.contents);
         context = msg.contents;
-        updateDebugStatus("Success! Metadata extracted.");
         
         // If engine is ready, start classification immediately
         if (engine) {
           classifyEmail();
         } else {
-          modelName.innerText = "Content received. Waiting for model...";
+          // REMOVED text update: modelName.innerText = "Content received. Waiting for model...";
+          // Show loading dots instead if not already showing
+          document.getElementById("loading-indicator")!.style.display = "block";
         }
       });
     } catch (e) {
-       updateDebugStatus("Connection Failed: " + e);
+       console.error("Connection Failed: " + e);
     }
   });
 }
 
 let initProgressCallback = (report: InitProgressReport) => {
-  // Just update the text
-  setLabel("init-label", report.text);
+  // REMOVED text update: setLabel("init-label", report.text);
   
   // Check for completion
   if (report.progress == 1.0) {
-    setLabel("init-label", "Model Loaded ✅");
+     // REMOVED text update: setLabel("init-label", "Model Loaded ✅");
   }
 };
 
@@ -189,7 +175,8 @@ class OffscreenLLMClient {
 }
 
 (async () => {
-  modelName.innerText = "Loading classifier model...";
+  // REMOVED text update: modelName.innerText = "Loading classifier model...";
+  document.getElementById("loading-indicator")!.style.display = "block";
   
   // Initialize CUSTOM client
   const client = new OffscreenLLMClient(selectedModel);
@@ -199,7 +186,7 @@ class OffscreenLLMClient {
   // The interface is mocked to match what you used before
   engine = client as any; 
   
-  modelName.innerText = "Model loaded. Waiting for email content...";
+  // REMOVED text update: modelName.innerText = "Model loaded. Waiting for email content...";
   
   // Check if we already have context (page might have loaded faster than model)
   if (context) {
@@ -212,7 +199,7 @@ class OffscreenLLMClient {
 async function classifyEmail() {
   if (!context || !engine) return;
 
-  modelName.innerText = "Classifying email...";
+  // REMOVED text update: modelName.innerText = "Classifying email...";
   document.getElementById("loading-indicator")!.style.display = "block";
   document.getElementById("resultWrapper")!.style.display = "none";
 
@@ -245,9 +232,9 @@ async function classifyEmail() {
 
   console.log("Messages:", messages);
   
-  // Read the disable-thinking checkbox
-  const disableThinkingCheckbox = document.getElementById("disable-thinking") as HTMLInputElement;
-  const shouldDisableThinking = disableThinkingCheckbox ? disableThinkingCheckbox.checked : false;
+  // Removed disable-thinking checkbox logic
+  const shouldDisableThinking = true; // Default to true (disabled) or false based on your preference.
+  // Based on your previous HTML "checked" state, it was checked by default, so disable thinking = true.
 
   try {
     const completion = await engine.chat.completions.create({
@@ -276,10 +263,8 @@ async function classifyEmail() {
 
   } catch (err) {
     console.error("Classification Error:", err);
-    modelName.innerText = "Error classifying email.";
   } finally {
     document.getElementById("loading-indicator")!.style.display = "none";
-    modelName.innerText = "Classification complete.";
   }
 }
 
@@ -319,4 +304,21 @@ function displayResult(data: any, rawText: string) {
       reasonsList.appendChild(li);
     });
   }
+
+  // FORCE RESIZE: Send message immediately after rendering
+  setTimeout(() => {
+      const height = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: "webllm-resize", height }, "*");
+  }, 50); // Small 50ms delay to let DOM reflow
 }
+
+// Monitor content size changes and notify the parent iframe
+const resizeObserver = new ResizeObserver(() => {
+  // Calculate total height (documentElement usually covers margins/padding best)
+  const height = document.documentElement.scrollHeight;
+  // Post message to parent (content.js)
+  window.parent.postMessage({ type: "webllm-resize", height }, "*");
+});
+
+// Start observing the body for size changes
+resizeObserver.observe(document.body);

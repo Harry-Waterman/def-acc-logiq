@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Chatbot</title>
+    <title>TinyRod</title>
     <link rel="stylesheet" href="popup.css" />
     <link
       rel="stylesheet"
@@ -10,23 +10,6 @@
     />
   </head>
   <body>
-    <div style="margin: 10px 0;">
-      <label for="disable-thinking" style="font-family: sans-serif; font-size: 14px;">
-        <input type="checkbox" id="disable-thinking" checked />
-        Disable Thinking
-      </label>
-    </div>
-    <div id="loadingBox">
-      <p id="init-label">Initializing model...</p>
-    </div>
-    
-    <!-- New Debug Status Area -->
-    <div id="debug-status" style="font-size: 10px; color: #666; margin: 5px 0; border: 1px solid #ccc; padding: 5px; display: none; max-height: 200px; overflow-y: auto; white-space: pre-wrap;">
-      Status: Ready
-    </div>
-
-    <p id="model-name"></p>
-  
     <div class="stage">
       <div id="loading-indicator" class="dot-flashing" style="display: none;"></div>
     </div>
@@ -36,20 +19,6 @@
       <h2 id="score-display" style="margin: 0 0 10px 0;"></h2>
       <ul id="reasons-list" style="padding-left: 20px; margin: 0;"></ul>
       <div id="raw-json" style="font-family: monospace; font-size: 10px; margin-top: 10px; color: #666; white-space: pre-wrap;"></div>
-    </div>
-
-    <div id="answerWrapper" style="display: none;">
-      <div id="answer"></div>
-      <div class="copyRow">
-        <span id="timestamp"></span>
-        <button
-          id="copyAnswer"
-          class="btn copyButton"
-          title="Copy the Answer to the Clipboard"
-        >
-          <i class="fa-solid fa-copy fa-lg"></i>
-        </button>
-      </div>
     </div>
 
     <script type="module" src="./popup.ts"></script>
