@@ -7,101 +7,144 @@ const isOutlookHost = () => {
 };
 
 const openExtensionPopup = () => {
-  const popupUrl = chrome.runtime.getURL("popup.html");
-  window.open(
-    popupUrl,
-    "_blank",
-    "noopener,noreferrer,width=480,height=720",
-  );
+  const IFRAME_ID = "webllm-popup-iframe";
+  const existingIframe = document.getElementById(IFRAME_ID);
+  
+  if (existingIframe) {
+    existingIframe.remove();
+    return;
+  }
+
+  const conversationContainer = document.querySelector('[data-app-section="ConversationContainer"]');
+  
+  if (conversationContainer && conversationContainer.parentElement) {
+    const iframe = document.createElement("iframe");
+    iframe.id = IFRAME_ID;
+    iframe.src = chrome.runtime.getURL("popup.html");
+    iframe.style.width = "100%";
+    iframe.style.boxSizing = "border-box";
+    iframe.style.height = "600px";
+    iframe.style.border = "none"; 
+    iframe.style.marginBottom = "16px";
+    iframe.style.borderRadius = "4px";
+    iframe.style.paddingRight = "12px";
+    
+    conversationContainer.parentElement.insertBefore(iframe, conversationContainer);
+  } else {
+    // Fallback if container not found
+    const popupUrl = chrome.runtime.getURL("popup.html");
+    window.open(
+      popupUrl,
+      "_blank",
+      "noopener,noreferrer,width=480,height=720",
+    );
+  }
 };
 
-const findCommandBar = () => {
-  const selectors = [
-    '[data-automationid="CommandBar"]',
-    '[aria-label="Message actions"]',
-    '[aria-label*="message actions" i]',
-    '[role="toolbar"][aria-label*="actions" i]',
-    '[data-log-name="ReadingPaneToolbar"]',
-  ];
-
-  const candidates = [];
-  for (const sel of selectors) {
-    document.querySelectorAll(sel).forEach((node) => candidates.push(node));
-  }
+const getBestToolbar = () => {
+  // Strict selector for the specific toolbar type
+  const selector = '[aria-label="Message actions"][role="toolbar"]';
+  
+  // Get ALL candidates
+  const candidates = Array.from(document.querySelectorAll(selector));
+  
   if (candidates.length === 0) return null;
 
-  candidates.sort((a, b) => {
-    const rectA = a.getBoundingClientRect();
-    const rectB = b.getBoundingClientRect();
-    const topA = Number.isFinite(rectA.top) ? rectA.top : Number.POSITIVE_INFINITY;
-    const topB = Number.isFinite(rectB.top) ? rectB.top : Number.POSITIVE_INFINITY;
-    return topA - topB;
+  // Filter out invisible elements (width/height 0) as they might be un-rendered templates
+  const visibleCandidates = candidates.filter(el => {
+    return el.offsetWidth > 0 && el.offsetHeight > 0;
   });
-  return candidates[0];
+
+  if (visibleCandidates.length === 0) return null;
+
+  // Sort by vertical position (Top to Bottom)
+  visibleCandidates.sort((a, b) => {
+    return a.getBoundingClientRect().top - b.getBoundingClientRect().top;
+  });
+
+  // The first one is the top-most one
+  return visibleCandidates[0];
 };
 
 const ensureScanButton = () => {
   if (!isOutlookHost()) return;
-  if (document.getElementById(SCAN_BUTTON_ID)) return;
 
-  const commandBar = findCommandBar();
-  if (!commandBar) return;
+  const bestToolbar = getBestToolbar();
+  const existingBtn = document.getElementById(SCAN_BUTTON_ID);
 
-  const replyButton =
-    commandBar.querySelector('button[aria-label="Reply"]') ||
-    commandBar.querySelector('button[title="Reply"]') ||
-    commandBar.querySelector('[data-log-name="Reply"] button') ||
-    commandBar.querySelector('[data-icon-name="Reply"]') ||
-    document.querySelector('button[aria-label="Reply"]');
+  // SCENARIO 1: We haven't found the right toolbar yet.
+  if (!bestToolbar) {
+    return;
+  }
 
-  if (!replyButton || !replyButton.parentElement) return;
+  // SCENARIO 2: Button exists, but it's in the WRONG place.
+  // (e.g., it was injected into the bottom toolbar previously, or the DOM re-rendered).
+  if (existingBtn && existingBtn.parentElement !== bestToolbar) {
+    // Remove it so we can move it to the right place
+    existingBtn.remove();
+  }
 
+  // SCENARIO 3: Button exists and is in the RIGHT place.
+  if (document.getElementById(SCAN_BUTTON_ID)) {
+    // Verify it's still the first child (in case Outlook prepended something else)
+    if (bestToolbar.firstChild !== document.getElementById(SCAN_BUTTON_ID)) {
+      bestToolbar.insertBefore(document.getElementById(SCAN_BUTTON_ID), bestToolbar.firstChild);
+    }
+    return; // All good!
+  }
+
+  // SCENARIO 4: Create and Inject
   const scanBtn = document.createElement("button");
   scanBtn.id = SCAN_BUTTON_ID;
   scanBtn.type = "button";
   scanBtn.textContent = "Scan";
-  scanBtn.className = `${replyButton.className || ""} webllm-scan-button`.trim();
-  scanBtn.style.marginInlineStart = "8px";
+  
+  // Copy class from a sibling button for styling consistency
+  // We look for a button inside the toolbar to copy styles from
+  const siblingBtn = bestToolbar.querySelector('button');
+  const referenceClass = (siblingBtn && siblingBtn.className) || "";
+  scanBtn.className = `${referenceClass} webllm-scan-button`.trim();
+  
+  // Custom styling to position at far left
+  scanBtn.style.marginRight = "8px";
+  scanBtn.style.marginLeft = "0px";
+  scanBtn.style.marginInlineStart = "0px"; 
+  
   scanBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     openExtensionPopup();
   });
 
-  const buttonWrapper =
-    replyButton.closest('[role="menuitem"]') ||
-    replyButton.closest('[role="none"]') ||
-    replyButton.closest('[role="presentation"]') ||
-    replyButton;
-
-  const targetParent = buttonWrapper.parentElement || commandBar;
-  targetParent.insertBefore(scanBtn, buttonWrapper.nextSibling);
+  // Insert as First Child
+  if (bestToolbar.firstChild) {
+    bestToolbar.insertBefore(scanBtn, bestToolbar.firstChild);
+  } else {
+    bestToolbar.appendChild(scanBtn);
+  }
 };
 
-const initScanButtonObserver = () => {
+// Loop Strategy: Check often.
+// This is more robust than MutationObserver for race conditions in complex SPAs
+// because it self-corrects every 500ms regardless of what events fired.
+const startMainLoop = () => {
   if (!isOutlookHost()) return;
 
-  const inject = () => {
-    try {
-      ensureScanButton();
-    } catch (err) {
-      console.warn("WebLLM Extension: Failed to inject Scan button", err);
-    }
-  };
+  // 1. Run immediately
+  ensureScanButton();
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", inject);
-  } else {
-    inject();
-  }
-
-  const observer = new MutationObserver(() => inject());
-  observer.observe(document.documentElement || document.body, {
-    childList: true,
-    subtree: true,
+  // 2. Run on mutation (reactivity)
+  const observer = new MutationObserver(() => {
+    ensureScanButton();
   });
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // 3. Run on interval (resilience)
+  // Catches cases where attributes change but don't trigger childList, 
+  // or layout shifts that change which toolbar is "top".
+  setInterval(ensureScanButton, 500);
 };
 
-initScanButtonObserver();
+startMainLoop();
 
 chrome.runtime.onConnect.addListener(function (port) {
   port.onMessage.addListener(function (msg) {
@@ -263,6 +306,7 @@ chrome.runtime.onConnect.addListener(function (port) {
         subject: null,
         sender: { displayName: null, email: null },
         recipients: null,
+        sentTime: null,
         urls: extractUrls(bodyElem),
         attachments: extractAttachments(bodyElem), // New Attachments property
         body: cleanText(rawBody),
@@ -362,32 +406,18 @@ chrome.runtime.onConnect.addListener(function (port) {
           result.recipients = cleanText(rawTo);
         }
 
+        // 4. Sent Time
+        const sentTimeElem = readingPane.querySelector('[data-testid="SentReceivedSavedTime"]');
+        if (sentTimeElem) {
+          result.sentTime = cleanText(sentTimeElem.innerText);
+        }
+
       }
 
       return result;
     };
 
-    // STRATEGY 1: User Selection
-    const selection = window.getSelection().toString().trim();
-    if (selection.length > 0) {
-      console.log("WebLLM Extension: Found user selection");
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
-      const urls = selection.match(urlRegex) || [];
-      
-      const payload = JSON.stringify({ 
-          urls: urls,
-          attachments: [], // No attachments in pure text selection usually
-          body: cleanText(selection) 
-      }, null, 2);
-      
-      console.log("*** FINAL EXTRACTED METADATA (JSON) ***");
-      console.log(payload);
-      console.log("***************************************");
-      port.postMessage({ contents: payload });
-      return;
-    }
-
-    // STRATEGY 2: Find Content Body
+    // Find Content Body
     let bestCandidate = null;
 
     const selectors = [

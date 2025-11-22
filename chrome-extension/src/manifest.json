@@ -23,5 +23,11 @@
     }
   ],
   "permissions": ["storage", "tabs", "webNavigation", "activeTab", "scripting"],
-  "host_permissions": ["http://*/", "https://*/"]
+  "host_permissions": ["http://*/", "https://*/"],
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
