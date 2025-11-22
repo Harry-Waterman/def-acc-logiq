@@ -98,10 +98,10 @@ async function createRelationship(
 /**
  * Generate a unique identifier for an email based on its content
  */
-function generateEmailId(from, to, dateTime) {
-  const toArray = Array.isArray(to) ? to : [to];
-  const toStr = toArray.filter(Boolean).sort().join(',');
-  const content = `${from || ''}|${toStr}|${dateTime || ''}`;
+function generateEmailId(sender, recipients, dateTime) {
+  const recipientArray = Array.isArray(recipients) ? recipients : [recipients];
+  const recipientStr = recipientArray.filter(Boolean).sort().join(',');
+  const content = `${sender || ''}|${recipientStr}|${dateTime || ''}`;
   return crypto.createHash('sha256').update(content).digest('hex').substring(0, 16);
 }
 
@@ -114,9 +114,11 @@ export async function createEmailGraph(emailData) {
   try {
     // Extract data from payload
     const {
-      from,
-      to,
+      sender,
+      displayName,
+      recipients,
       dateTime,
+      attachments = [],
       urls = [],
       flags = [],
       score,
@@ -125,15 +127,18 @@ export async function createEmailGraph(emailData) {
     } = emailData;
 
     // Validate required fields
-    if (!from) {
-      throw new Error('from is required');
+    if (!sender) {
+      throw new Error('sender is required');
     }
+
+    // Ensure recipients is an array
+    const recipientList = Array.isArray(recipients) ? recipients : (recipients ? [recipients] : []);
 
     // Convert dateTime to ISO string for Neo4j (or use current time if not provided)
     const emailDateTime = dateTime ? dateTime : new Date().toISOString();
     
     // Generate unique identifier for email
-    const emailId = generateEmailId(from, to, emailDateTime);
+    const emailId = generateEmailId(sender, recipientList, emailDateTime);
     
     // Create Email node
     const emailNode = await mergeNode(
@@ -146,12 +151,29 @@ export async function createEmailGraph(emailData) {
       'id'
     );
 
-    // Process FROM address
-    if (from) {
-      const fromDomain = extractDomain(from);
+    // Process FROM address (sender)
+    if (sender) {
+      const fromDomain = extractDomain(sender);
       
       // Create FROM Address
-      await mergeNode(session, 'Address', { email: from }, 'email');
+      await mergeNode(session, 'Address', { email: sender }, 'email');
+      
+      // Create DisplayName node if available
+      if (displayName) {
+        await mergeNode(session, 'DisplayName', { name: displayName }, 'name');
+        
+        // Create relationship Address -> HAS_DISPLAY_NAME -> DisplayName
+        await createRelationship(
+          session,
+          'Address',
+          'email',
+          sender,
+          'HAS_DISPLAY_NAME',
+          'DisplayName',
+          'name',
+          displayName
+        );
+      }
       
       // Create relationship Email -> FROM -> Address
       await createRelationship(
@@ -162,7 +184,7 @@ export async function createEmailGraph(emailData) {
         'FROM',
         'Address',
         'email',
-        from
+        sender
       );
       
       // Create Domain and link if domain exists
@@ -172,7 +194,7 @@ export async function createEmailGraph(emailData) {
           session,
           'Address',
           'email',
-          from,
+          sender,
           'HAS_DOMAIN',
           'Domain',
           'name',
@@ -181,8 +203,8 @@ export async function createEmailGraph(emailData) {
       }
     }
 
-    // Process TO addresses (can be array or single)
-    const toAddresses = Array.isArray(to) ? to : [to];
+    // Process TO addresses (recipients) - can be array or single
+    const toAddresses = Array.isArray(recipientList) ? recipientList : [recipientList];
     for (const toAddr of toAddresses) {
       if (!toAddr) continue;
       

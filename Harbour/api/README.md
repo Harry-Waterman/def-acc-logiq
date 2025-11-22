@@ -15,9 +15,11 @@ Receives email data from the Chrome extension and creates the graph structure in
 **Request Body:**
 ```json
 {
-  "from": "sender@example.com",
-  "to": ["recipient@example.com"],
-  "dateTime": "2024-01-15T10:30:00Z",
+  "sender": "sender@example.com",
+  "displayName": "Sender",
+  "recipients": ["recipient@example.com"],
+  "dateTime": "Thu 11/13/2025 4:46 PM",
+  "attachments": ["file.txt"],
   "urls": ["https://example.com/link"],
   "flags": ["REQUESTING MONEY"],
   "score": 0.95,
@@ -104,6 +106,7 @@ The API automatically creates the following graph structure:
 
 - **Email** nodes with `dateTime` (unique ID generated internally)
 - **Address** nodes for FROM and TO email addresses
+- **DisplayName** nodes for sender display names (with `name` property)
 - **Domain** nodes extracted from email addresses and URLs
 - **Url** nodes for URLs found in emails
 - **Flag** nodes for email flags (PHISHING, SPAM, etc.) with `type` property
@@ -113,6 +116,7 @@ The API automatically creates the following graph structure:
 Relationships are created according to the schema:
 - Email → FROM → Address
 - Email → TO → Address
+- Address → HAS_DISPLAY_NAME → DisplayName
 - Address → HAS_DOMAIN → Domain
 - Email → CONTAINS_URL → Url
 - Url → HAS_DOMAIN → Domain
@@ -129,10 +133,12 @@ Relationships are created according to the schema:
 curl -X POST http://localhost:3000/api/emails \
   -H "Content-Type: application/json" \
   -d '{
-    "from": "sender@example.com",
-    "to": ["recipient@example.com"],
-    "dateTime": "2024-01-15T10:30:00Z",
-    "urls": ["https://example.com"],
+    "sender": "sender@example.com",
+    "displayName": "Sender",
+    "recipients": ["recipient@example.com"],
+    "dateTime": "Thu 11/13/2025 4:46 PM",
+    "attachments": ["file.txt"],
+    "urls": ["https://example.com/link"],
     "flags": ["REQUESTING MONEY"],
     "score": 0.95,
     "installationId": "inst-001"
@@ -143,10 +149,12 @@ curl -X POST http://localhost:3000/api/emails \
 
 ```javascript
 const emailData = {
-  from: "sender@example.com",
-  to: ["recipient@example.com"],
-  dateTime: new Date().toISOString(),
-  urls: ["https://example.com"],
+  sender: "sender@example.com",
+  displayName: "Sender",
+  recipients: ["recipient@example.com"],
+  dateTime: "Thu 11/13/2025 4:46 PM",
+  attachments: ["file.txt"],
+  urls: ["https://example.com/link"],
   flags: ["REQUESTING MONEY"],
   score: 0.95,
   installationId: "inst-001"
