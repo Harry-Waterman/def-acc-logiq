@@ -68,6 +68,174 @@ Harbour includes three services:
 2. **NeoDash Dashboard**: Visualization dashboard for Neo4j
 3. **API Server**: REST API for receiving data from Chrome extension
 
+## Architecture & Component Communication
+
+Harbour is built as a microservices architecture using Docker Compose, with all services connected via a shared Docker network. The following diagram illustrates how components are connected and communicate:
+
+```mermaid
+flowchart TB
+    subgraph External["External Components"]
+        Chrome["Chrome Extension"]
+        User["User Browser"]
+    end
+    
+    subgraph Harbour["Harbour Docker Network (harbour-network)"]
+        API["API Server<br/>(harbour-api)"]
+        Neo4j["Neo4j Database<br/>(neo4j)"]
+        NeoDash["NeoDash Dashboard<br/>(neodash)"]
+    end
+    
+    Chrome -->|HTTP POST<br/>JSON Payload<br/>Port: 3000| API
+    User -->|HTTP<br/>Browser UI<br/>Ports: 7474| Neo4j
+    User -->|HTTP<br/>Dashboard UI<br/>Port: 5005| NeoDash
+    
+    API -->|Bolt Protocol<br/>Cypher Queries<br/>Ports: 7687| Neo4j
+    NeoDash -->|Bolt Protocol<br/>Read Queries<br/>Ports: 7687| Neo4j
+    
+    style Harbour fill:#e1f5ff
+    style API fill:#fff4e1
+    style Neo4j fill:#e8f5e9
+    style NeoDash fill:#f3e5f5
+```
+
+### Network Architecture
+
+All Harbour services run within a Docker bridge network called `harbour-network`. This network enables:
+
+- **Service Discovery**: Services can communicate using container names (e.g., `neo4j:7687`)
+- **Isolation**: Services are isolated from other Docker networks
+- **Internal Communication**: Services communicate internally without exposing ports externally (except where needed)
+
+### Component Communication Flow
+
+#### 1. Chrome Extension → API Server
+
+**Protocol**: HTTP/REST  
+**Port**: `3000` (exposed to host)  
+**Endpoint**: `POST /api/emails`
+
+The Chrome extension sends email data as JSON payloads to the API server:
+
+```javascript
+POST http://localhost:3000/api/emails
+Content-Type: application/json
+
+{
+  "from": "sender@example.com",
+  "to": ["recipient@example.com"],
+  "dateTime": "2024-01-15T10:30:00Z",
+  "urls": ["https://example.com/link"],
+  "flags": ["REQUESTING MONEY"],
+  "score": 0.95,
+  "installationId": "inst-001"
+}
+```
+
+**Communication Details**:
+- The API server uses Express.js with CORS enabled to accept cross-origin requests
+- Requests are validated and processed asynchronously
+- The API server responds with JSON containing the created email ID and status
+
+#### 2. API Server → Neo4j Database
+
+**Protocol**: Bolt (Neo4j's binary protocol)  
+**Internal URI**: `bolt://neo4j:7687` (uses container name for service discovery)  
+**External URI**: `bolt://localhost:7687` (for external clients)
+
+The API server uses the `neo4j-driver` library to communicate with Neo4j:
+
+**Connection Flow**:
+1. API server creates a Neo4j driver instance using credentials from environment variables
+2. For each email submission, the API server:
+   - Opens a session with Neo4j
+   - Executes Cypher queries to create/merge nodes and relationships
+   - Closes the session after processing
+
+**Key Operations**:
+- `MERGE` operations to create nodes if they don't exist (idempotent)
+- Relationship creation between nodes
+- Transaction management for data consistency
+
+**Service Discovery**: The API server connects to Neo4j using the container name `neo4j` instead of `localhost`, allowing Docker to resolve the service within the network.
+
+#### 3. NeoDash → Neo4j Database
+
+**Protocol**: Bolt  
+**Connection**: `bolt://localhost:7687` (when accessed from host) or `bolt://neo4j:7687` (internal)
+
+NeoDash connects to Neo4j to:
+- Execute read-only Cypher queries for visualization
+- Build interactive dashboards
+- Display graph data in various chart formats
+
+**Configuration**: NeoDash is configured via environment variables:
+- `NEO4J_URI`: Connection string
+- `NEO4J_USER`: Username
+- `NEO4J_PASSWORD`: Password
+
+#### 4. User Browser → Neo4j Browser
+
+**Protocol**: HTTP  
+**Port**: `7474` (exposed to host)  
+**URL**: `http://localhost:7474`
+
+Users can directly access Neo4j Browser to:
+- Execute Cypher queries
+- Visualize graph data
+- Manage database schema
+
+### Service Dependencies
+
+The services have the following startup dependencies:
+
+```
+Neo4j Database (no dependencies)
+    ↓
+API Server (depends_on: neo4j)
+NeoDash (depends_on: neo4j)
+```
+
+**Dependency Behavior**:
+- Docker Compose ensures Neo4j starts before dependent services
+- However, services should implement retry logic for database connections (currently the API server connects immediately on startup)
+- If Neo4j is not ready, dependent services may fail to connect initially
+
+### Data Flow: Email Submission
+
+The complete data flow when a Chrome extension submits email data:
+
+1. **Chrome Extension** → Sends HTTP POST request with JSON payload to `http://localhost:3000/api/emails`
+2. **API Server** (`server.js`) → Receives request, validates payload
+3. **API Server** (`neo4jService.js`) → Processes email data:
+   - Generates unique email ID
+   - Extracts domains from email addresses and URLs
+   - Creates/merges nodes (Email, Address, Domain, Url, Flag, Score, etc.)
+   - Creates relationships between nodes
+4. **Neo4j Database** → Stores graph structure persistently
+5. **API Server** → Returns success response with email ID
+6. **Chrome Extension** → Receives confirmation
+
+### Port Mapping
+
+| Service | Internal Port | External Port | Protocol | Purpose |
+|---------|--------------|---------------|----------|---------|
+| Neo4j | 7474 | 7474 | HTTP | Neo4j Browser UI |
+| Neo4j | 7687 | 7687 | Bolt | Database connections |
+| API Server | 3000 | 3000 | HTTP | REST API endpoints |
+| NeoDash | 5005 | 5005 | HTTP | Dashboard UI |
+
+**Note**: Ports are mapped to the host machine, allowing external access. Internal communication between containers uses container names and internal ports.
+
+### Environment Variable Sharing
+
+All services share environment variables from the `.env` file in the project root:
+
+- `NEO4J_USERNAME`: Shared across Neo4j, API Server, and NeoDash
+- `NEO4J_PASSWORD`: Shared across Neo4j, API Server, and NeoDash
+- `NEO4J_URI`: Used by API Server and NeoDash (defaults to `bolt://neo4j:7687`)
+
+This ensures consistent authentication across all services.
+
 ## Accessing the UIs
 
 Once the Docker stack is running, you can access the following interfaces:
