@@ -1,2 +1,11 @@
 # Environments
 .env
+
+# Dataset files (should be downloaded separately from Kaggle)
+dataset/*.csv
+dataset/*.json
+dataset/*.xlsx
+dataset/*.parquet
+dataset/data/
+dataset/raw/
+!dataset/dataset-investigation
