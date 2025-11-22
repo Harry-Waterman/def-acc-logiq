@@ -12,9 +12,39 @@ services:
       - neo4j_data:/data
       - neo4j_logs:/logs
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u ${NEO4J_USERNAME} -p ${NEO4J_PASSWORD} 'RETURN 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - harbour-network
 
+  dashboard-init:
+    image: python:3.11-slim
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      NEO4J_USER: ${NEO4J_USERNAME}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      NEO4J_URI: ${NEO4J_URI}
+      NEO4J_DB: ${NEO4J_DB}
+      DASHBOARD_PATH: /seed/habour_overview.json
+    volumes:
+      - ./dashboards:/seed:ro
+      - ./scripts:/scripts:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      '
+      echo "Waiting for Neo4j to be ready...";
+      pip install -q neo4j > /dev/null 2>&1;
+      python3 /scripts/seed_dashboard.py;
+      '
+    restart: "no"
+    networks:
+      - harbour-network
+    
   neodash:
     image: neo4jlabs/neodash:latest
     container_name: neodash
@@ -24,6 +54,7 @@ services:
       - NEO4J_URI=${NEO4J_URI}
       - NEO4J_USER=${NEO4J_USERNAME}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_DATABASE=${NEO4J_DB}
     depends_on:
       - neo4j
     restart: unless-stopped
