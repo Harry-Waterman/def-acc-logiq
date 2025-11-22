@@ -62,11 +62,12 @@ These are used to configure `NEO4J_AUTH` in the format `${NEO4J_USERNAME}/${NEO4
 
 ## Services
 
-Harbour includes three services:
+Harbour includes four services:
 
 1. **Neo4j Database**: Graph database for storing email data
 2. **NeoDash Dashboard**: Visualization dashboard for Neo4j
-3. **API Server**: REST API for receiving data from Chrome extension
+3. **Dashboard Initialization**: One-time service that seeds the pre-configured dashboard on startup
+4. **API Server**: REST API for receiving data from Chrome extension
 
 ## Architecture & Component Communication
 
@@ -83,6 +84,7 @@ flowchart TB
         API["API Server<br/>(harbour-api)"]
         Neo4j["Neo4j Database<br/>(neo4j)"]
         NeoDash["NeoDash Dashboard<br/>(neodash)"]
+        DashboardInit["Dashboard Init<br/>(dashboard-init)"]
     end
     
     Chrome -->|HTTP POST<br/>JSON Payload<br/>Port: 3000| API
@@ -91,6 +93,7 @@ flowchart TB
     
     API -->|Bolt Protocol<br/>Cypher Queries<br/>Ports: 7687| Neo4j
     NeoDash -->|Bolt Protocol<br/>Read Queries<br/>Ports: 7687| Neo4j
+    DashboardInit -->|Bolt Protocol<br/>Seed Dashboard<br/>Ports: 7687| Neo4j
     
     style Harbour fill:#e1f5ff
     style API fill:#fff4e1
@@ -193,13 +196,17 @@ The services have the following startup dependencies:
 ```
 Neo4j Database (no dependencies)
     ↓
+Dashboard Init (depends_on: neo4j [healthy])
+    ↓
+NeoDash (depends_on: neo4j, dashboard-init)
 API Server (depends_on: neo4j)
-NeoDash (depends_on: neo4j)
 ```
 
 **Dependency Behavior**:
 - Docker Compose ensures Neo4j starts before dependent services
-- However, services should implement retry logic for database connections (currently the API server connects immediately on startup)
+- The `dashboard-init` service waits for Neo4j to be healthy before seeding the dashboard
+- NeoDash waits for both Neo4j and `dashboard-init` to complete, ensuring the dashboard is ready on first access
+- Services should implement retry logic for database connections (currently the API server connects immediately on startup)
 - If Neo4j is not ready, dependent services may fail to connect initially
 
 ### Data Flow: Email Submission
@@ -249,11 +256,57 @@ Once the Docker stack is running, you can access the following interfaces:
 
 ### NeoDash Dashboard
 - **URL**: `http://localhost:5005`
-- **Purpose**: Low-code dashboard builder for creating interactive visualizations
+- **Purpose**: Interactive visualization dashboard for Harbour email data
 - **Connection Settings**:
   - **URI**: `bolt://localhost:7687`
   - **Username/Password**: Use your Neo4j credentials from the `.env` file
-- **Features**: Create dashboards with tables, graphs, bar charts, line charts, maps, and more
+- **Pre-seeded Dashboard**: The "Harbour Dashboard" is automatically loaded on first startup
+
+#### Dashboard Overview
+
+The Harbour Dashboard provides a comprehensive view of email data with the following visualizations:
+
+1. **Graph Visualization**
+   - Interactive graph showing the complete email network structure
+   - Displays nodes for: Email, Address, Domain, Url, Flag, Score, and installationId
+   - Shows relationships: FROM, TO, HAS_DOMAIN, CONTAINS_URL, HAS_FLAG, HAS_Score, OWNER
+   - Auto-refreshes every 30 seconds
+   - Fullscreen mode enabled
+
+2. **Emails Table**
+   - Lists all emails with their risk scores and associated flags
+   - Columns: Email ID, Score, Flags
+   - Sorted by score (highest risk first)
+
+3. **Flags Distribution (Pie Chart)**
+   - Visual breakdown of email flags (e.g., "REQUESTING MONEY", etc.)
+   - Shows count of emails per flag type
+   - Sorted by value for easy identification of common threats
+
+4. **Email Classification (Bar Chart)**
+   - Risk classification breakdown:
+     - **Benign**: Score 0-50
+     - **Suspicious**: Score 51-80
+     - **Phishing**: Score 81-100
+   - Count of emails in each risk category
+
+The dashboard is automatically seeded when you first start the Docker stack via the `dashboard-init` service, which loads the dashboard configuration from `dashboards/habour_overview.json`.
+
+#### Dashboard Files
+
+- **Dashboard Configuration**: `dashboards/habour_overview.json`
+  - Contains the complete dashboard definition including pages, reports, queries, and visualizations
+  - Can be edited to customize the dashboard layout and queries
+
+- **Seeding Script**: `scripts/seed_dashboard.py`
+  - Python script that loads the dashboard JSON into Neo4j
+  - Automatically runs on startup via the `dashboard-init` Docker service
+  - Waits for Neo4j to be healthy before seeding
+
+To customize the dashboard:
+1. Edit `dashboards/habour_overview.json` with your desired changes
+2. Restart the Docker stack: `docker-compose restart dashboard-init`
+3. Or manually run the seed script: `docker-compose run --rm dashboard-init`
 
 ### Harbour API Server
 - **URL**: `http://localhost:3000`
@@ -281,9 +334,14 @@ Once the Docker stack is running, you can access the following interfaces:
    docker-compose up -d
    ```
 
-4. Access the services:
+4. Wait for initialization:
+   - The `dashboard-init` service will automatically seed the "Harbour Dashboard" on first startup
+   - This is a one-time operation that runs after Neo4j becomes healthy
+   - You can monitor the progress with: `docker logs dashboard-init`
+
+5. Access the services:
    - Neo4j Browser: `http://localhost:7474`
-   - NeoDash Dashboard: `http://localhost:5005`
+   - NeoDash Dashboard: `http://localhost:5005` (pre-configured dashboard will be loaded automatically)
    - Harbour API: `http://localhost:3000`
 
 ## Loading Test Data
