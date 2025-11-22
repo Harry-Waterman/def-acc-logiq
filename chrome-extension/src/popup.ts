@@ -6,7 +6,7 @@ import "./popup.css";
 import {
   MLCEngineInterface,
   InitProgressReport,
-  CreateMLCEngine,
+  CreateExtensionServiceWorkerMLCEngine, // CHANGE THIS
   ChatCompletionMessageParam,
 } from "@mlc-ai/web-llm";
 
@@ -31,38 +31,62 @@ const modelName = getElementAndCheck("model-name");
 // SYSTEM_PROMPT adapted for email phishing classification with detailed multi-line guidelines
 const SYSTEM_PROMPT = `
 SYSTEM:
-You are an email security classifier.
-You receive:
-from address
-subject
-recipients
-attachment name
-urls
-body
+You are an email-security classifier.
+You will receive the following fields of an email:
+from_address, subject, recipients, attachment_names, urls, body.
 
-Your task: rate the email on a confidence score scale of 0-100 based on how many malicious indicators it has with 0 being benign and 100 being very confident the email is malicious
+Your job is to output a single JSON object containing:
 
-Define  higher scores as emails that clearly try to:
-get money, bank details, card details, crypto, or account credentials
-promise large unexpected sums (lotteries, inheritances, business deals, investments, 419-style stories)
-get the user to click links or open files to fix, verify, unlock, or secure something
-impersonate banks, governments, large companies, or senior executives to pressure the user
-
-You must output ONLY valid JSON, no extra text:
 {
   "score": "0-100",
-  "reasons": ["reason 1", "reason 2"]
+  "reasons": []
 }
 
-Rules for "reasons":
-Select from the following list of reasons, pick as many that are relevant based on the context of the email; 
-["Suspicious Sender Address","Generic Greetings","Urgent or threatening language","Suspicious urls","suspicious attachment names","spelling and grammar mistakes", "too good to be true offers", "requests for personal information"]
-Do NOT output placeholders like "reason1" or "reason2".
-Do NOT copy reasons from the example; adapt them to the current email.
-IF the confidence score you have given the email is below 50 then you do not have to provide reasons 
+Your rules:
+	1.	The score must be a number from 0 to 100.
+	2.	Only include items in "reasons" if the score is 50 or higher.
+	3.	If the score is below 50, "reasons" must be an empty array ([]).
+	4.	When reasons are included, they must come only from this list:
+	•	"Sender address doesn't match display name”
+	•	“Generic Greetings”
+	•	“Urgent or threatening language”
+	•	“Suspicious urls”
+	•	“suspicious attachment names unrelated to the email subject or body”
+	•	“spelling and grammar mistakes”
+	•	“too good to be true offers”
+	•	“requests for personal information”
+	5.	Do not invent new reasons.
+	6.	Only include reasons that actually appear in the email content.
+	7.	Do not output explanations outside the JSON.
+	8.	Do not output placeholder text.
+	9.	Output only the JSON. No extra text.
 
-END_EXAMPLE
-NOW CLASSIFY THIS EMAIL:
+Few-shot examples (to anchor behaviour)
+
+Example A (score below 50 → empty reasons array)
+
+Email content summary: harmless internal update
+Output format to copy:
+
+{
+  "score": "12",
+  "reasons": []
+}
+
+Example B (score above 50 → reasons list required)
+
+Email content summary: classic phishing asking for bank login
+Output format to copy:
+
+{
+  "score": "87",
+  "reasons": [
+    "Suspicious urls",
+    "requests for personal information"
+  ]
+}
+Now classify this email:
+
 `;
 
 let context = "";
@@ -122,17 +146,59 @@ let initProgressCallback = (report: InitProgressReport) => {
 };
 
 // initially selected model
-const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+const selectedModel = "Llama-3.1-8B-Instruct-q4f16_1-MLC";
 
 let engine: MLCEngineInterface;
+
+// Define a Custom Client
+class OffscreenLLMClient {
+  modelId: string;
+  
+  constructor(modelId: string) {
+    this.modelId = modelId;
+  }
+
+  async init(callback?: (report: any) => void) {
+    // Listen for progress updates
+    if (callback) {
+      chrome.runtime.onMessage.addListener((msg) => {
+        if (msg.type === "init-progress") callback(msg.data);
+      });
+    }
+    
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: "init-engine", modelId: this.modelId }, resolve);
+    });
+  }
+
+  chat = {
+    completions: {
+      create: async (params: any) => {
+        return new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage({ 
+            type: "chat-completion", 
+            messages: params.messages, 
+            params: { ...params, messages: undefined } // separate messages
+          }, (response) => {
+            if (response.error) reject(response.error);
+            else resolve(response.result);
+          });
+        });
+      }
+    }
+  }
+}
 
 (async () => {
   modelName.innerText = "Loading classifier model...";
   
-  // Initialize engine
-  engine = await CreateMLCEngine(selectedModel, {
-    initProgressCallback: initProgressCallback,
-  });
+  // Initialize CUSTOM client
+  const client = new OffscreenLLMClient(selectedModel);
+  await client.init(initProgressCallback);
+  
+  // Replace 'engine' usage with 'client'
+  // The interface is mocked to match what you used before
+  engine = client as any; 
   
   modelName.innerText = "Model loaded. Waiting for email content...";
   
@@ -151,13 +217,35 @@ async function classifyEmail() {
   document.getElementById("loading-indicator")!.style.display = "block";
   document.getElementById("resultWrapper")!.style.display = "none";
 
+  // OPTIMIZATION: Parse and truncate context to save tokens
+  let optimizedContext = context;
+  try {
+    const data = JSON.parse(context);
+    
+    // 1. Limit URLs to top 2
+    if (data.urls && Array.isArray(data.urls) && data.urls.length > 2) {
+      data.urls = data.urls.slice(0, 2);
+      data.urls.push(`...and ${context.length - 2} more`);
+    }
+
+    // 2. Limit Body to ~2000 words (approx 8000 chars)
+    // This is safe for 4k context (leaves ~2k tokens for system prompt + output)
+    if (data.body && typeof data.body === 'string' && data.body.length > 8000) {
+      data.body = data.body.substring(0, 8000) + "\n...[TRUNCATED]...";
+    }
+
+    optimizedContext = JSON.stringify(data, null, 2);
+  } catch (e) {
+    console.warn("Failed to optimize context, sending raw:", e);
+  }
+
   const messages: ChatCompletionMessageParam[] = [
     { role: "system", content: SYSTEM_PROMPT },
-    { role: "user", content: `Analyze this email:\n${context}` }
+    { role: "user", content: `Analyze this email:\n${optimizedContext}` }
   ];
 
-
   console.log("Messages:", messages);
+  
   // Read the disable-thinking checkbox
   const disableThinkingCheckbox = document.getElementById("disable-thinking") as HTMLInputElement;
   const shouldDisableThinking = disableThinkingCheckbox ? disableThinkingCheckbox.checked : false;
@@ -166,17 +254,17 @@ async function classifyEmail() {
     const completion = await engine.chat.completions.create({
       stream: false, 
       messages: messages,
-      temperature: 0.1, // <--- Add this line to reduce randomness
+      temperature: 0.1,
       response_format: { type: "json_object" },
       extra_body: {
         enable_thinking: !shouldDisableThinking,
       },
     });
 
-    let resultText = completion.choices[0].message.content || "{}"; // changed const to let
+    let resultText = completion.choices[0].message.content || "{}";
     console.log("Raw LLM Response:", resultText);
     
-    // Remove <think>...</think> blocks if they exist
+    // Remove <think> blocks
     resultText = resultText.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
 
     try {
@@ -232,7 +320,4 @@ function displayResult(data: any, rawText: string) {
       reasonsList.appendChild(li);
     });
   }
-
-  // Debug raw output
-  rawJson.innerText = "Raw Output:\n" + rawText;
 }

@@ -22,18 +22,41 @@
         "128": "icon.png"
     }
   },
+  "background": {
+    "service_worker": "background.ts",
+    "type": "module"
+  },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
   ],
-  "permissions": ["storage", "tabs", "webNavigation", "activeTab", "scripting"],
-  "host_permissions": ["http://*/", "https://*/"],
+  "permissions": [
+    "storage",
+    "tabs",
+    "webNavigation",
+    "activeTab",
+    "scripting",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "http://*/",
+    "https://*/"
+  ],
   "web_accessible_resources": [
     {
-      "resources": ["popup.html"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "popup.html",
+        "offscreen.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }
