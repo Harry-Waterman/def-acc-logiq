@@ -1,22 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 "use strict";
 
-// This code is partially adapted from the openai-chatgpt-chrome-extension repo:
-// https://github.com/jessedi0n/openai-chatgpt-chrome-extension
-
 import "./popup.css";
 import "./cache-polyfill";
 
 import {
   MLCEngineInterface,
   InitProgressReport,
-  CreateMLCEngine,
   ChatCompletionMessageParam,
-  prebuiltAppConfig,
-  AppConfig,
 } from "@mlc-ai/web-llm";
-import modelConfig from "../model-config.json";
-import { Line } from "progressbar.js";
 
 // modified setLabel to not throw error
 function setLabel(id: string, text: string) {
@@ -34,357 +26,300 @@ function getElementAndCheck(id: string): HTMLElement {
   return element;
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// Removed modelName element retrieval
 
-const queryInput = getElementAndCheck("query-input")!;
-const submitButton = getElementAndCheck("submit-button")!;
-const modelName = getElementAndCheck("model-name");
+// SYSTEM_PROMPT adapted for email phishing classification with detailed multi-line guidelines
+const SYSTEM_PROMPT = `
+SYSTEM:
+You are an email-security classifier.
+You will receive the following fields of an email:
+from_address, subject, recipients, attachment_names, urls, body.
+
+Your job is to output a single JSON object containing:
+
+{
+  "score": "0-100",
+  "reasons": []
+}
+
+Your rules:
+	1.	The score must be a number from 0 to 100.
+	2.	Only include items in "reasons" if the score is 50 or higher.
+	3.	If the score is below 50, "reasons" must be an empty array ([]).
+	4.	When reasons are included, they must come only from this list:
+	•	"Sender address doesn't match display name”
+	•	“Generic Greetings”
+	•	“Urgent or threatening language”
+	•	“Suspicious urls”
+	•	“suspicious attachment names unrelated to the email subject or body”
+	•	“spelling and grammar mistakes”
+	•	“too good to be true offers”
+	•	“requests for personal information”
+	5.	Do not invent new reasons.
+	6.	Only include reasons that actually appear in the email content.
+	7.	Do not output explanations outside the JSON.
+	8.	Do not output placeholder text.
+	9.	Output only the JSON. No extra text.
+
+Few-shot examples (to anchor behaviour)
+
+Example A (score below 50 → empty reasons array)
+
+Email content summary: harmless internal update
+Output format to copy:
+
+{
+  "score": "12",
+  "reasons": []
+}
+
+Example B (score above 50 → reasons list required)
+
+Email content summary: classic phishing asking for bank login
+Output format to copy:
+
+{
+  "score": "87",
+  "reasons": [
+    "Suspicious urls",
+    "requests for personal information"
+  ]
+}
+Now classify this email:
+
+`;
 
 let context = "";
-let modelDisplayName = "";
 
 // throws runtime.lastError if you refresh extension AND try to access a webpage that is already open
 fetchPageContents();
 
-function updateDebugStatus(msg: string, data?: string) {
-  const statusDiv = document.getElementById("debug-status");
-  if (statusDiv) {
-    statusDiv.style.display = "block";
-    statusDiv.innerText = msg;
-    if (data) {
-       // Show full data, but in a scrollable way if needed via CSS
-       statusDiv.innerText += "\n\nData:\n" + data;
-       console.log("Full Context Data:", data);
-    }
-  }
-}
-
+// Modified to trigger classification automatically
 function fetchPageContents() {
-  updateDebugStatus("Attempting to connect to page...");
   chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-    if (!tabs[0].id) {
-      updateDebugStatus("Error: No active tab found.");
-      return;
-    }
+    if (!tabs[0].id) return;
     
     try {
       const port = chrome.tabs.connect(tabs[0].id, { name: "channelName" });
-      updateDebugStatus("Connected to page. Requesting content...");
-      
       port.postMessage({});
       
       port.onMessage.addListener(function (msg) {
         console.log("Page contents received:", msg.contents);
         context = msg.contents;
-        updateDebugStatus("Success! Metadata extracted.", msg.contents);
-      });
-      
-      // Add a fallback timeout in case content.js is dead
-      setTimeout(() => {
-        if (!context) {
-           updateDebugStatus("Timeout: No response from page. Try refreshing the Outlook tab.");
+        
+        // If engine is ready, start classification immediately
+        if (engine) {
+          classifyEmail();
+        } else {
+          // REMOVED text update: modelName.innerText = "Content received. Waiting for model...";
+          // Show loading dots instead if not already showing
+          document.getElementById("loading-indicator")!.style.display = "block";
         }
-      }, 2000);
-      
+      });
     } catch (e) {
-       updateDebugStatus("Connection Failed: " + e);
+       console.error("Connection Failed: " + e);
     }
   });
 }
 
-(<HTMLButtonElement>submitButton).disabled = true;
-
-let progressBar: InstanceType<typeof Line> = new Line("#loadingContainer", {
-  strokeWidth: 4,
-  easing: "easeInOut",
-  duration: 1400,
-  color: "#ffd166",
-  trailColor: "#eee",
-  trailWidth: 1,
-  svgStyle: { width: "100%", height: "100%" },
-});
-
-let isLoadingParams = true;
-
 let initProgressCallback = (report: InitProgressReport) => {
-  setLabel("init-label", report.text);
-  progressBar.animate(report.progress, {
-    duration: 50,
-  });
+  // REMOVED text update: setLabel("init-label", report.text);
+  
+  // Check for completion
   if (report.progress == 1.0) {
-    enableInputs();
+     // REMOVED text update: setLabel("init-label", "Model Loaded ✅");
   }
 };
 
 // initially selected model
-let selectedModel = modelConfig.modelName;
-
-// Configure app to use local model files
-// Model files should be in src/models/<modelName>/ and will be bundled in dist/models/
-const localModelPath = chrome.runtime.getURL(`models/${modelConfig.modelName}/`);
-// WebLLM expects HuggingFace-style URLs ending with /resolve/<branch>/
-// Append a fake resolve/main/ segment followed by ../../ so the final resolved URL
-// still points at our local folder but satisfies their validation logic.
-const localModelBaseForWebLLM = `${localModelPath}resolve/main/../../`;
-
-// Find the prebuilt model entry to get the correct model_lib URL
-const prebuiltModel = prebuiltAppConfig.model_list.find(
-  m => m.model_id === modelConfig.modelName
-);
-
-// Use the prebuilt model_lib URL (WASM file) but override model_url to use local files
-const appConfig: AppConfig = {
-  ...prebuiltAppConfig,
-  model_list: [
-    {
-      model_id: modelConfig.modelName,
-      model: localModelBaseForWebLLM,
-      model_lib: prebuiltModel?.model_lib || modelConfig.modelLibUrl,
-      // Include other properties from prebuilt model if they exist
-      ...(prebuiltModel ? {
-        vram_required_MB: prebuiltModel.vram_required_MB,
-        low_resource_required: prebuiltModel.low_resource_required,
-        overrides: prebuiltModel.overrides,
-        required_features: prebuiltModel.required_features,
-      } : {}),
-    },
-    // Keep other prebuilt models as fallback
-    ...prebuiltAppConfig.model_list.filter(m => m.model_id !== modelConfig.modelName),
-  ],
-};
-
-// populate model-selection
-const modelSelector = getElementAndCheck(
-  "model-selection",
-) as HTMLSelectElement;
-// Use appConfig instead of prebuiltAppConfig to include local model
-for (let i = 0; i < appConfig.model_list.length; ++i) {
-  const model = appConfig.model_list[i];
-  const opt = document.createElement("option");
-  opt.value = model.model_id;
-  opt.innerHTML = model.model_id;
-  opt.selected = false;
-
-  // set initial selection as the initially selected model
-  if (model.model_id == selectedModel) {
-    opt.selected = true;
-  }
-
-  modelSelector.appendChild(opt);
-}
+const selectedModel = "Llama-3.1-8B-Instruct-q4f16_1-MLC";
 
 let engine: MLCEngineInterface;
 
+// Define a Custom Client
+class OffscreenLLMClient {
+  modelId: string;
+  
+  constructor(modelId: string) {
+    this.modelId = modelId;
+  }
+
+  async init(callback?: (report: any) => void) {
+    // Listen for progress updates
+    if (callback) {
+      chrome.runtime.onMessage.addListener((msg) => {
+        if (msg.type === "init-progress") callback(msg.data);
+      });
+    }
+    
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: "init-engine", modelId: this.modelId }, resolve);
+    });
+  }
+
+  chat = {
+    completions: {
+      create: async (params: any) => {
+        return new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage({ 
+            type: "chat-completion", 
+            messages: params.messages, 
+            params: { ...params, messages: undefined } // separate messages
+          }, (response) => {
+            if (response.error) reject(response.error);
+            else resolve(response.result);
+          });
+        });
+      }
+    }
+  }
+}
+
 (async () => {
-  modelName.innerText = "Loading initial model...";
-  engine = await CreateMLCEngine(selectedModel, {
-    initProgressCallback: initProgressCallback,
-    appConfig: appConfig,
-  });
-  modelName.innerText = "Now chatting with " + modelDisplayName;
+  // REMOVED text update: modelName.innerText = "Loading classifier model...";
+  document.getElementById("loading-indicator")!.style.display = "block";
+  
+  // Initialize CUSTOM client
+  const client = new OffscreenLLMClient(selectedModel);
+  await client.init(initProgressCallback);
+  
+  // Replace 'engine' usage with 'client'
+  // The interface is mocked to match what you used before
+  engine = client as any; 
+  
+  // REMOVED text update: modelName.innerText = "Model loaded. Waiting for email content...";
+  
+  // Check if we already have context (page might have loaded faster than model)
+  if (context) {
+    classifyEmail();
+  }
 })();
 
-let chatHistory: ChatCompletionMessageParam[] = [];
 
-function enableInputs() {
-  if (isLoadingParams) {
-    sleep(500);
-    isLoadingParams = false;
-  }
+// New function to handle classification
+async function classifyEmail() {
+  if (!context || !engine) return;
 
-  // remove loading bar and loading bar descriptors, if exists
-  const initLabel = document.getElementById("init-label");
-  initLabel?.remove();
-  const loadingBarContainer = document.getElementById("loadingContainer")!;
-  loadingBarContainer?.remove();
-  queryInput.focus();
-
-  const modelNameArray = selectedModel.split("-");
-  modelDisplayName = modelNameArray[0];
-  let j = 1;
-  while (j < modelNameArray.length && modelNameArray[j][0] != "q") {
-    modelDisplayName = modelDisplayName + "-" + modelNameArray[j];
-    j++;
-  }
-}
-
-let requestInProgress = false;
-
-// Disable submit button if input field is empty
-queryInput.addEventListener("keyup", () => {
-  if (
-    (<HTMLInputElement>queryInput).value === "" ||
-    requestInProgress ||
-    isLoadingParams
-  ) {
-    (<HTMLButtonElement>submitButton).disabled = true;
-  } else {
-    (<HTMLButtonElement>submitButton).disabled = false;
-  }
-});
-
-// If user presses enter, click submit button
-queryInput.addEventListener("keyup", (event) => {
-  if (event.code === "Enter") {
-    event.preventDefault();
-    submitButton.click();
-  }
-});
-
-// Listen for clicks on submit button
-async function handleClick() {
-  requestInProgress = true;
-  (<HTMLButtonElement>submitButton).disabled = true;
-
-  // Get the message from the input field
-  const message = (<HTMLInputElement>queryInput).value;
-  console.log("message", message);
-  // Clear the answer
-  document.getElementById("answer")!.innerHTML = "";
-  // Hide the answer
-  document.getElementById("answerWrapper")!.style.display = "none";
-  // Show the loading indicator
+  // REMOVED text update: modelName.innerText = "Classifying email...";
   document.getElementById("loading-indicator")!.style.display = "block";
+  document.getElementById("resultWrapper")!.style.display = "none";
 
-  // Generate response
-  let inp = message;
-  if (context.length > 0) {
-    inp =
-      "Use only the following context when answering the question at the end. Don't use any other knowledge.\n" +
-      context +
-      "\n\nQuestion: " +
-      message +
-      "\n\nHelpful Answer: ";
-  }
-  console.log("Input:", inp);
-  chatHistory.push({ role: "user", content: inp });
-
-  let curMessage = "";
-  // Check if the user wants to disable thinking
-  const disableThinkingCheckbox = document.getElementById(
-    "disable-thinking",
-  ) as HTMLInputElement;
-  const shouldDisableThinking = disableThinkingCheckbox
-    ? disableThinkingCheckbox.checked
-    : false;
-
-  const completion = await engine.chat.completions.create({
-    stream: true,
-    messages: chatHistory,
-    extra_body: {
-      enable_thinking: !shouldDisableThinking,
-    },
-  });
-  for await (const chunk of completion) {
-    const curDelta = chunk.choices[0].delta.content;
-    if (curDelta) {
-      curMessage += curDelta;
+  // OPTIMIZATION: Parse and truncate context to save tokens
+  let optimizedContext = context;
+  try {
+    const data = JSON.parse(context);
+    
+    // 1. Limit URLs to top 2
+    if (data.urls && Array.isArray(data.urls) && data.urls.length > 2) {
+      data.urls = data.urls.slice(0, 2);
+      data.urls.push(`...and ${context.length - 2} more`);
     }
-    updateAnswer(curMessage);
-  }
-  const response = await engine.getMessage();
-  chatHistory.push({ role: "assistant", content: await engine.getMessage() });
-  console.log("response", response);
 
-  requestInProgress = false;
-  (<HTMLButtonElement>submitButton).disabled = false;
-}
-submitButton.addEventListener("click", handleClick);
+    // 2. Limit Body to ~2000 words (approx 8000 chars)
+    // This is safe for 4k context (leaves ~2k tokens for system prompt + output)
+    if (data.body && typeof data.body === 'string' && data.body.length > 8000) {
+      data.body = data.body.substring(0, 8000) + "\n...[TRUNCATED]...";
+    }
 
-// listen for changes in modelSelector
-async function handleSelectChange() {
-  if (isLoadingParams) {
-    return;
+    optimizedContext = JSON.stringify(data, null, 2);
+  } catch (e) {
+    console.warn("Failed to optimize context, sending raw:", e);
   }
 
-  modelName.innerText = "";
+  const messages: ChatCompletionMessageParam[] = [
+    { role: "system", content: SYSTEM_PROMPT },
+    { role: "user", content: `Analyze this email:\n${optimizedContext}` }
+  ];
 
-  const initLabel = document.createElement("p");
-  initLabel.id = "init-label";
-  initLabel.innerText = "Initializing model...";
-  const loadingContainer = document.createElement("div");
-  loadingContainer.id = "loadingContainer";
+  console.log("Messages:", messages);
+  
+  // Removed disable-thinking checkbox logic
+  const shouldDisableThinking = true; // Default to true (disabled) or false based on your preference.
+  // Based on your previous HTML "checked" state, it was checked by default, so disable thinking = true.
 
-  const loadingBox = getElementAndCheck("loadingBox");
-  loadingBox.appendChild(initLabel);
-  loadingBox.appendChild(loadingContainer);
-
-  isLoadingParams = true;
-  (<HTMLButtonElement>submitButton).disabled = true;
-
-  if (requestInProgress) {
-    engine.interruptGenerate();
-  }
-  engine.resetChat();
-  chatHistory = [];
-  await engine.unload();
-
-  selectedModel = modelSelector.value;
-
-  progressBar = new Line("#loadingContainer", {
-    strokeWidth: 4,
-    easing: "easeInOut",
-    duration: 1400,
-    color: "#ffd166",
-    trailColor: "#eee",
-    trailWidth: 1,
-    svgStyle: { width: "100%", height: "100%" },
-  });
-
-  initProgressCallback = (report: InitProgressReport) => {
-    setLabel("init-label", report.text);
-    progressBar.animate(report.progress, {
-      duration: 50,
+  try {
+    const completion = await engine.chat.completions.create({
+      stream: false, 
+      messages: messages,
+      temperature: 0.1,
+      response_format: { type: "json_object" },
+      extra_body: {
+        enable_thinking: !shouldDisableThinking,
+      },
     });
-    if (report.progress == 1.0) {
-      enableInputs();
+
+    let resultText = completion.choices[0].message.content || "{}";
+    console.log("Raw LLM Response:", resultText);
+    
+    // Remove <think> blocks
+    resultText = resultText.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+
+    try {
+      const result = JSON.parse(resultText);
+      displayResult(result, resultText);
+    } catch (e) {
+      console.error("JSON Parse Error", e);
+      displayResult({ score: "Error", reasons: ["Failed to parse LLM response"] }, resultText);
     }
-  };
 
-  engine.setInitProgressCallback(initProgressCallback);
-
-  requestInProgress = true;
-  modelName.innerText = "Reloading with new model...";
-  await engine.reload(selectedModel, {
-    appConfig: appConfig,
-  });
-  requestInProgress = false;
-  modelName.innerText = "Now chatting with " + modelDisplayName;
-}
-modelSelector.addEventListener("change", handleSelectChange);
-
-// Listen for messages from the background script
-chrome.runtime.onMessage.addListener(({ answer, error }) => {
-  if (answer) {
-    updateAnswer(answer);
+  } catch (err) {
+    console.error("Classification Error:", err);
+  } finally {
+    document.getElementById("loading-indicator")!.style.display = "none";
   }
+}
+
+function displayResult(data: any, rawText: string) {
+  const wrapper = document.getElementById("resultWrapper")!;
+  const scoreDisplay = document.getElementById("score-display")!;
+  const reasonsList = document.getElementById("reasons-list")!;
+  const rawJson = document.getElementById("raw-json")!;
+
+  wrapper.style.display = "block";
+  
+  // Basic styling based on score
+  const score = parseInt(data.score) || 0;
+  if (score > 70) {
+    wrapper.style.backgroundColor = "#ffebee"; // Red-ish
+    wrapper.style.border = "1px solid #ef9a9a";
+    scoreDisplay.style.color = "#c62828";
+    scoreDisplay.innerText = `⚠️ Malicious (Score: ${score})`;
+  } else if (score > 30) {
+    wrapper.style.backgroundColor = "#fff3e0"; // Orange-ish
+    wrapper.style.border = "1px solid #ffe0b2";
+    scoreDisplay.style.color = "#ef6c00";
+    scoreDisplay.innerText = `⚠️ Suspicious (Score: ${score})`;
+  } else {
+    wrapper.style.backgroundColor = "#e8f5e9"; // Green-ish
+    wrapper.style.border = "1px solid #c8e6c9";
+    scoreDisplay.style.color = "#2e7d32";
+    scoreDisplay.innerText = `✅ Benign (Score: ${score})`;
+  }
+
+  // Render reasons
+  reasonsList.innerHTML = "";
+  if (data.reasons && Array.isArray(data.reasons)) {
+    data.reasons.forEach((r: string) => {
+      const li = document.createElement("li");
+      li.innerText = r;
+      reasonsList.appendChild(li);
+    });
+  }
+
+  // FORCE RESIZE: Send message immediately after rendering
+  setTimeout(() => {
+      const height = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: "webllm-resize", height }, "*");
+  }, 50); // Small 50ms delay to let DOM reflow
+}
+
+// Monitor content size changes and notify the parent iframe
+const resizeObserver = new ResizeObserver(() => {
+  // Calculate total height (documentElement usually covers margins/padding best)
+  const height = document.documentElement.scrollHeight;
+  // Post message to parent (content.js)
+  window.parent.postMessage({ type: "webllm-resize", height }, "*");
 });
 
-function updateAnswer(answer: string) {
-  // Show answer
-  document.getElementById("answerWrapper")!.style.display = "block";
-  const answerWithBreaks = answer.replace(/\n/g, "<br>");
-  document.getElementById("answer")!.innerHTML = answerWithBreaks;
-  // Add event listener to copy button
-  document.getElementById("copyAnswer")!.addEventListener("click", () => {
-    // Get the answer text
-    const answerText = answer;
-    // Copy the answer text to the clipboard
-    navigator.clipboard
-      .writeText(answerText)
-      .then(() => console.log("Answer text copied to clipboard"))
-      .catch((err) => console.error("Could not copy text: ", err));
-  });
-  const options: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  };
-  const time = new Date().toLocaleString("en-US", options);
-  // Update timestamp
-  document.getElementById("timestamp")!.innerText = time;
-  // Hide loading indicator
-  document.getElementById("loading-indicator")!.style.display = "none";
-}
+// Start observing the body for size changes
+resizeObserver.observe(document.body);

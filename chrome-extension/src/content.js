@@ -26,7 +26,9 @@ const openExtensionPopup = () => {
     iframe.src = chrome.runtime.getURL("popup.html");
     iframe.style.width = "100%";
     iframe.style.boxSizing = "border-box";
-    iframe.style.height = "600px";
+    iframe.style.height = "250px"; // Start small or with a default loading height
+    iframe.style.transition = "height 0.2s ease-out"; // Smooth animation when resizing
+    iframe.style.overflow = "hidden"; // Hide scrollbars while resizing
     iframe.style.border = "none"; 
     iframe.style.marginBottom = "16px";
     iframe.style.borderRadius = "4px";
@@ -489,4 +491,18 @@ chrome.runtime.onConnect.addListener(function (port) {
 
     port.postMessage({ contents: finalPayload });
   });
+});
+
+// Listen for resize messages from the iframe (popup.ts)
+window.addEventListener("message", (event) => {
+  // Security check: ensure the message is what we expect
+  if (event.data && event.data.type === "webllm-resize" && typeof event.data.height === "number") {
+    const iframe = document.getElementById("webllm-popup-iframe");
+    if (iframe) {
+      // Ensure we don't shrink below a reasonable minimum (e.g. 50px)
+      // Add a larger buffer (20px) to account for body margins/padding that scrollHeight might miss
+      const newHeight = Math.max(50, event.data.height + 20);
+      iframe.style.height = `${newHeight}px`;
+    }
+  }
 });
