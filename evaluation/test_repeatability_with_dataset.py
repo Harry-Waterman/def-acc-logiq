@@ -16,9 +16,10 @@ parent_dir = script_dir.parent
 sys.path.insert(0, str(parent_dir))
 
 from evaluation.repeatability import assess_repeatability, benchmark_repeatability, print_repeatability_report
+from evaluation.config import DATASET_CONFIG, LABELS, EXAMPLE_REASONS, EVALUATION_CONFIG
 
-# Dataset path
-DATASET_PATH = parent_dir / "dataset" / "phishing_email.csv"
+# Dataset path from config
+DATASET_PATH = parent_dir / DATASET_CONFIG["path"]
 
 
 def sample_model_with_variation(input_text):
@@ -43,19 +44,19 @@ def sample_model_with_variation(input_text):
     if random.random() < 0.10:
         # Occasional variation
         if has_phishing_keywords:
-            label = "not_malicious"  # Wrong classification
+            label = LABELS["NOT_MALICIOUS"]  # Wrong classification
             reasons = ["occasional model uncertainty"]
         else:
-            label = "malicious"  # False positive
+            label = LABELS["MALICIOUS"]  # False positive
             reasons = ["occasional false positive"]
     else:
         # Consistent classification
         if has_phishing_keywords:
-            label = "malicious"
-            reasons = ["contains suspicious keywords", "potential phishing indicators"]
+            label = LABELS["MALICIOUS"]
+            reasons = EXAMPLE_REASONS[LABELS["MALICIOUS"]][:2]  # Use first 2 from config
         else:
-            label = "not_malicious"
-            reasons = ["appears to be legitimate communication"]
+            label = LABELS["NOT_MALICIOUS"]
+            reasons = EXAMPLE_REASONS[LABELS["NOT_MALICIOUS"]][:2]  # Use first 2 from config
     
     return {
         "label": label,
@@ -71,8 +72,8 @@ def load_sample_emails(n_samples=5):
     # Load balanced sample
     df_full = pd.read_csv(DATASET_PATH)
     
-    phishing_samples = df_full[df_full['label'] == 1]['text_combined'].head(n_samples // 2).tolist()
-    legitimate_samples = df_full[df_full['label'] == 0]['text_combined'].head(n_samples // 2).tolist()
+    phishing_samples = df_full[df_full[DATASET_CONFIG['label_column']] == 1][DATASET_CONFIG['text_column']].head(n_samples // 2).tolist()
+    legitimate_samples = df_full[df_full[DATASET_CONFIG['label_column']] == 0][DATASET_CONFIG['text_column']].head(n_samples // 2).tolist()
     
     return phishing_samples + legitimate_samples
 
@@ -105,7 +106,7 @@ def main():
         result = assess_repeatability(
             sample_model_with_variation,
             email,
-            num_runs=100  # Run 100 times to assess consistency
+            num_runs=EVALUATION_CONFIG["default_num_runs"]
         )
         
         print_repeatability_report(result, detailed=False)
@@ -118,7 +119,7 @@ def main():
     benchmark_result = benchmark_repeatability(
         sample_model_with_variation,
         sample_emails,
-        num_runs=100
+        num_runs=EVALUATION_CONFIG["default_num_runs"]
     )
     
     print_repeatability_report(benchmark_result, detailed=True)
