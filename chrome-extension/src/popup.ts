@@ -174,17 +174,119 @@ class OffscreenLLMClient {
   }
 }
 
+class ExternalLLMClient {
+  apiUrl: string;
+  apiKey: string;
+  model: string;
+
+  constructor(apiUrl: string, apiKey: string, model: string) {
+    this.apiUrl = apiUrl;
+    this.apiKey = apiKey;
+    this.model = model;
+  }
+
+  chat = {
+    completions: {
+      create: async (params: any) => {
+        let url = this.apiUrl;
+        if (!url.endsWith('/chat/completions')) {
+            // remove trailing slash if present before appending
+            if (url.endsWith('/')) {
+                url = url.slice(0, -1);
+            }
+            url += '/chat/completions';
+        }
+
+        // Construct body
+        const body: any = {
+            model: this.model,
+            messages: params.messages,
+            temperature: params.temperature,
+            response_format: params.response_format
+        };
+        
+        // If enable_thinking is passed, we might need to adapt it or ignore it depending on provider.
+        // Standard OpenAI doesn't use extra_body for thinking usually, but DeepSeek might.
+        // We will pass extra_body if present, assuming the user knows what they are doing with the model they selected.
+        if (params.extra_body) {
+            Object.assign(body, params.extra_body);
+        }
+
+        console.log("External API Request:", url, body);
+
+        let response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            
+            // Auto-retry logic for response_format error (common with some local servers)
+            if (response.status === 400 && errorText.includes("response_format")) {
+                console.warn("External API rejected response_format, retrying with type='text'...");
+                body.response_format = { type: "text" };
+                response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.apiKey}`
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) {
+                    const errorTextRetry = await response.text();
+                     throw new Error(`External API Error (after retry): ${response.status} ${response.statusText} - ${errorTextRetry}`);
+                }
+            } else {
+                 throw new Error(`External API Error: ${response.status} ${response.statusText} - ${errorText}`);
+            }
+        }
+
+        const data = await response.json();
+        return data;
+      }
+    }
+  }
+}
+
 (async () => {
   // REMOVED text update: modelName.innerText = "Loading classifier model...";
   document.getElementById("loading-indicator")!.style.display = "block";
   
-  // Initialize CUSTOM client
-  const client = new OffscreenLLMClient(selectedModel);
-  await client.init(initProgressCallback);
-  
-  // Replace 'engine' usage with 'client'
-  // The interface is mocked to match what you used before
-  engine = client as any; 
+  // Load settings
+  const settings = await new Promise<any>((resolve) => {
+    chrome.storage.sync.get({
+        useExternal: false,
+        apiUrl: "https://api.openai.com/v1",
+        apiKey: "",
+        model: "gpt-4o"
+    }, resolve);
+  });
+
+  if (settings.useExternal) {
+      console.log("Using External API with model:", settings.model);
+      const client = new ExternalLLMClient(settings.apiUrl, settings.apiKey, settings.model);
+      engine = client as any;
+      // Simulate init completion
+      if (initProgressCallback) {
+          initProgressCallback({ progress: 1.0, text: "External Model Ready", timeElapsed: 0 } as any);
+      }
+  } else {
+      console.log("Using Local WebLLM");
+      // Initialize CUSTOM client
+      const client = new OffscreenLLMClient(selectedModel);
+      await client.init(initProgressCallback);
+      
+      // Replace 'engine' usage with 'client'
+      // The interface is mocked to match what you used before
+      engine = client as any; 
+  }
   
   // REMOVED text update: modelName.innerText = "Model loaded. Waiting for email content...";
   
