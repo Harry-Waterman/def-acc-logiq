@@ -2,6 +2,7 @@
 "use strict";
 
 import "./popup.css";
+import "./cache-polyfill";
 
 import {
   MLCEngineInterface,

@@ -43,3 +43,7 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+
+# Chrome extension model files (large, should be downloaded separately)
+chrome-extension/src/models/
+!chrome-extension/src/models/.gitkeep

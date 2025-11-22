@@ -207,19 +207,19 @@ CREATE (e)-[:HAS_FLAG]->(f);
 
 // Link Emails to Scores
 MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (s:Score {value: 0.80})
-CREATE (e)-[:HAS_Score]->(s);
+CREATE (e)-[:HAS_SCORE]->(s);
 
 MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (s:Score {value: 0.95})
-CREATE (e)-[:HAS_Score]->(s);
+CREATE (e)-[:HAS_SCORE]->(s);
 
 MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (s:Score {value: 0.15})
-CREATE (e)-[:HAS_Score]->(s);
+CREATE (e)-[:HAS_SCORE]->(s);
 
 MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (s:Score {value: 0.95})
-CREATE (e)-[:HAS_Score]->(s);
+CREATE (e)-[:HAS_SCORE]->(s);
 
 MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (s:Score {value: 0.10})
-CREATE (e)-[:HAS_Score]->(s);
+CREATE (e)-[:HAS_SCORE]->(s);
 
 // Link Emails to Installation IDs
 MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (i:installationId {id: 'inst-001'})
