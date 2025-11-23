@@ -1,158 +1,239 @@
 {
-    "title": "Harbour Dashboard",
-    "version": "2.4",
-    "settings": {
-      "pagenumber": 0,
-      "editable": true,
-      "fullscreenEnabled": false,
-      "parameters": {},
-      "theme": "dark"
-    },
-    "pages": [
-      {
-        "title": "Overview",
-        "reports": [
-          {
-            "id": "2eb989f6-23b1-4900-9c57-59e2515570a3",
-            "title": "Graph",
-            "query": "Match (n)-[r]->(m)\nReturn n,r,m\n\n\n",
-            "width": 10,
-            "height": 8,
-            "x": 0,
-            "y": 0,
-            "type": "graph",
-            "selection": {
-              "Address": "email",
-              "DisplayName": "name",
-              "Email": "id",
-              "Domain": "name",
-              "Url": "url",
-              "Flag": "type",
-              "Score": "value",
-              "installationId": "id"
-            },
-            "settings": {
-              "fullscreenEnabled": true,
-              "refreshButtonEnabled": true,
-              "refreshRate": 30
-            },
-            "schema": [
-              [
-                "Address",
-                "email"
-              ],
-              [
-                "HAS_DISPLAY_NAME"
-              ],
-              [
-                "DisplayName",
-                "name"
-              ],
-              [
-                "Email",
-                "dateTime",
-                "id"
-              ],
-              [
-                "FROM"
-              ],
-              [
-                "HAS_DOMAIN"
-              ],
-              [
-                "Domain",
-                "name"
-              ],
-              [
-                "TO"
-              ],
-              [
-                "CONTAINS_URL"
-              ],
-              [
-                "Url",
-                "url"
-              ],
-              [
-                "HAS_FLAG"
-              ],
-              [
-                "Flag",
-                "type"
-              ],
-              [
-                "HAS_SCORE"
-              ],
-              [
-                "Score",
-                "value"
-              ],
-              [
-                "OWNER"
-              ],
-              [
-                "installationId",
-                "id"
-              ]
-            ]
-          },
-          {
-            "id": "7699d731-598d-4c49-a798-8de040ef69e6",
-            "title": "Emails",
-            "query": "Match (n:Email)-[:HAS_SCORE]->(m)\nOPTIONAL MATCH (n)-[:HAS_FLAG]->(o)\nWITH\n  n,\n  m,\n  collect(DISTINCT o.type) AS Flags\nReturn \n  n.id as Email,\n  m.value as Score,\n  Flags\nORDER BY Score DESC\n  \n\n\n",
-            "width": 14,
-            "height": 4,
-            "x": 10,
-            "y": 0,
-            "type": "table",
-            "selection": {},
-            "settings": {},
-            "schema": []
-          },
-          {
-            "id": "d6d5912e-6490-4fc4-851f-350597f2b6ca",
-            "title": "Flags",
-            "query": "Match (:Email)-[r:HAS_FLAG]->(m:Flag)\nRETURN\n  m.type as Flags,\n  count(r) as Count\n\n\n",
-            "width": 6,
-            "height": 4,
-            "x": 10,
-            "y": 4,
-            "type": "pie",
-            "selection": {
-              "index": "Flags",
-              "value": "Count",
-              "key": "(none)"
-            },
-            "settings": {
-              "legend": true,
-              "sortByValue": true
-            },
-            "schema": []
-          },
-          {
-            "id": "ad680aab-96a1-4f77-9268-68b76a2bd402",
-            "title": "Classification of Emails",
-            "query": "MATCH (n:Email)-[:HAS_SCORE]->(m)\nWITH\n  n,\n  CASE\n    WHEN m.value >= 0  AND m.value <= 50 THEN 'Benign'\n    WHEN m.value >= 51 AND m.value <= 80 THEN 'Suspicious'\n    ELSE 'Phishing'\n  END AS Risk\nRETURN\n  Risk,\n  count(DISTINCT n) AS Count",
-            "width": 8,
-            "height": 4,
-            "x": 16,
-            "y": 4,
-            "type": "bar",
-            "selection": {
-              "index": "Risk",
-              "value": "Count",
-              "key": "(none)"
-            },
-            "settings": {},
-            "schema": []
-          }
-        ]
-      }
-    ],
+  "title": "Harbour Dashboard",
+  "version": "2.4",
+  "settings": {
+    "pagenumber": 0,
+    "editable": true,
+    "fullscreenEnabled": false,
     "parameters": {},
-    "extensions": {
-      "active": true,
-      "activeReducers": []
-    },
-    "uuid": "d5f62c04-ae3c-4c4f-8fdb-363eb739aa55"
-  }
+    "theme": "dark",
+    "downloadImageEnabled": true,
+    "disableRowLimiting": false
+  },
+  "pages": [
+    {
+      "title": "Overview",
+      "reports": [
+        {
+          "id": "2eb989f6-23b1-4900-9c57-59e2515570a3",
+          "title": "Graph",
+          "query": "Match (n)-[r]->(m)\nReturn n,r,m\n\n\n",
+          "width": 10,
+          "height": 8,
+          "x": 0,
+          "y": 0,
+          "type": "graph",
+          "selection": {
+            "Address": "email",
+            "Sender": "name",
+            "HAS_DISPLAY_NAME": "(label)",
+            "DisplayName": "name",
+            "Email": "id",
+            "FROM": "(label)",
+            "HAS_DOMAIN": "(label)",
+            "Domain": "name",
+            "TO": "(label)",
+            "Receiver": "email",
+            "CONTAINS_URL": "(label)",
+            "Url": "(label)",
+            "HAS_FLAG": "(label)",
+            "Flag": "type",
+            "HAS_SCORE": "(label)",
+            "Score": "value",
+            "OWNER": "(label)",
+            "installationId": "id"
+          },
+          "settings": {
+            "fullscreenEnabled": true,
+            "refreshButtonEnabled": true,
+            "refreshRate": 30,
+            "downloadImageEnabled": true,
+            "allowDownload": true
+          },
+          "schema": [
+            [
+              "Address",
+              "email"
+            ],
+            [
+              "Sender",
+              "email",
+              "name"
+            ],
+            [
+              "HAS_DISPLAY_NAME"
+            ],
+            [
+              "DisplayName",
+              "name"
+            ],
+            [
+              "Email",
+              "dateTime",
+              "id"
+            ],
+            [
+              "FROM"
+            ],
+            [
+              "HAS_DOMAIN"
+            ],
+            [
+              "Domain",
+              "name"
+            ],
+            [
+              "TO"
+            ],
+            [
+              "Receiver",
+              "email"
+            ],
+            [
+              "CONTAINS_URL"
+            ],
+            [
+              "Url",
+              "url"
+            ],
+            [
+              "HAS_FLAG"
+            ],
+            [
+              "Flag",
+              "type"
+            ],
+            [
+              "HAS_SCORE"
+            ],
+            [
+              "Score",
+              "value"
+            ],
+            [
+              "OWNER"
+            ],
+            [
+              "installationId",
+              "id"
+            ]
+          ]
+        },
+        {
+          "id": "7699d731-598d-4c49-a798-8de040ef69e6",
+          "title": "Emails",
+          "query": "Match (n:Email)-[:HAS_SCORE]->(m)\nOPTIONAL MATCH (n)-[:HAS_FLAG]->(o)\nWITH\n  n,\n  m,\n  collect(DISTINCT o.type) AS Flags\nReturn \n  n.id as Email,\n  m.value as Score,\n  Flags\nORDER BY Score DESC\n  \n\n\n",
+          "width": 14,
+          "height": 4,
+          "x": 10,
+          "y": 0,
+          "type": "table",
+          "selection": {},
+          "settings": {
+            "refreshButtonEnabled": true,
+            "fullscreenEnabled": true,
+            "downloadImageEnabled": true,
+            "refreshRate": 30,
+            "allowDownload": true,
+            "wrapContent": true
+          },
+          "schema": []
+        },
+        {
+          "id": "d6d5912e-6490-4fc4-851f-350597f2b6ca",
+          "title": "Flags",
+          "query": "Match (:Email)-[r:HAS_FLAG]->(m:Flag)\nRETURN\n  m.type as Flags,\n  count(r) as Count\n\n\n",
+          "width": 6,
+          "height": 4,
+          "x": 10,
+          "y": 4,
+          "type": "pie",
+          "selection": {
+            "index": "Flags",
+            "value": "Count",
+            "key": "(none)"
+          },
+          "settings": {
+            "legend": true,
+            "sortByValue": true,
+            "refreshButtonEnabled": true,
+            "fullscreenEnabled": true,
+            "downloadImageEnabled": true,
+            "refreshRate": 30
+          },
+          "schema": []
+        },
+        {
+          "id": "ad680aab-96a1-4f77-9268-68b76a2bd402",
+          "title": "Classification of Emails",
+          "query": "MATCH (n:Email)-[:HAS_SCORE]->(m)\nWITH\n  n,\n  CASE\n    WHEN m.value >= 0  AND m.value <= 50 THEN 'Benign'\n    WHEN m.value >= 51 AND m.value <= 80 THEN 'Suspicious'\n    ELSE 'Phishing'\n  END AS Risk\nRETURN\n  Risk,\n  count(DISTINCT n) AS Count",
+          "width": 8,
+          "height": 4,
+          "x": 16,
+          "y": 4,
+          "type": "bar",
+          "selection": {
+            "index": "Risk",
+            "value": "Count",
+            "key": "(none)"
+          },
+          "settings": {
+            "refreshButtonEnabled": true,
+            "fullscreenEnabled": true,
+            "downloadImageEnabled": true,
+            "refreshRate": 30,
+            "legend": false,
+            "barValues": true
+          },
+          "schema": []
+        },
+        {
+          "id": "5f4010e2-3d9a-4e02-ba19-ea8cc539ef37",
+          "title": "Installations by High Score Emails Recieved",
+          "query": "MATCH (n:Email)-[:HAS_SCORE]->(m)\nMATCH (n)-[:OWNER]->(o:installationId)\nWHERE m.value > 50\nWITH o, count(DISTINCT n) AS HighScoreEmailsCount\nRETURN\n  o.id AS installationId,\n  HighScoreEmailsCount\nORDER BY HighScoreEmailsCount DESC\n\n\n",
+          "width": 12,
+          "height": 4,
+          "x": 0,
+          "y": 8,
+          "type": "table",
+          "selection": {},
+          "settings": {
+            "refreshButtonEnabled": true,
+            "fullscreenEnabled": true,
+            "downloadImageEnabled": true,
+            "refreshRate": 30,
+            "allowDownload": true,
+            "wrapContent": true
+          },
+          "schema": []
+        },
+        {
+          "id": "0796b6cd-4783-4935-bb49-15875868a489",
+          "title": "Domains by Use in High Score Emails",
+          "query": "MATCH (n:Email)-[:HAS_SCORE]->(m)\nMATCH (n)-[:CONTAINS_URL]->(o:Url)-[s:HAS_DOMAIN]->(p:Domain)\nWHERE m.value > 50\nWITH p, count(p) AS Count\nRETURN\n  p.name AS Domain,\n  Count\nORDER BY Count DESC\n  \n\n\n",
+          "width": 12,
+          "height": 4,
+          "x": 12,
+          "y": 8,
+          "type": "table",
+          "selection": {},
+          "settings": {
+            "refreshButtonEnabled": true,
+            "fullscreenEnabled": true,
+            "downloadImageEnabled": true,
+            "refreshRate": 30,
+            "allowDownload": true,
+            "wrapContent": true
+          },
+          "schema": []
+        }
+      ]
+    }
+  ],
+  "parameters": {},
+  "extensions": {
+    "active": true,
+    "activeReducers": []
+  },
+  "uuid": "d5f62c04-ae3c-4c4f-8fdb-363eb739aa55"
+}
