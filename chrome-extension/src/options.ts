@@ -1,25 +1,37 @@
-﻿// Options page script for managing extension settings
+// Options page script for managing extension settings
 
 interface ApiSettings {
-  enabled: boolean;
+  useApi: boolean;
   endpoint: string;
-  apiKey: string;
+  apiKeyHarbour: string;
+  useExternal: boolean;
+  aiUrl: string;
+  apiKeyAi: string;
+  model: string;
 }
 
 async function loadSettings(): Promise<ApiSettings> {
-  const result = await chrome.storage.sync.get(['apiEnabled', 'apiEndpoint', 'apiKey']);
+  const result = await chrome.storage.sync.get(['apiEnabled', 'apiEndpoint', 'apiKey', 'useExternal', 'aiUrl', 'apiKeyAi', 'model']);
   return {
-    enabled: result.apiEnabled || false,
+    useApi: result.apiEnabled || false,
     endpoint: result.apiEndpoint || '',
-    apiKey: result.apiKey || ''
+    apiKeyHarbour: result.apiKey || '',
+    useExternal: result.useExternal || false,
+    aiUrl: result.aiUrl || '',
+    apiKeyAi: result.apiKeyAi || '',
+    model: result.model || ''
   };
 }
 
 async function saveSettings(settings: ApiSettings): Promise<void> {
   await chrome.storage.sync.set({
-    apiEnabled: settings.enabled,
+    apiEnabled: settings.useApi,
     apiEndpoint: settings.endpoint,
-    apiKey: settings.apiKey
+    apiKey: settings.apiKeyHarbour,
+    useExternal: settings.useExternal,
+    aiUrl: settings.aiUrl,
+    apiKeyAi: settings.apiKeyAi,
+    model: settings.model
   });
 }
 
@@ -40,16 +52,25 @@ async function init() {
   const apiEnabledEl = document.getElementById('apiEnabled') as HTMLInputElement;
   const apiEndpointEl = document.getElementById('apiEndpoint') as HTMLInputElement;
   const apiKeyEl = document.getElementById('apiKey') as HTMLInputElement;
+  const useExternalEl = document.getElementById('useExternal') as HTMLInputElement;
+  const aiUrlEl = document.getElementById('aiUrl') as HTMLInputElement;
+  const apiKeyAiEl = document.getElementById('apiKeyAi') as HTMLInputElement;
+  const model = document.getElementById('model') as HTMLButtonElement;
   const saveBtn = document.getElementById('saveBtn') as HTMLButtonElement;
   
   // Populate form
-  apiEnabledEl.checked = settings.enabled;
+  apiEnabledEl.checked = settings.useApi;
   apiEndpointEl.value = settings.endpoint;
-  apiKeyEl.value = settings.apiKey;
+  apiKeyEl.value = settings.apiKeyHarbour;
+  useExternalEl = settings.useExternal;
+  aiUrlEl = settings.aiUrl;
+  apiKeyAiEl = settings.apiKeyAi;
+  model = settings.model;
   
   // Save button handler
   saveBtn.addEventListener('click', async () => {
     const endpoint = apiEndpointEl.value.trim();
+    const aiUrl = aiUrlEl.value.trim();
     
     if (apiEnabledEl.checked && !endpoint) {
       showStatus('Please enter an API endpoint URL', true);
@@ -61,11 +82,25 @@ async function init() {
       return;
     }
     
+    if (useExternalEl.checked && !aiUrl) {
+      showStatus('Please enter an API endpoint URL', true);
+      return;
+    }
+    
+    if (useExternalEl.checked && aiUrl && !aiUrl.match(/^https?:\/\/.+/)) {
+      showStatus('Please enter a valid URL (must start with http:// or https://)', true);
+      return;
+    }
+    
     try {
       await saveSettings({
-        enabled: apiEnabledEl.checked,
+        useApi: apiEnabledEl.checked,
         endpoint: endpoint,
-        apiKey: apiKeyEl.value.trim()
+        apiKeyHarbour: apiKeyEl.value.trim(),
+        useExternal: useExternalEl.checked,
+        aiUrl: aiUrl,
+        apiKeyAi: apiKeyAiEl.value.trim(),
+        model: model.value.trim()
       });
       showStatus('Settings saved successfully!');
     } catch (error) {

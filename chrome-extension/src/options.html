@@ -45,6 +45,11 @@
       }
       .checkbox-container {
         display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .row {
+        display: flex;
         align-items: center;
         margin-bottom: 10px;
       }
@@ -88,9 +93,40 @@
         margin-top: -5px;
         margin-bottom: 10px;
       }
+      label {
+        font-size: 14px;
+      }
+      input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 5px;
+        margin-top: 5px;
+        box-sizing: border-box;
+      }
+      .hidden {
+        display: none;
+      }
+      button {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #status {
+        margin-top: 10px;
+        font-size: 12px;
+        color: green;
+        min-height: 1.2em;
+      }
     </style>
   </head>
   <body>
+    
     <h1>TinyRod Settings</h1>
     
     <div class="section">
@@ -100,17 +136,34 @@
         <label for="apiEnabled">Enable API Output</label>
       </div>
       <label for="apiEndpoint">API Endpoint URL:</label>
-      <input type="url" id="apiEndpoint" name="apiEndpoint" placeholder="https://api.example.com/classifications">
+      <input type="url" id="apiEndpoint" name="apiEndpoint" placeholder="https://api.example.com/api/emails">
       <div class="help-text">The URL where classification results will be sent</div>
       
       <label for="apiKey">API Key (optional):</label>
       <input type="password" id="apiKey" name="apiKey" placeholder="Enter your API key">
       <div class="help-text">Leave empty if your API doesn't require authentication</div>
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="useExternal" name="useExternal">
+        <label for="useExternal">Use External Model</label>
+      </div>
+      
+      <label for="apiUrl">API Endpoint URL:</label>
+      <input type="text" id="apiUrl" placeholder="https://api.openai.com/v1">
+      <div class="help-text">The URL where your external model is reached</div>
+      
+      <label for="apiKeyAi">API Key</label>
+      <input type="password" id="apiKeyAi" placeholder="sk-...">
+      <div class="help-text">Leave empty if your API doesn't require authentication</div>
+      
+      <label for="model">Model</label>
+      <input type="text" id="model" placeholder="gpt-4o">
+      <div class="help-text">The of your external model</div>
     </div>
 
     <button id="saveBtn">Save Settings</button>
     <div id="status" class="status"></div>
-
+   
     <script type="module" src="./options.ts"></script>
   </body>
 </html>
