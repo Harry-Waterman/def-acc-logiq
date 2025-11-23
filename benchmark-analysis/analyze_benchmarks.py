@@ -7,6 +7,7 @@ Generates visualizations, comparative analysis, and detailed reports.
 import json
 import os
 import glob
+import warnings
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -25,24 +26,24 @@ COLORS = sns.color_palette("husl", 20)  # Extended palette for more models
 def get_model_color_map(models: List[str]) -> Dict[str, tuple]:
     """
     Create a consistent color mapping for models that persists across all visualizations.
-    Uses a deterministic approach based on model name hash to ensure consistency.
+    Uses a deterministic approach based on sorted model names to ensure consistency.
     
     Args:
-        models: List of model names
+        models: List of model names (will be sorted internally)
     
     Returns:
         Dictionary mapping model names to RGB color tuples
     """
-    # Sort models for consistent ordering
-    sorted_models = sorted(models)
+    # Sort models for consistent ordering (remove duplicates)
+    sorted_models = sorted(set(models))
     
     # Use a color palette that's visually distinct
-    palette = sns.color_palette("Set2", len(sorted_models))
-    
-    # If we have more models than Set2 colors, extend with husl palette
-    if len(sorted_models) > len(palette):
-        extended_palette = sns.color_palette("husl", len(sorted_models))
-        palette = extended_palette
+    # Set2 has 8 colors, so for more models, use husl which generates distinct colors
+    if len(sorted_models) <= 8:
+        palette = sns.color_palette("Set2", len(sorted_models))
+    else:
+        # Use husl palette for more models - it generates distinct colors for any number
+        palette = sns.color_palette("husl", len(sorted_models))
     
     return dict(zip(sorted_models, palette))
 
@@ -132,27 +133,53 @@ def get_consistency_axis_limits() -> tuple:
     bins = get_consistency_bins()
     return (bins[0], bins[-1] - CONSISTENCY_BIN_WIDTH)  # Show actual 0-1 range
 
-def load_benchmark_results(results_dir: str = "../benchmark-results") -> List[Dict[str, Any]]:
-    """Load all benchmark JSON files from the results directory."""
+def load_benchmark_results(results_dir: str = "../benchmark-results", include_repeatability: bool = False) -> List[Dict[str, Any]]:
+    """
+    Load benchmark JSON files from the results directory.
+    
+    Args:
+        results_dir: Directory containing benchmark result files
+        include_repeatability: If True, includes files with '_repeatability_' in name.
+                              If False, excludes files with '_repeatability_' in name.
+    
+    Returns:
+        List of benchmark result dictionaries with 'model_name' added
+    """
     results = []
     json_files = glob.glob(os.path.join(results_dir, "benchmark_results_*.json"))
     
     for file_path in json_files:
+        filename = os.path.basename(file_path)
+        
+        # Filter based on repeatability flag
+        is_repeatability_file = '_repeatability_' in filename
+        if is_repeatability_file and not include_repeatability:
+            continue  # Skip repeatability files when loading accuracy results
+        if not is_repeatability_file and include_repeatability:
+            continue  # Skip non-repeatability files when loading repeatability results
+        
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                # Extract model name from filename dynamically
-                # Pattern: benchmark_results_<model_name>_seed<number>.json
-                filename = os.path.basename(file_path)
-                # Extract everything between "benchmark_results_" and "_seed"
+                
+                # Extract model name from filename
+                # Pattern: benchmark_results_MODEL[-repeatability]_seed-info.json
+                # This preserves -reasoning suffix and other distinctions that may not be in JSON config
                 import re
-                match = re.search(r'benchmark_results_(.+?)_seed\d+', filename)
+                # Match: benchmark_results_<model_name>_seed or benchmark_results_<model_name>_repeatability_seed
+                match = re.search(r'benchmark_results_(.+?)(?:_repeatability)?_seed', filename)
                 if match:
                     model_name = match.group(1)
                 else:
-                    # Fallback: if no seed pattern, extract everything after prefix and before .json
+                    # Fallback: extract everything between benchmark_results_ and .json
                     model_name = filename.replace("benchmark_results_", "").replace(".json", "")
+                    # Remove _repeatability if present
+                    model_name = model_name.replace("_repeatability", "")
+                    # Remove any trailing _seed pattern if present
+                    model_name = re.sub(r'_seed.*$', '', model_name)
+                
                 data['model_name'] = model_name
+                data['is_repeatability_file'] = is_repeatability_file
                 results.append(data)
         except Exception as e:
             print(f"Error loading {file_path}: {e}")
@@ -160,10 +187,17 @@ def load_benchmark_results(results_dir: str = "../benchmark-results") -> List[Di
     return results
 
 def extract_summary_metrics(results: List[Dict[str, Any]]) -> pd.DataFrame:
-    """Extract summary metrics from all benchmark results."""
+    """
+    Extract summary metrics from accuracy benchmark results.
+    Excludes repeatability-only files (they don't have accuracy_results).
+    """
     metrics = []
     
     for result in results:
+        # Skip repeatability-only files (they don't have accuracy_results)
+        if result.get('is_repeatability_file', False):
+            continue
+            
         config = result.get('config', {})
         accuracy = result.get('accuracy_results', {})
         model_name = result.get('model_name', 'unknown')
@@ -192,10 +226,17 @@ def extract_summary_metrics(results: List[Dict[str, Any]]) -> pd.DataFrame:
     return pd.DataFrame(metrics)
 
 def extract_repeatability_metrics(results: List[Dict[str, Any]]) -> pd.DataFrame:
-    """Extract repeatability metrics from benchmark results."""
+    """
+    Extract repeatability metrics from benchmark results.
+    Only processes results from files with '_repeatability_' in the filename.
+    """
     repeatability_data = []
     
     for result in results:
+        # Only process repeatability files
+        if not result.get('is_repeatability_file', False):
+            continue
+            
         model_name = result.get('model_name', 'unknown')
         config = result.get('config', {})
         repeatability = result.get('repeatability_results', [])
@@ -213,10 +254,17 @@ def extract_repeatability_metrics(results: List[Dict[str, Any]]) -> pd.DataFrame
     return pd.DataFrame(repeatability_data)
 
 def extract_per_email_metrics(results: List[Dict[str, Any]]) -> pd.DataFrame:
-    """Extract per-email accuracy statistics from detailed_results."""
+    """
+    Extract per-email accuracy statistics from detailed_results.
+    Excludes repeatability-only files (they don't have accuracy_results with detailed_results).
+    """
     per_email_data = []
     
     for result in results:
+        # Skip repeatability-only files (they don't have accuracy_results with detailed_results)
+        if result.get('is_repeatability_file', False):
+            continue
+            
         model_name = result.get('model_name', 'unknown')
         accuracy = result.get('accuracy_results', {})
         detailed = accuracy.get('detailed_results', [])
@@ -328,28 +376,46 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
     # Accuracy - sorted by bestness (best at top)
     ax1 = axes[0, 0]
     df_sorted = df_sorted_by_bestness.sort_values('accuracy', ascending=True)
+    
+    # Ensure accuracy values are in 0-1 range (normalize if they're percentages)
+    accuracy_values = df_sorted['accuracy'].copy()
+    if accuracy_values.max() > 1:
+        accuracy_values = accuracy_values / 100
+    
     # Use model-specific colors for each bar
     bar_colors = [model_colors.get(model, COLORS[0]) for model in df_sorted['model']]
-    bars1 = ax1.barh(df_sorted['model'], df_sorted['accuracy'], color=bar_colors)
+    bars1 = ax1.barh(df_sorted['model'], accuracy_values, color=bar_colors)
     # Add value labels on bars
     for i, (idx, row) in enumerate(df_sorted.iterrows()):
-        ax1.text(row['accuracy'] + 0.01, i, f"{row['accuracy']:.2%}", 
+        acc_val = accuracy_values.iloc[i]
+        ax1.text(acc_val + 0.01, i, f"{acc_val:.2%}", 
                 va='center', fontsize=9)
     ax1.set_xlabel('Accuracy')
     ax1.set_title('Overall Accuracy')
-    ax1.set_xlim(0, 1.1)  # Slightly extend to show labels
+    ax1.set_xlim(0, max(1.1, accuracy_values.max() * 1.1))  # Ensure 0 is at left, extend for labels
     ax1.grid(axis='x', alpha=0.3)
     
     # Precision vs Recall
     ax2 = axes[0, 1]
     if model_colors is None:
         model_colors = get_model_color_map(df['model'].unique())
+    
+    # Normalize precision and recall to 0-1 range if needed
+    precision_values = df['precision'].copy()
+    recall_values = df['recall'].copy()
+    if precision_values.max() > 1:
+        precision_values = precision_values / 100
+    if recall_values.max() > 1:
+        recall_values = recall_values / 100
+    
     for idx, row in df.iterrows():
         model_color = model_colors.get(row['model'], COLORS[0])
-        ax2.scatter(row['recall'], row['precision'], s=200, alpha=0.7, 
+        prec_val = precision_values.loc[idx]
+        recall_val = recall_values.loc[idx]
+        ax2.scatter(recall_val, prec_val, s=200, alpha=0.7, 
                    color=model_color, label=row['model'])
         # Add model name labels near points
-        ax2.annotate(row['model'], (row['recall'], row['precision']),
+        ax2.annotate(row['model'], (recall_val, prec_val),
                     xytext=(5, 5), textcoords='offset points', fontsize=8)
     ax2.set_xlabel('Recall')
     ax2.set_ylabel('Precision')
@@ -362,28 +428,46 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
     # F1 Score - sorted by bestness (best at top)
     ax3 = axes[1, 0]
     df_sorted_f1 = df_sorted_by_bestness.sort_values('f1', ascending=True)
+    
+    # Ensure F1 values are in 0-1 range (normalize if they're percentages)
+    f1_values = df_sorted_f1['f1'].copy()
+    if f1_values.max() > 1:
+        f1_values = f1_values / 100
+    
     # Use model-specific colors for each bar
     bar_colors_f1 = [model_colors.get(model, COLORS[0]) for model in df_sorted_f1['model']]
-    bars3 = ax3.barh(df_sorted_f1['model'], df_sorted_f1['f1'], color=bar_colors_f1)
+    bars3 = ax3.barh(df_sorted_f1['model'], f1_values, color=bar_colors_f1)
     # Add value labels on bars
     for i, (idx, row) in enumerate(df_sorted_f1.iterrows()):
-        ax3.text(row['f1'] + 0.01, i, f"{row['f1']:.2%}", 
+        f1_val = f1_values.iloc[i]
+        ax3.text(f1_val + 0.01, i, f"{f1_val:.2%}", 
                 va='center', fontsize=9)
     ax3.set_xlabel('F1 Score')
     ax3.set_title('F1 Score Comparison')
-    ax3.set_xlim(0, 1.1)  # Slightly extend to show labels
+    ax3.set_xlim(0, max(1.1, f1_values.max() * 1.1))  # Ensure 0 is at left, extend for labels
     ax3.grid(axis='x', alpha=0.3)
     
     # FPR vs FNR
     ax4 = axes[1, 1]
     if model_colors is None:
         model_colors = get_model_color_map(df['model'].unique())
+    
+    # Normalize FPR and FNR to 0-1 range if needed
+    fpr_values = df['fpr'].copy()
+    fnr_values = df['fnr'].copy()
+    if fpr_values.max() > 1:
+        fpr_values = fpr_values / 100
+    if fnr_values.max() > 1:
+        fnr_values = fnr_values / 100
+    
     for idx, row in df.iterrows():
         model_color = model_colors.get(row['model'], COLORS[0])
-        ax4.scatter(row['fnr'], row['fpr'], s=200, alpha=0.7, 
+        fpr_val = fpr_values.loc[idx]
+        fnr_val = fnr_values.loc[idx]
+        ax4.scatter(fnr_val, fpr_val, s=200, alpha=0.7, 
                    color=model_color, label=row['model'])
         # Add model name labels near points, adjust position to avoid legend
-        ax4.annotate(row['model'], (row['fnr'], row['fpr']),
+        ax4.annotate(row['model'], (fnr_val, fpr_val),
                     xytext=(5, 5), textcoords='offset points', fontsize=8,
                     bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.7, edgecolor='gray'))
     ax4.set_xlabel('False Negative Rate (FNR)')
@@ -437,33 +521,46 @@ def plot_latency_comparison(df: pd.DataFrame, output_dir: str, model_colors: Dic
     if model_colors is None:
         model_colors = get_model_color_map(df['model'].unique())
     
-    fig, ax = plt.subplots(figsize=(10, 6))
+    if df.empty:
+        print("⚠ No data for latency comparison")
+        return
+    
+    # Ensure we have unique models (in case of duplicates)
+    df_unique = df.drop_duplicates(subset=['model'], keep='first').copy()
+    
+    print(f"  Plotting latency for {len(df_unique)} models: {sorted(df_unique['model'].unique())}")
+    
+    fig, ax = plt.subplots(figsize=(10, max(6, len(df_unique) * 0.6)))
     
     # Sort by latency value (fastest first) - handle outliers by using median or excluding extreme values
     # Check for outliers (models with very high latency due to timeouts)
-    latency_median = df['avg_latency'].median()
-    latency_q75 = df['avg_latency'].quantile(0.75)
-    iqr = df['avg_latency'].quantile(0.75) - df['avg_latency'].quantile(0.25)
-    outlier_threshold = latency_q75 + 1.5 * iqr
+    latency_median = df_unique['avg_latency'].median()
+    latency_q75 = df_unique['avg_latency'].quantile(0.75)
+    iqr = df_unique['avg_latency'].quantile(0.75) - df_unique['avg_latency'].quantile(0.25)
+    outlier_threshold = latency_q75 + 1.5 * iqr if iqr > 0 else df_unique['avg_latency'].max()
     
-    # Sort by latency (descending - fastest at top of chart)
-    # For barh charts, descending order puts fastest (lowest values) at top
-    df_sorted = df.sort_values('avg_latency', ascending=False)
+    # Sort by latency (ascending - fastest/lowest at top of chart)
+    # For barh charts, ascending order puts fastest (lowest values) at top
+    df_sorted = df_unique.sort_values('avg_latency', ascending=True).reset_index(drop=True)
+    
     # Use model-specific colors for each bar
     bar_colors = [model_colors.get(model, COLORS[0]) for model in df_sorted['model']]
-    bars = ax.barh(df_sorted['model'], df_sorted['avg_latency'], color=bar_colors)
+    bars = ax.barh(df_sorted['model'], df_sorted['avg_latency'], color=bar_colors, edgecolor='black', linewidth=0.5)
     
     ax.set_xlabel('Average Latency (seconds)')
     ax.set_title('Inference Latency Comparison\n(Sorted by latency: fastest first)')
     ax.grid(axis='x', alpha=0.3)
     
+    # Set x-axis limit to accommodate all bars, including outliers
+    max_latency = df_sorted['avg_latency'].max()
+    ax.set_xlim(0, max_latency * 1.1)
+    
     # Handle outliers - if any model has extremely high latency, add a note
-    if df_sorted['avg_latency'].max() > outlier_threshold:
-        outlier_models = df_sorted[df_sorted['avg_latency'] > outlier_threshold]
-        if len(outlier_models) > 0:
-            ax.text(0.98, 0.02, f'Note: {len(outlier_models)} model(s) have outlier latency', 
-                    transform=ax.transAxes, fontsize=8, ha='right',
-                    bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
+    outlier_models = df_sorted[df_sorted['avg_latency'] > outlier_threshold]
+    if len(outlier_models) > 0:
+        ax.text(0.98, 0.02, f'Note: {len(outlier_models)} model(s) have outlier latency', 
+                transform=ax.transAxes, fontsize=8, ha='right',
+                bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
     
     # Add value labels on bars
     for i, (idx, row) in enumerate(df_sorted.iterrows()):
@@ -473,13 +570,15 @@ def plot_latency_comparison(df: pd.DataFrame, output_dir: str, model_colors: Dic
             label = f"{latency_val:.1f}s*"
         else:
             label = f"{latency_val:.2f}s"
-        ax.text(row['avg_latency'] + max(0.05, latency_val * 0.02), i, label, 
+        # Position label at the end of the bar
+        label_x = latency_val + max(0.05, max_latency * 0.02)
+        ax.text(label_x, i, label, 
                va='center', fontsize=9)
     
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'latency_comparison.png'), dpi=300, bbox_inches='tight')
     plt.close()
-    print("✓ Created latency_comparison.png")
+    print(f"✓ Created latency_comparison.png ({len(df_sorted)} models)")
 
 def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_colors: Dict[str, tuple] = None):
     """Create repeatability analysis visualizations."""
@@ -545,33 +644,44 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
     ax2.set_xlim(0, 1.1)  # Slightly extend to show labels
     ax2.grid(axis='x', alpha=0.3)
     
-    # Score variance distribution - use better visualization when all values are the same
+    # Score Mean Distribution by Email Type (Benign vs Malicious)
     ax3 = axes[1, 0]
-    if all_variance_zero:
-        # When all variance is 0, show score_mean distribution instead
-        # Create bins aligned with score range (0-100)
-        score_mean_bins = get_score_bins()
-        for model in repeat_df['model'].unique():
-            model_data = repeat_df[repeat_df['model'] == model]['score_mean']
-            ax3.hist(model_data, alpha=0.5, label=model, bins=score_mean_bins, edgecolor='black', linewidth=0.5, align='mid')
-        ax3.set_xlim(*get_score_axis_limits())  # Set explicit limits to show 0-100 range
-        ax3.set_xlabel('Score Mean (0-100)')
-        ax3.set_ylabel('Frequency')
-        ax3.set_title('Score Distribution by Model\n(Note: Variance is 0 - showing score means instead)')
-    else:
-        # Normal variance distribution
-        # Create bins aligned with variance range
-        max_variance = repeat_df['score_variance'].max()
-        variance_bins = get_variance_bins(max_variance)
-        for model in repeat_df['model'].unique():
-            model_data = repeat_df[repeat_df['model'] == model]['score_variance']
-            ax3.hist(model_data, alpha=0.5, label=model, bins=variance_bins, edgecolor='black', linewidth=0.5, align='mid')
-        ax3.set_xlim(variance_bins[0], variance_bins[-1] - (variance_bins[1] - variance_bins[0]))  # Set explicit limits to show actual range
-        ax3.set_xlabel('Score Variance')
-        ax3.set_ylabel('Frequency')
-        ax3.set_title('Score Variance Distribution by Model')
-    ax3.legend(fontsize=8, loc='upper right')
-    ax3.grid(alpha=0.3, axis='y')
+    repeat_df_copy = repeat_df.copy()
+    repeat_df_copy['email_type'] = repeat_df_copy['ground_truth'].map({0: 'Benign', 1: 'Malicious'})
+    
+    # Create bins aligned with score range (0-100)
+    score_mean_bins = get_score_bins()
+    
+    # Plot histogram for each model, grouped by email type
+    models = repeat_df['model'].unique()
+    x = np.arange(len(models))
+    width = 0.35
+    
+    # Calculate mean scores by model and email type
+    benign_means = []
+    malicious_means = []
+    for model in models:
+        model_data = repeat_df_copy[repeat_df_copy['model'] == model]
+        benign_mean = model_data[model_data['email_type'] == 'Benign']['score_mean'].mean() if len(model_data[model_data['email_type'] == 'Benign']) > 0 else 0
+        malicious_mean = model_data[model_data['email_type'] == 'Malicious']['score_mean'].mean() if len(model_data[model_data['email_type'] == 'Malicious']) > 0 else 0
+        benign_means.append(benign_mean)
+        malicious_means.append(malicious_mean)
+    
+    # Create grouped bar chart
+    for i, model in enumerate(models):
+        model_color = model_colors.get(model, COLORS[0])
+        ax3.bar(x[i] - width/2, benign_means[i], width, label='Benign' if i == 0 else '', 
+               color=model_color, alpha=0.6, edgecolor='black')
+        ax3.bar(x[i] + width/2, malicious_means[i], width, label='Malicious' if i == 0 else '', 
+               color=model_color, alpha=0.9, edgecolor='black')
+    
+    ax3.set_xlabel('Model')
+    ax3.set_ylabel('Average Score Mean')
+    ax3.set_title('Score Mean by Model and Email Type')
+    ax3.set_xticks(x)
+    ax3.set_xticklabels(models, rotation=45, ha='right')
+    ax3.legend(title='Email Type', fontsize=9)
+    ax3.grid(axis='y', alpha=0.3)
     
     # Reason consistency distribution
     ax4 = axes[1, 1]
@@ -580,7 +690,8 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
     if all_consistency_one:
         # When all consistency is 1.0, show as a bar chart showing all models at 1.0
         models = repeat_df['model'].unique()
-        ax4.barh(range(len(models)), [1.0] * len(models), color=COLORS[6], alpha=0.7, edgecolor='black')
+        bar_colors = [model_colors.get(model, COLORS[0]) for model in models]
+        ax4.barh(range(len(models)), [1.0] * len(models), color=bar_colors, alpha=0.7, edgecolor='black')
         ax4.set_yticks(range(len(models)))
         ax4.set_yticklabels(models)
         ax4.set_xlabel('Reason Consistency')
@@ -599,7 +710,8 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
         consistency_bins = get_consistency_bins()
         for model in repeat_df['model'].unique():
             model_data = repeat_df[repeat_df['model'] == model]['reason_consistency']
-            ax4.hist(model_data, alpha=0.5, label=model, bins=consistency_bins, edgecolor='black', linewidth=0.5, align='mid')
+            model_color = model_colors.get(model, COLORS[0])
+            ax4.hist(model_data, alpha=0.5, label=model, bins=consistency_bins, edgecolor='black', linewidth=0.5, align='mid', color=model_color)
         ax4.set_xlim(*get_consistency_axis_limits())  # Set explicit limits to show 0-1 range
         ax4.set_xlabel('Reason Consistency')
         ax4.set_ylabel('Frequency')
@@ -1094,11 +1206,14 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
     plt.close()
     print("✓ Created per_email_statistics.png")
 
-def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str):
+def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str, model_colors: Dict[str, tuple] = None):
     """Create visualization of reason consistency broken down by email type (benign vs malicious)."""
     if repeat_df.empty:
         print("⚠ Skipping reason consistency by type (no data)")
         return
+    
+    if model_colors is None:
+        model_colors = get_model_color_map(list(repeat_df['model'].unique()))
     
     # Map ground_truth: 0 = benign, 1 = malicious
     repeat_df_copy = repeat_df.copy()
@@ -1113,14 +1228,16 @@ def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str):
     # Sort by overall consistency (average of benign and malicious) - higher is better
     overall_consistency = consistency_by_type.mean(axis=1).sort_values(ascending=False)
     consistency_by_type = consistency_by_type.reindex(overall_consistency.index)
-    # Use grouped bar chart instead of stacked
+    # Use grouped bar chart with model-specific colors
     x = np.arange(len(consistency_by_type.index))
     width = 0.35
     models = consistency_by_type.index
-    ax1.bar(x - width/2, consistency_by_type['Benign'] if 'Benign' in consistency_by_type.columns else [0]*len(models), 
-            width, label='Benign', color='lightblue', alpha=0.8)
-    ax1.bar(x + width/2, consistency_by_type['Malicious'] if 'Malicious' in consistency_by_type.columns else [0]*len(models), 
-            width, label='Malicious', color='lightcoral', alpha=0.8)
+    for i, model in enumerate(models):
+        model_color = model_colors.get(model, COLORS[0])
+        benign_val = consistency_by_type.loc[model, 'Benign'] if 'Benign' in consistency_by_type.columns else 0
+        malicious_val = consistency_by_type.loc[model, 'Malicious'] if 'Malicious' in consistency_by_type.columns else 0
+        ax1.bar(x[i] - width/2, benign_val, width, color=model_color, alpha=0.6, label='Benign' if i == 0 else '')
+        ax1.bar(x[i] + width/2, malicious_val, width, color=model_color, alpha=0.9, label='Malicious' if i == 0 else '')
     ax1.set_xlabel('Model')
     ax1.set_ylabel('Average Reason Consistency')
     ax1.set_title('Reason Consistency: Benign vs Malicious Emails')
@@ -1135,13 +1252,15 @@ def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str):
     variance_by_type = repeat_df_copy.groupby(['model', 'email_type'])['score_variance'].mean().unstack(fill_value=0)
     # Sort by overall variance (lower is better) - use same order as consistency chart
     variance_by_type = variance_by_type.reindex(overall_consistency.index)
-    # Use grouped bar chart instead of stacked
+    # Use grouped bar chart with model-specific colors
     x = np.arange(len(variance_by_type.index))
     models = variance_by_type.index
-    ax2.bar(x - width/2, variance_by_type['Benign'] if 'Benign' in variance_by_type.columns else [0]*len(models), 
-            width, label='Benign', color='lightblue', alpha=0.8)
-    ax2.bar(x + width/2, variance_by_type['Malicious'] if 'Malicious' in variance_by_type.columns else [0]*len(models), 
-            width, label='Malicious', color='lightcoral', alpha=0.8)
+    for i, model in enumerate(models):
+        model_color = model_colors.get(model, COLORS[0])
+        benign_val = variance_by_type.loc[model, 'Benign'] if 'Benign' in variance_by_type.columns else 0
+        malicious_val = variance_by_type.loc[model, 'Malicious'] if 'Malicious' in variance_by_type.columns else 0
+        ax2.bar(x[i] - width/2, benign_val, width, color=model_color, alpha=0.6, label='Benign' if i == 0 else '')
+        ax2.bar(x[i] + width/2, malicious_val, width, color=model_color, alpha=0.9, label='Malicious' if i == 0 else '')
     ax2.set_xlabel('Model')
     ax2.set_ylabel('Average Score Variance')
     ax2.set_title('Score Variance: Benign vs Malicious Emails')
@@ -1155,177 +1274,57 @@ def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str):
     plt.close()
     print("✓ Created reason_consistency_by_type.png")
 
-def plot_model_size_correlation(df: pd.DataFrame, repeat_df: pd.DataFrame, output_dir: str):
-    """Create visualization showing correlation between model size and repeatability."""
-    if repeat_df.empty or df.empty:
-        print("⚠ Skipping model size correlation (no data)")
-        return
-    
-    # Merge model size from df into repeat_df
-    model_sizes = df[['model', 'model_size']].set_index('model')
-    repeat_with_size = repeat_df.merge(model_sizes, left_on='model', right_index=True, how='left')
-    
-    if repeat_with_size['model_size'].isna().all() or (repeat_with_size['model_size'] == 0).all():
-        print("⚠ Skipping model size correlation (no model size data)")
-        return
-    
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-    fig.suptitle('Model Size vs Repeatability Correlation', fontsize=14, fontweight='bold')
-    
-    # 1. Model size vs score variance
-    ax1 = axes[0]
-    variance_by_model_size = repeat_with_size.groupby('model').agg({
-        'model_size': 'first',
-        'score_variance': 'mean'
-    }).reset_index()
-    
-    # Group models by same size to avoid overlapping labels
-    from collections import defaultdict
-    size_groups = defaultdict(list)
-    for _, row in variance_by_model_size.iterrows():
-        size_groups[row['model_size']].append(row)
-    
-    for model_size, models in size_groups.items():
-        if len(models) > 1:
-            # Multiple models with same size - offset labels vertically
-            for i, row in enumerate(models):
-                offset_y = (i - len(models)/2 + 0.5) * 0.01  # Spread vertically
-                ax1.scatter(row['model_size'], row['score_variance'], s=300, alpha=0.7, 
-                           edgecolors='black', linewidth=2)
-                ax1.annotate(row['model'], (row['model_size'], row['score_variance']),
-                            xytext=(5, 5 + offset_y * 100), textcoords='offset points', 
-                            fontsize=9, fontweight='bold',
-                            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8, edgecolor='gray'))
-        else:
-            # Single model at this size
-            row = models[0]
-            ax1.scatter(row['model_size'], row['score_variance'], s=300, alpha=0.7, 
-                       edgecolors='black', linewidth=2)
-            ax1.annotate(row['model'], (row['model_size'], row['score_variance']),
-                        xytext=(5, 5), textcoords='offset points', fontsize=9, fontweight='bold',
-                        bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8, edgecolor='gray'))
-    
-    # Calculate correlation (handle edge cases - only if there's variation in both variables)
-    if len(variance_by_model_size) > 1:
-        model_size_std = variance_by_model_size['model_size'].std()
-        variance_std = variance_by_model_size['score_variance'].std()
-        if model_size_std > 0 and variance_std > 0:
-            with np.errstate(divide='ignore', invalid='ignore'):
-                try:
-                    corr = variance_by_model_size['model_size'].corr(variance_by_model_size['score_variance'])
-                    if pd.notna(corr) and not np.isnan(corr):
-                        ax1.text(0.05, 0.95, f'Correlation: {corr:.3f}', transform=ax1.transAxes,
-                                fontsize=10, verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-                except (ValueError, ZeroDivisionError):
-                    pass  # Skip correlation display if calculation fails
-    
-    ax1.set_xlabel('Model Size (Billions of Parameters)')
-    ax1.set_ylabel('Average Score Variance')
-    ax1.set_title('Model Size vs Score Variance')
-    ax1.grid(alpha=0.3)
-    
-    # 2. Model size vs reason consistency
-    ax2 = axes[1]
-    consistency_by_model_size = repeat_with_size.groupby('model').agg({
-        'model_size': 'first',
-        'reason_consistency': 'mean'
-    }).reset_index()
-    
-    # Group models by same size to avoid overlapping labels
-    size_groups = defaultdict(list)
-    for _, row in consistency_by_model_size.iterrows():
-        size_groups[row['model_size']].append(row)
-    
-    for model_size, models in size_groups.items():
-        if len(models) > 1:
-            # Multiple models with same size - offset labels vertically
-            for i, row in enumerate(models):
-                offset_y = (i - len(models)/2 + 0.5) * 0.05  # Spread vertically
-                ax2.scatter(row['model_size'], row['reason_consistency'], s=300, alpha=0.7,
-                           edgecolors='black', linewidth=2)
-                ax2.annotate(row['model'], (row['model_size'], row['reason_consistency']),
-                            xytext=(5, 5 + offset_y * 20), textcoords='offset points', 
-                            fontsize=9, fontweight='bold',
-                            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8, edgecolor='gray'))
-        else:
-            # Single model at this size
-            row = models[0]
-            ax2.scatter(row['model_size'], row['reason_consistency'], s=300, alpha=0.7,
-                       edgecolors='black', linewidth=2)
-            ax2.annotate(row['model'], (row['model_size'], row['reason_consistency']),
-                        xytext=(5, 5), textcoords='offset points', fontsize=9, fontweight='bold',
-                        bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8, edgecolor='gray'))
-    
-    # Calculate correlation (handle edge cases - only if there's variation in both variables)
-    if len(consistency_by_model_size) > 1:
-        model_size_std = consistency_by_model_size['model_size'].std()
-        consistency_std = consistency_by_model_size['reason_consistency'].std()
-        if model_size_std > 0 and consistency_std > 0:
-            with np.errstate(divide='ignore', invalid='ignore'):
-                try:
-                    corr = consistency_by_model_size['model_size'].corr(consistency_by_model_size['reason_consistency'])
-                    if pd.notna(corr) and not np.isnan(corr):
-                        ax2.text(0.05, 0.95, f'Correlation: {corr:.3f}', transform=ax2.transAxes,
-                                fontsize=10, verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-                except (ValueError, ZeroDivisionError):
-                    pass  # Skip correlation display if calculation fails
-    
-    ax2.set_xlabel('Model Size (Billions of Parameters)')
-    ax2.set_ylabel('Average Reason Consistency')
-    ax2.set_title('Model Size vs Reason Consistency')
-    ax2.set_ylim(0, 1.1)
-    ax2.grid(alpha=0.3)
-    
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'model_size_correlation.png'), dpi=300, bbox_inches='tight')
-    plt.close()
-    print("✓ Created model_size_correlation.png")
 
-def plot_temperature_impact(repeat_df: pd.DataFrame, output_dir: str):
-    """Create visualization showing impact of temperature settings on consistency."""
-    if repeat_df.empty:
+def plot_temperature_impact(df: pd.DataFrame, output_dir: str, model_colors: Dict[str, tuple] = None):
+    """Create visualization showing impact of temperature settings on accuracy metrics (not repeatability)."""
+    if df.empty:
         print("⚠ Skipping temperature impact (no data)")
         return
     
+    if model_colors is None:
+        model_colors = get_model_color_map(list(df['model'].unique()))
+    
     # Check if we have temperature data
-    if 'temperature' not in repeat_df.columns or repeat_df['temperature'].isna().all():
+    if 'temperature' not in df.columns or df['temperature'].isna().all():
         print("⚠ Skipping temperature impact (no temperature data)")
         return
     
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-    fig.suptitle('Impact of Temperature on Consistency', fontsize=14, fontweight='bold')
+    fig.suptitle('Impact of Temperature on Accuracy Metrics', fontsize=14, fontweight='bold')
     
-    # 1. Temperature vs score variance
+    # 1. Temperature vs accuracy
     ax1 = axes[0]
-    temp_variance = repeat_df.groupby(['model', 'temperature']).agg({
-        'score_variance': 'mean'
+    temp_accuracy = df.groupby(['model', 'temperature']).agg({
+        'accuracy': 'mean'
     }).reset_index()
     
-    for model in temp_variance['model'].unique():
-        model_data = temp_variance[temp_variance['model'] == model]
-        ax1.plot(model_data['temperature'], model_data['score_variance'], 
-                marker='o', label=model, linewidth=2, markersize=8)
+    for model in temp_accuracy['model'].unique():
+        model_data = temp_accuracy[temp_accuracy['model'] == model]
+        model_color = model_colors.get(model, COLORS[0])
+        ax1.plot(model_data['temperature'], model_data['accuracy'], 
+                marker='o', label=model, linewidth=2, markersize=8, color=model_color)
     
     ax1.set_xlabel('Temperature')
-    ax1.set_ylabel('Average Score Variance')
-    ax1.set_title('Temperature vs Score Variance')
+    ax1.set_ylabel('Average Accuracy')
+    ax1.set_title('Temperature vs Accuracy')
     ax1.legend(fontsize=8, loc='best')
     ax1.grid(alpha=0.3)
     
-    # 2. Temperature vs reason consistency
+    # 2. Temperature vs F1 score
     ax2 = axes[1]
-    temp_consistency = repeat_df.groupby(['model', 'temperature']).agg({
-        'reason_consistency': 'mean'
+    temp_f1 = df.groupby(['model', 'temperature']).agg({
+        'f1': 'mean'
     }).reset_index()
     
-    for model in temp_consistency['model'].unique():
-        model_data = temp_consistency[temp_consistency['model'] == model]
-        ax2.plot(model_data['temperature'], model_data['reason_consistency'],
-                marker='o', label=model, linewidth=2, markersize=8)
+    for model in temp_f1['model'].unique():
+        model_data = temp_f1[temp_f1['model'] == model]
+        model_color = model_colors.get(model, COLORS[0])
+        ax2.plot(model_data['temperature'], model_data['f1'],
+                marker='o', label=model, linewidth=2, markersize=8, color=model_color)
     
     ax2.set_xlabel('Temperature')
-    ax2.set_ylabel('Average Reason Consistency')
-    ax2.set_title('Temperature vs Reason Consistency')
+    ax2.set_ylabel('Average F1 Score')
+    ax2.set_title('Temperature vs F1 Score')
     ax2.set_ylim(0, 1.1)
     ax2.legend(fontsize=8, loc='best')
     ax2.grid(alpha=0.3)
@@ -1461,17 +1460,39 @@ def generate_summary_report(df: pd.DataFrame, repeat_df: pd.DataFrame, output_di
                     }).reset_index()
                     
                     if len(variance_by_size) > 1:
+                        # Check for sufficient variance before calculating correlation
+                        var_corr = None
+                        cons_corr = None
+                        
                         # Suppress numpy warnings for correlation calculation
                         with np.errstate(divide='ignore', invalid='ignore'):
-                            var_corr = variance_by_size['model_size'].corr(variance_by_size['score_variance'])
-                            cons_corr = consistency_by_size['model_size'].corr(consistency_by_size['reason_consistency'])
+                            with warnings.catch_warnings():
+                                warnings.filterwarnings('ignore', category=RuntimeWarning)
+                                
+                                # Only calculate if there's variance in both variables
+                                if (variance_by_size['model_size'].std() > 0 and 
+                                    variance_by_size['score_variance'].std() > 0):
+                                    try:
+                                        var_corr = variance_by_size['model_size'].corr(variance_by_size['score_variance'])
+                                    except (ValueError, ZeroDivisionError):
+                                        pass
+                                
+                                if (consistency_by_size['model_size'].std() > 0 and 
+                                    consistency_by_size['reason_consistency'].std() > 0):
+                                    try:
+                                        cons_corr = consistency_by_size['model_size'].corr(consistency_by_size['reason_consistency'])
+                                    except (ValueError, ZeroDivisionError):
+                                        pass
                         
                         f.write("### Model Size vs Repeatability Correlation\n\n")
                         f.write("Analysis of whether larger models show different repeatability patterns:\n\n")
-                        if pd.notna(var_corr) and not np.isnan(var_corr):
+                        if var_corr is not None and pd.notna(var_corr) and not np.isnan(var_corr):
                             f.write(f"- **Model Size vs Score Variance Correlation**: {var_corr:.3f}\n")
-                        if pd.notna(cons_corr) and not np.isnan(cons_corr):
+                        if cons_corr is not None and pd.notna(cons_corr) and not np.isnan(cons_corr):
                             f.write(f"- **Model Size vs Reason Consistency Correlation**: {cons_corr:.3f}\n")
+                        if (var_corr is None or (pd.isna(var_corr) or np.isnan(var_corr))) and \
+                           (cons_corr is None or (pd.isna(cons_corr) or np.isnan(cons_corr))):
+                            f.write("- Insufficient variance in model size or repeatability metrics to calculate meaningful correlations\n")
                         f.write("\n")
             
             # Temperature impact
@@ -1557,8 +1578,7 @@ def generate_summary_report(df: pd.DataFrame, repeat_df: pd.DataFrame, output_di
         f.write("- `latency_comparison.png`: Inference speed comparison\n")
         f.write("- `repeatability_analysis.png`: Consistency and repeatability metrics\n")
         f.write("- `reason_consistency_by_type.png`: Reason consistency broken down by email type (benign vs malicious)\n")
-        f.write("- `model_size_correlation.png`: Correlation between model size and repeatability\n")
-        f.write("- `temperature_impact.png`: Impact of temperature settings on consistency\n")
+        f.write("- `temperature_impact.png`: Impact of temperature settings on accuracy metrics\n")
         f.write("- `per_email_statistics.png`: Per-email accuracy statistics and distributions\n")
         f.write("- `radar_chart.png`: Multi-metric radar comparison\n")
         f.write("- `latency_accuracy_tradeoff.png`: Latency vs accuracy tradeoff scatter plot\n")
@@ -1576,19 +1596,25 @@ def main():
     output_dir = script_dir
     
     print("🔍 Loading benchmark results...")
-    results = load_benchmark_results(str(results_dir))
+    # Load accuracy results (exclude repeatability files)
+    accuracy_results = load_benchmark_results(str(results_dir), include_repeatability=False)
+    # Load repeatability results (only files with '_repeatability_' in name)
+    repeatability_results = load_benchmark_results(str(results_dir), include_repeatability=True)
     
-    if not results:
-        print("❌ No benchmark results found!")
+    if not accuracy_results:
+        print("❌ No accuracy benchmark results found!")
         return
     
-    print(f"✓ Loaded {len(results)} benchmark result files\n")
+    print(f"✓ Loaded {len(accuracy_results)} accuracy benchmark result files")
+    if repeatability_results:
+        print(f"✓ Loaded {len(repeatability_results)} repeatability benchmark result files")
+    print()
     
     # Extract metrics
     print("📊 Extracting metrics...")
-    df = extract_summary_metrics(results)
-    repeat_df = extract_repeatability_metrics(results)
-    per_email_df = extract_per_email_metrics(results)
+    df = extract_summary_metrics(accuracy_results)
+    repeat_df = extract_repeatability_metrics(repeatability_results)
+    per_email_df = extract_per_email_metrics(accuracy_results)
     
     # Add error rate metrics to summary dataframe
     if not per_email_df.empty:
@@ -1626,16 +1652,86 @@ def main():
         error_cols = ['timeout_rate', 'json_error_rate', 'error_rate', 'total_error_rate', 'success_rate']
         df[error_cols] = df[error_cols].fillna(0)
     
-    print(f"✓ Extracted metrics for {len(df)} models\n")
+    print(f"✓ Extracted metrics for {len(df)} models")
+    print(f"  Models: {sorted(df['model'].unique())}\n")
     
     # Create visualizations directory
     viz_dir = os.path.join(output_dir, 'visualizations')
     os.makedirs(viz_dir, exist_ok=True)
     
-    # Create consistent color mapping for all models
+    # Create consistent color mapping for all models (both accuracy and repeatability)
+    # Since file names are standardized, we can match models by base name
+    # For repeatability models, match them to accuracy models if they have the same base name
+    def get_base_model_name(name: str) -> str:
+        """Get base model name for matching.
+        Removes -reasoning suffix and version numbers (like -2057, -2507) for matching."""
+        import re
+        # Remove -reasoning suffix if present
+        if name.endswith('-reasoning'):
+            name = name[:-10]  # Remove '-reasoning'
+        # Remove trailing version numbers (4+ digits after dash, like -2057, -2507)
+        # This matches models like qwen_qwen3-4b-2057 and qwen_qwen3-4b-2507
+        name = re.sub(r'-(\d{4,})$', '', name)  # Remove trailing 4+ digit version numbers
+        return name
+    
+    # Collect ALL unique models (both accuracy and repeatability) for color mapping
     all_models = list(df['model'].unique())
-    model_colors = get_model_color_map(all_models)
-    print(f"✓ Created color mapping for {len(all_models)} models\n")
+    if not repeat_df.empty:
+        for model in repeat_df['model'].unique():
+            if model not in all_models:
+                all_models.append(model)
+    
+    # Create color map using ALL original model names
+    all_models_sorted = sorted(all_models)
+    model_colors = get_model_color_map(all_models_sorted)
+    
+    # For models that match between accuracy and repeatability (same base name), use same color
+    if not repeat_df.empty:
+        accuracy_models = set(df['model'].unique())
+        repeatability_models = set(repeat_df['model'].unique())
+        
+        # Create mapping: base name -> list of original names that match
+        base_to_models = {}
+        for model in accuracy_models:
+            base = get_base_model_name(model)
+            if base not in base_to_models:
+                base_to_models[base] = []
+            base_to_models[base].append(('accuracy', model))
+        
+        for model in repeatability_models:
+            base = get_base_model_name(model)
+            if base not in base_to_models:
+                base_to_models[base] = []
+            base_to_models[base].append(('repeatability', model))
+        
+        # For each base name that has both accuracy and repeatability models, use same color
+        for base, model_list in base_to_models.items():
+            acc_models = [m for t, m in model_list if t == 'accuracy']
+            rep_models = [m for t, m in model_list if t == 'repeatability']
+            
+            if acc_models and rep_models:
+                # Use the accuracy model's color for the repeatability model
+                acc_color = model_colors.get(acc_models[0], COLORS[0])
+                for rep_model in rep_models:
+                    model_colors[rep_model] = acc_color
+    
+    print(f"✓ Created color mapping for {len(model_colors)} models")
+    print(f"  Accuracy models ({len(df['model'].unique())}): {sorted(df['model'].unique())}")
+    if not repeat_df.empty:
+        print(f"  Repeatability models ({len(repeat_df['model'].unique())}): {sorted(repeat_df['model'].unique())}")
+        # Check for matching models (by base name)
+        accuracy_base = {get_base_model_name(m): m for m in df['model'].unique()}
+        repeatability_base = {get_base_model_name(m): m for m in repeat_df['model'].unique()}
+        matching_base = set(accuracy_base.keys()) & set(repeatability_base.keys())
+        if matching_base:
+            print(f"  Matching models (same color):")
+            for base_name in sorted(matching_base):
+                acc_models = [m for m in df['model'].unique() if get_base_model_name(m) == base_name]
+                rep_models = [m for m in repeat_df['model'].unique() if get_base_model_name(m) == base_name]
+                for acc_model in acc_models:
+                    for rep_model in rep_models:
+                        print(f"    - '{acc_model}' (accuracy) <-> '{rep_model}' (repeatability)")
+    print()
     
     # Generate visualizations
     print("📈 Creating visualizations...")
@@ -1644,9 +1740,9 @@ def main():
     plot_latency_comparison(df, viz_dir, model_colors)
     if not repeat_df.empty:
         plot_repeatability_analysis(repeat_df, viz_dir, model_colors)
-        plot_reason_consistency_by_type(repeat_df, viz_dir)
-        plot_model_size_correlation(df, repeat_df, viz_dir)
-        plot_temperature_impact(repeat_df, viz_dir)
+        plot_reason_consistency_by_type(repeat_df, viz_dir, model_colors)
+    # Temperature impact should use accuracy results, not repeatability
+    plot_temperature_impact(df, viz_dir, model_colors)
     plot_radar_chart(df, viz_dir, model_colors)
     plot_latency_accuracy_tradeoff(df, viz_dir, model_colors)
     plot_quadrant_analysis(df, viz_dir, model_colors)
