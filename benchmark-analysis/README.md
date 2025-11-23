@@ -17,7 +17,7 @@ The analysis pipeline processes benchmark JSON files from the `benchmark-results
 - `ANALYSIS_REPORT.md` - Comprehensive text report with insights
 - `summary_metrics.csv` - Extracted metrics in CSV format
 - `repeatability_metrics.csv` - Repeatability data in CSV format
-- `*.png` - Visualization files (accuracy comparison, confusion matrices, latency, etc.)
+- `visualizations/` - Directory containing all visualization PNG files
 
 ## Usage
 
@@ -37,7 +37,7 @@ The script will:
 1. Load all benchmark JSON files from `../benchmark-results/`
 2. Extract metrics and generate visualizations
 3. Create a comprehensive analysis report
-4. Save all outputs to this directory
+4. Save all outputs to this directory (visualizations in `visualizations/` subfolder)
 
 ## Generated Visualizations
 
@@ -57,6 +57,14 @@ The script will:
    - Distribution histograms
 
 5. **radar_chart.png** - Multi-metric radar chart comparing all models
+
+6. **latency_accuracy_tradeoff.png** - Scatter plot showing the speed/accuracy tradeoff with quadrant labels
+
+7. **quadrant_analysis.png** - Four-quadrant analysis categorizing models by accuracy and latency performance
+
+8. **metrics_heatmap.png** - Comprehensive heatmap showing all metrics (normalized and raw values) across all models
+
+9. **pareto_frontier.png** - Efficiency frontier analysis identifying Pareto-optimal models
 
 ## Metrics Explained
 

@@ -356,6 +356,241 @@ def plot_radar_chart(df: pd.DataFrame, output_dir: str):
     plt.close()
     print("✓ Created radar_chart.png")
 
+def plot_latency_accuracy_tradeoff(df: pd.DataFrame, output_dir: str):
+    """Create latency vs accuracy tradeoff scatter plot."""
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Plot each model
+    model_colors = COLORS[:len(df)]
+    for i, (idx, row) in enumerate(df.iterrows()):
+        ax.scatter(row['avg_latency'], row['accuracy'], s=300, alpha=0.7, 
+                  color=model_colors[i], label=row['model'], edgecolors='black', linewidth=1.5)
+        # Add model name labels
+        ax.annotate(row['model'], (row['avg_latency'], row['accuracy']),
+                   xytext=(8, 8), textcoords='offset points', fontsize=9, fontweight='bold')
+    
+    # Add quadrant lines
+    median_latency = df['avg_latency'].median()
+    median_accuracy = df['accuracy'].median()
+    ax.axvline(x=median_latency, color='gray', linestyle='--', alpha=0.5, linewidth=1)
+    ax.axhline(y=median_accuracy, color='gray', linestyle='--', alpha=0.5, linewidth=1)
+    
+    # Add quadrant labels
+    ax.text(0.02, 0.98, 'High Accuracy\nLow Latency\n(Ideal)', 
+           transform=ax.transAxes, fontsize=10, verticalalignment='top',
+           bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.3))
+    ax.text(0.98, 0.98, 'High Accuracy\nHigh Latency', 
+           transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right',
+           bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.3))
+    ax.text(0.02, 0.02, 'Low Accuracy\nLow Latency', 
+           transform=ax.transAxes, fontsize=10, verticalalignment='bottom',
+           bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.3))
+    ax.text(0.98, 0.02, 'Low Accuracy\nHigh Latency\n(Worst)', 
+           transform=ax.transAxes, fontsize=10, verticalalignment='bottom', horizontalalignment='right',
+           bbox=dict(boxstyle='round', facecolor='lightcoral', alpha=0.3))
+    
+    ax.set_xlabel('Average Latency (seconds)', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Accuracy', fontsize=12, fontweight='bold')
+    ax.set_title('Latency vs Accuracy Tradeoff', fontsize=14, fontweight='bold', pad=20)
+    ax.grid(alpha=0.3)
+    ax.legend(loc='lower right', fontsize=8, framealpha=0.9)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'latency_accuracy_tradeoff.png'), dpi=300, bbox_inches='tight')
+    plt.close()
+    print("✓ Created latency_accuracy_tradeoff.png")
+
+def plot_quadrant_analysis(df: pd.DataFrame, output_dir: str):
+    """Create quadrant analysis showing accuracy vs latency with clear quadrants."""
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Calculate thresholds (median or mean)
+    latency_threshold = df['avg_latency'].median()
+    accuracy_threshold = df['accuracy'].median()
+    
+    # Categorize models into quadrants
+    quadrants = {
+        'High Acc / Low Lat': [],
+        'High Acc / High Lat': [],
+        'Low Acc / Low Lat': [],
+        'Low Acc / High Lat': []
+    }
+    
+    for idx, row in df.iterrows():
+        if row['accuracy'] >= accuracy_threshold and row['avg_latency'] <= latency_threshold:
+            quadrants['High Acc / Low Lat'].append((row['model'], row['avg_latency'], row['accuracy']))
+        elif row['accuracy'] >= accuracy_threshold and row['avg_latency'] > latency_threshold:
+            quadrants['High Acc / High Lat'].append((row['model'], row['avg_latency'], row['accuracy']))
+        elif row['accuracy'] < accuracy_threshold and row['avg_latency'] <= latency_threshold:
+            quadrants['Low Acc / Low Lat'].append((row['model'], row['avg_latency'], row['accuracy']))
+        else:
+            quadrants['Low Acc / High Lat'].append((row['model'], row['avg_latency'], row['accuracy']))
+    
+    # Plot quadrant boundaries
+    ax.axvline(x=latency_threshold, color='red', linestyle='--', linewidth=2, alpha=0.7, label=f'Latency Threshold: {latency_threshold:.2f}s')
+    ax.axhline(y=accuracy_threshold, color='blue', linestyle='--', linewidth=2, alpha=0.7, label=f'Accuracy Threshold: {accuracy_threshold:.2%}')
+    
+    # Plot models with different colors for each quadrant
+    quadrant_colors = {
+        'High Acc / Low Lat': 'green',
+        'High Acc / High Lat': 'orange',
+        'Low Acc / Low Lat': 'blue',
+        'Low Acc / High Lat': 'red'
+    }
+    
+    for quadrant, models in quadrants.items():
+        for model_name, latency, accuracy in models:
+            ax.scatter(latency, accuracy, s=400, alpha=0.7, 
+                      color=quadrant_colors[quadrant], label=quadrant if models.index((model_name, latency, accuracy)) == 0 else '',
+                      edgecolors='black', linewidth=2, zorder=5)
+            ax.annotate(model_name, (latency, accuracy),
+                       xytext=(10, 10), textcoords='offset points', fontsize=9, fontweight='bold',
+                       bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8, edgecolor='black'))
+    
+    # Fill quadrants with semi-transparent colors
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    ax.fill_between([xlim[0], latency_threshold], accuracy_threshold, ylim[1], 
+                    alpha=0.1, color='green', label='Best Quadrant')
+    ax.fill_between([latency_threshold, xlim[1]], accuracy_threshold, ylim[1], 
+                    alpha=0.1, color='orange')
+    ax.fill_between([xlim[0], latency_threshold], ylim[0], accuracy_threshold, 
+                    alpha=0.1, color='blue')
+    ax.fill_between([latency_threshold, xlim[1]], ylim[0], accuracy_threshold, 
+                    alpha=0.1, color='red', label='Worst Quadrant')
+    
+    ax.set_xlabel('Average Latency (seconds)', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Accuracy', fontsize=12, fontweight='bold')
+    ax.set_title('Quadrant Analysis: Accuracy vs Latency', fontsize=14, fontweight='bold', pad=20)
+    ax.grid(alpha=0.3, zorder=0)
+    ax.legend(loc='upper left', fontsize=8, framealpha=0.9)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'quadrant_analysis.png'), dpi=300, bbox_inches='tight')
+    plt.close()
+    print("✓ Created quadrant_analysis.png")
+
+def plot_metrics_heatmap(df: pd.DataFrame, output_dir: str):
+    """Create comprehensive metrics heatmap."""
+    # Select metrics to display
+    metrics = ['accuracy', 'precision', 'recall', 'f1', 'avg_latency', 'fpr', 'fnr']
+    metric_labels = ['Accuracy', 'Precision', 'Recall', 'F1 Score', 'Latency (s)', 'FPR', 'FNR']
+    
+    # Create matrix for heatmap
+    heatmap_data = df[['model'] + metrics].set_index('model')
+    heatmap_data.columns = metric_labels
+    
+    # Normalize latency (inverse and normalize) for better visualization
+    # Lower latency is better, so we'll show it as "speed" (1/latency normalized)
+    heatmap_data_normalized = heatmap_data.copy()
+    # For latency, convert to speed score (higher is better)
+    max_latency = heatmap_data_normalized['Latency (s)'].max()
+    heatmap_data_normalized['Latency (s)'] = 1 - (heatmap_data_normalized['Latency (s)'] / max_latency)
+    
+    # Normalize all metrics to 0-1 scale for consistent heatmap
+    for col in heatmap_data_normalized.columns:
+        if col != 'Latency (s)':  # Already normalized
+            min_val = heatmap_data_normalized[col].min()
+            max_val = heatmap_data_normalized[col].max()
+            if max_val > min_val:
+                heatmap_data_normalized[col] = (heatmap_data_normalized[col] - min_val) / (max_val - min_val)
+    
+    # Create figure with two subplots: normalized heatmap and raw values
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 6))
+    
+    # Normalized heatmap (for visual comparison)
+    sns.heatmap(heatmap_data_normalized, annot=False, cmap='RdYlGn', ax=ax1, 
+                cbar_kws={'label': 'Normalized Score (0-1)'}, fmt='.2f')
+    ax1.set_title('Normalized Metrics Heatmap\n(Higher = Better for all metrics)', 
+                 fontsize=12, fontweight='bold', pad=10)
+    ax1.set_xlabel('Metrics', fontsize=10)
+    ax1.set_ylabel('Models', fontsize=10)
+    
+    # Raw values heatmap (with actual numbers)
+    # For raw values, we need to handle latency differently (lower is better)
+    heatmap_data_raw = heatmap_data.copy()
+    sns.heatmap(heatmap_data_raw, annot=True, cmap='RdYlGn', ax=ax2, 
+                cbar_kws={'label': 'Raw Value'}, fmt='.3f', 
+                annot_kws={'size': 8})
+    ax2.set_title('Raw Metrics Heatmap\n(Actual Values)', 
+                 fontsize=12, fontweight='bold', pad=10)
+    ax2.set_xlabel('Metrics', fontsize=10)
+    ax2.set_ylabel('Models', fontsize=10)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'metrics_heatmap.png'), dpi=300, bbox_inches='tight')
+    plt.close()
+    print("✓ Created metrics_heatmap.png")
+
+def plot_pareto_frontier(df: pd.DataFrame, output_dir: str):
+    """Create Pareto frontier showing efficiency frontier for accuracy vs latency."""
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # For Pareto frontier, we want to maximize accuracy and minimize latency
+    # So we'll plot latency on x-axis (lower is better) and accuracy on y-axis (higher is better)
+    
+    # Plot all models
+    model_colors = COLORS[:len(df)]
+    for i, (idx, row) in enumerate(df.iterrows()):
+        ax.scatter(row['avg_latency'], row['accuracy'], s=300, alpha=0.7, 
+                  color=model_colors[i], label=row['model'], edgecolors='black', linewidth=1.5)
+        ax.annotate(row['model'], (row['avg_latency'], row['accuracy']),
+                   xytext=(8, 8), textcoords='offset points', fontsize=9, fontweight='bold')
+    
+    # Find Pareto-optimal points (not dominated by any other point)
+    # A point is Pareto-optimal if no other point has both lower latency AND higher accuracy
+    pareto_points = []
+    for idx1, row1 in df.iterrows():
+        is_dominated = False
+        for idx2, row2 in df.iterrows():
+            if idx1 != idx2:
+                # Check if row2 dominates row1 (lower latency AND higher accuracy)
+                if row2['avg_latency'] < row1['avg_latency'] and row2['accuracy'] > row1['accuracy']:
+                    is_dominated = True
+                    break
+        if not is_dominated:
+            pareto_points.append((row1['avg_latency'], row1['accuracy'], row1['model']))
+    
+    # Sort Pareto points by latency for drawing the frontier
+    pareto_points.sort(key=lambda x: x[0])
+    
+    # Draw Pareto frontier line
+    if len(pareto_points) > 1:
+        pareto_latencies = [p[0] for p in pareto_points]
+        pareto_accuracies = [p[1] for p in pareto_points]
+        ax.plot(pareto_latencies, pareto_accuracies, 'r--', linewidth=2, alpha=0.7, 
+               label='Pareto Frontier', zorder=0)
+        
+        # Highlight Pareto-optimal points
+        for lat, acc, model in pareto_points:
+            ax.scatter(lat, acc, s=500, color='red', marker='*', 
+                      edgecolors='black', linewidth=2, zorder=10, alpha=0.9)
+    
+    # Add shaded area showing dominated region (approximate)
+    if len(pareto_points) > 0:
+        # Find the "best" point (highest accuracy, lowest latency among Pareto points)
+        best_point = max(pareto_points, key=lambda x: (x[1], -x[0]))
+        ax.axvspan(0, best_point[0], alpha=0.1, color='green', label='Efficient Region')
+        ax.axhspan(best_point[1], 1, alpha=0.1, color='green')
+    
+    ax.set_xlabel('Average Latency (seconds)', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Accuracy', fontsize=12, fontweight='bold')
+    ax.set_title('Pareto Frontier: Efficiency Analysis\n(Points on frontier are not dominated)', 
+                fontsize=14, fontweight='bold', pad=20)
+    ax.grid(alpha=0.3)
+    ax.legend(loc='lower right', fontsize=8, framealpha=0.9)
+    
+    # Add text explaining Pareto frontier
+    ax.text(0.02, 0.98, 
+           'Pareto Frontier: Models where no other model\nhas both lower latency AND higher accuracy',
+           transform=ax.transAxes, fontsize=9, verticalalignment='top',
+           bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.7))
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'pareto_frontier.png'), dpi=300, bbox_inches='tight')
+    plt.close()
+    print("✓ Created pareto_frontier.png")
+
 def dataframe_to_markdown(df: pd.DataFrame) -> str:
     """Convert DataFrame to markdown table without requiring tabulate."""
     if df.empty:
@@ -502,14 +737,22 @@ def main():
     
     print(f"✓ Extracted metrics for {len(df)} models\n")
     
+    # Create visualizations directory
+    viz_dir = os.path.join(output_dir, 'visualizations')
+    os.makedirs(viz_dir, exist_ok=True)
+    
     # Generate visualizations
     print("📈 Creating visualizations...")
-    plot_accuracy_comparison(df, str(output_dir))
-    plot_confusion_matrix_comparison(df, str(output_dir))
-    plot_latency_comparison(df, str(output_dir))
+    plot_accuracy_comparison(df, viz_dir)
+    plot_confusion_matrix_comparison(df, viz_dir)
+    plot_latency_comparison(df, viz_dir)
     if not repeat_df.empty:
-        plot_repeatability_analysis(repeat_df, str(output_dir))
-    plot_radar_chart(df, str(output_dir))
+        plot_repeatability_analysis(repeat_df, viz_dir)
+    plot_radar_chart(df, viz_dir)
+    plot_latency_accuracy_tradeoff(df, viz_dir)
+    plot_quadrant_analysis(df, viz_dir)
+    plot_metrics_heatmap(df, viz_dir)
+    plot_pareto_frontier(df, viz_dir)
     
     print("\n📝 Generating summary report...")
     generate_summary_report(df, repeat_df, str(output_dir))
@@ -524,7 +767,7 @@ def main():
     print(f"   - ANALYSIS_REPORT.md")
     print(f"   - summary_metrics.csv")
     print(f"   - repeatability_metrics.csv")
-    print(f"   - *.png (visualizations)")
+    print(f"   - visualizations/*.png (all visualization images)")
 
 if __name__ == "__main__":
     main()
