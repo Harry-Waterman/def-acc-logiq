@@ -30,35 +30,65 @@ flowchart LR
  subgraph Database["Database"]
         Email("Email
         -----
+        id: id
         dateTime: dateTime")
-        Address("Address")
-        Domain("Domain")
-        Url("Url")
-        Flag("Flag")
-        Score("Score")
-        installationId("installationId")
-        userId("userId")
+        Address("Address
+        -----
+        email: string")
+        DisplayName("DisplayName
+        -----
+        name: string")
+        Domain("Domain
+        -----
+        name: string")
+        Url("Url
+        -----
+        id: id")
+        Flag("Flag
+        -----
+        type: string")
+        Score("Score
+        -----
+        value: int")
+        installationId("installationId
+        -----
+        id: id")
   end
 
     Email -- FROM --> Address
     Email -- TO --> Address
+    Address -- HAS_DISPLAY_NAME --> DisplayName
     Address -- HAS_DOMAIN --> Domain
     Email -- CONTAINS_URL --> Url
     Url -- HAS_DOMAIN --> Domain
     Email -- HAS_FLAG --> Flag
     Email -- HAS_SCORE --> Score
-    userId -- INSTALLED_BY --> installationId 
     Email -- OWNER --> installationId
 ```
 
 ## Environment Variables
 
-The database credentials are loaded from the `.env` file in the project root:
+All environment variables are loaded from the `.env` file in the project root. The following variables are used by Harbour services:
+
+### Variables
 
 - `NEO4J_USERNAME`: Neo4j username
 - `NEO4J_PASSWORD`: Neo4j password
+   - These are used to configure `NEO4J_AUTH` in the format `${NEO4J_USERNAME}/${NEO4J_PASSWORD}`.
 
-These are used to configure `NEO4J_AUTH` in the format `${NEO4J_USERNAME}/${NEO4J_PASSWORD}`.
+- `NEO4J_URI`: Neo4j connection URI
+  - Used by API Server and NeoDash for database connections
+  
+- `NEO4J_DB`: Neo4j database name
+  - Used by NeoDash and dashboard initialization
+  - Specifies which database to connect to and store dashboards in
+  
+- `NEO4J_HOST`: Neo4j host address for NeoDash standalone mode (default: `neo4j`)
+  - Used by NeoDash when running in standalone mode
+  
+- `NEO4J_PORT`: Neo4j port for NeoDash standalone mode (default: `7687`)
+  - Used by NeoDash when running in standalone mode
+  - Specifies the Bolt protocol port
 
 ## Services
 
@@ -179,10 +209,19 @@ NeoDash connects to Neo4j to:
 - Build interactive dashboards
 - Display graph data in various chart formats
 
-**Configuration**: NeoDash is configured via environment variables:
-- `NEO4J_URI`: Connection string
-- `NEO4J_USER`: Username
+**Configuration**: NeoDash runs in standalone mode and is configured via environment variables:
+- `NEO4J_URI`: Connection string 
+- `NEO4J_USER`: Username 
 - `NEO4J_PASSWORD`: Password
+- `NEO4J_DATABASE`: Database name
+- `standalone`: Set to `true` to enable standalone mode
+- `standaloneProtocol`: Protocol for standalone mode
+- `standaloneHost`: Host for standalone mode
+- `standalonePort`: Port for standalone mode 
+- `standaloneDashboardName`: Name of the pre-seeded dashboard
+- `standaloneDatabase`: Database for standalone dashboard
+
+**Standalone Mode**: When enabled, NeoDash automatically connects to Neo4j and loads the pre-configured "Harbour Dashboard" on startup, eliminating the need for manual connection configuration.
 
 #### 4. User Browser → Neo4j Browser
 
@@ -245,11 +284,12 @@ The complete data flow when a Chrome extension submits email data:
 
 All services share environment variables from the `.env` file in the project root:
 
-- `NEO4J_USERNAME`: Shared across Neo4j, API Server, and NeoDash
-- `NEO4J_PASSWORD`: Shared across Neo4j, API Server, and NeoDash
-- `NEO4J_URI`: Used by API Server and NeoDash (defaults to `bolt://neo4j:7687`)
+- **Neo4j Service**: Uses `NEO4J_USERNAME` and `NEO4J_PASSWORD` to configure authentication
+- **API Server**: Uses `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD` for database connections
+- **NeoDash**: Uses `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`, `NEO4J_DB`, `NEO4J_HOST`, and `NEO4J_PORT` for connection and standalone mode configuration
+- **Dashboard Init**: Uses `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`, and `NEO4J_DB` for seeding the dashboard
 
-This ensures consistent authentication across all services.
+This ensures consistent authentication and configuration across all services.
 
 ## Accessing the UIs
 
@@ -274,8 +314,8 @@ The Harbour Dashboard provides a comprehensive view of email data with the follo
 
 1. **Graph Visualization**
    - Interactive graph showing the complete email network structure
-   - Displays nodes for: Email, Address, Domain, Url, Flag, Score, and installationId
-   - Shows relationships: FROM, TO, HAS_DOMAIN, CONTAINS_URL, HAS_FLAG, HAS_SCORE, OWNER
+   - Displays nodes for: Email, Address, DisplayName, Domain, Url, Flag, Score, and installationId
+   - Shows relationships: FROM, TO, HAS_DISPLAY_NAME, HAS_DOMAIN, CONTAINS_URL, HAS_FLAG, HAS_SCORE, OWNER
    - Auto-refreshes every 30 seconds
    - Fullscreen mode enabled
 
@@ -324,11 +364,7 @@ To customize the dashboard:
 
 ## Setup
 
-1. Ensure you have a `.env` file in the project root with the required credentials:
-   ```
-   NEO4J_USERNAME=your_username
-   NEO4J_PASSWORD=your_password
-   ```
+1. Ensure you have a `.env` file in the project root with the required credentials. This can be done by copying `.env.example` which is prefilled with development defaults.
 
 2. Navigate to the Harbour directory:
    ```bash
@@ -340,7 +376,7 @@ To customize the dashboard:
    docker-compose up -d
    ```
 
-4. Wait for initialization:
+4. Wait for initialisation:
    - The `dashboard-init` service will automatically seed the "Harbour Dashboard" on first startup
    - This is a one-time operation that runs after Neo4j becomes healthy
    - You can monitor the progress with: `docker logs dashboard-init`
@@ -370,7 +406,7 @@ The test data includes:
 - Flags and scores for phishing detection
 - User and installation relationships
 
-## Stopping the Database
+## Stopping the Service
 
 To stop the database:
 ```bash
