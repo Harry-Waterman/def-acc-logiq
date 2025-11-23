@@ -6,6 +6,12 @@ API server for Harbour that receives JSON payloads from the Chrome extension and
 
 This Express.js server acts as a bridge between the Chrome extension and the Neo4j graph database. It receives email data in JSON format and creates the corresponding graph structure in Neo4j.
 
+The server includes:
+- **CORS support**: Enabled to accept cross-origin requests from the Chrome extension
+- **JSON parsing**: Automatic parsing of JSON request bodies
+- **Error handling**: Comprehensive error handling with descriptive error messages
+- **Health checks**: Built-in health check endpoint for monitoring
+
 ## API Endpoints
 
 ### `POST /api/emails`
@@ -39,7 +45,7 @@ Receives email data from the Chrome extension and creates the graph structure in
 }
 ```
 
-**Response:**
+**Response (Success - 201):**
 ```json
 {
   "success": true,
@@ -52,17 +58,47 @@ Receives email data from the Chrome extension and creates the graph structure in
 }
 ```
 
+**Response (Error - 400):**
+```json
+{
+  "error": "Request body is required"
+}
+```
+
+**Response (Error - 500):**
+```json
+{
+  "success": false,
+  "error": "Error message describing what went wrong"
+}
+```
+
 ### `GET /health`
 
 Health check endpoint to verify the API server is running.
 
-**Response:**
+**Response (200):**
 ```json
 {
   "status": "ok",
   "service": "harbour-api"
 }
 ```
+
+## Error Handling
+
+The API includes comprehensive error handling:
+
+- **400 Bad Request**: Returned when the request body is missing or invalid
+- **500 Internal Server Error**: Returned when there's an error processing the email data or connecting to Neo4j
+
+All error responses include a descriptive error message in the response body. The API validates:
+- Request body presence
+- Email object structure
+- Sender information (required)
+- Required fields for graph creation
+
+If validation fails or Neo4j operations fail, appropriate error responses are returned with details about what went wrong.
 
 ## Environment Variables
 
@@ -94,13 +130,7 @@ cd Harbour/api
 npm install
 ```
 
-2. Set environment variables in `.env` file (in project root):
-```
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USERNAME=your_username
-NEO4J_PASSWORD=your_password
-PORT=3000
-```
+2. Set environment variables in `.env` file (in project root). You can copy `.env.example` which is prefilled with development defaults
 
 3. Start the server:
 ```bash
@@ -114,28 +144,49 @@ npm run dev
 
 ## Data Structure
 
-The API automatically creates the following graph structure:
+The API automatically creates the following graph structure in Neo4j:
 
-- **Email** nodes with `dateTime` (unique ID generated internally)
-- **Address** nodes for FROM and TO email addresses
-- **DisplayName** nodes for sender display names (with `name` property)
-- **Domain** nodes extracted from email addresses and URLs
-- **Url** nodes for URLs found in emails
-- **Flag** nodes for email flags (PHISHING, SPAM, etc.) with `type` property
-- **Score** nodes for risk scores with `value` property
-- **installationId** and **userId** nodes
+### Nodes
 
-Relationships are created according to the schema:
-- Email → FROM → Address
-- Email → TO → Address
-- Address → HAS_DISPLAY_NAME → DisplayName
-- Address → HAS_DOMAIN → Domain
-- Email → CONTAINS_URL → Url
-- Url → HAS_DOMAIN → Domain
-- Email → HAS_FLAG → Flag
-- Email → HAS_SCORE → Score
-- Email → OWNER → installationId
-- userId → INSTALLED_BY → installationId
+- **Email** nodes with:
+  - `id`: Unique identifier (generated from sender, recipients, and sentTime)
+  - `dateTime`: Timestamp when the email was sent
+  
+- **Address** nodes for FROM and TO email addresses:
+  - `id`: The email address (e.g., "sender@example.com")
+  
+- **DisplayName** nodes for sender display names:
+  - `name`: The display name (e.g., "John Doe")
+  
+- **Domain** nodes extracted from email addresses and URLs:
+  - `id`: The domain name (e.g., "example.com")
+  
+- **Url** nodes for URLs found in emails:
+  - `id`: The full URL
+  
+- **Flag** nodes for email flags:
+  - `type`: The flag type (e.g., "Suspicious urls", "requests for personal information")
+  
+- **Score** nodes for risk scores:
+  - `value`: The numeric risk score (as string)
+  
+- **installationId** nodes:
+  - `id`: The installation identifier
+
+### Relationships
+
+- `Email` → `FROM` → `Address` (sender email address)
+- `Email` → `TO` → `Address` (recipient email addresses)
+- `Address` → `HAS_DISPLAY_NAME` → `DisplayName` (sender display name)
+- `Address` → `HAS_DOMAIN` → `Domain` (domain from email addresses)
+- `Email` → `CONTAINS_URL` → `Url` (URLs found in email)
+- `Url` → `HAS_DOMAIN` → `Domain` (domain from URLs)
+- `Email` → `HAS_FLAG` → `Flag` (email flags)
+- `Email` → `HAS_SCORE` → `Score` (risk score)
+- `Email` → `OWNER` → `installationId` (installation that owns the email)
+- `installationId` → `INSTALLED_BY` → `userId` (user installation relationship)
+
+All nodes use `MERGE` operations, ensuring idempotency - duplicate submissions won't create duplicate nodes.
 
 ## Example Usage
 
