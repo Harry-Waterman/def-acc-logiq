@@ -1,0 +1,4077 @@
+{
+  "config": {
+    "api_url": "http://localhost:1234/v1",
+    "api_key": "***",
+    "model": "microsoft/phi-4-mini-reasoning",
+    "dataset": null,
+    "temperature": 0.1,
+    "seed": 42,
+    "sample_size": 400,
+    "repeat_runs": 5,
+    "data_dir": null,
+    "output": null
+  },
+  "accuracy_results": {
+    "accuracy": 0.09,
+    "total": 400,
+    "correct": 36,
+    "tp": 4,
+    "tn": 32,
+    "fp": 5,
+    "fn": 11,
+    "precision": 0.4444444444444444,
+    "recall": 0.26666666666666666,
+    "f1": 0.33333333333333337,
+    "fpr": 0.13513513513513514,
+    "fnr": 0.7333333333333333,
+    "avg_latency": 55.48528385519981,
+    "detailed_results": [
+      {
+        "index": 0,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 66.11365103721619,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 1,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.101852893829346,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 2,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 0,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 21.66947627067566,
+        "email_data": {
+          "subject": "Re: per smtp transport domain queue lifetime",
+          "body_snippet": "On Thu, Feb 28, 2008 at 01:02:43AM -0600, Andy Wright wrote:\n\n> Could someone give me a reference on how to change the\n> maximal_queue_lifetime variable on a per domain, SMTP transport domain,\n> basis",
+          "sender": "Victor Duchovni <dxdewm.dieulnut@MorganStanley.com>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 3,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01082682609558,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 4,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012561082839966,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 5,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 30,
+        "reasons": [
+          "requests for personal information"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 49.29064226150513,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "sdnlhltgmasseyacnz changing times young minds hokkaido preschools new millenium invited next social cultural studies seminar wed 9 april 4pm changing times young minds hokkaido preschools new milleniu",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 6,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01061201095581,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 7,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 53.613353967666626,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 8,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00899815559387,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 9,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0194890499115,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 10,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01763415336609,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 11,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02311086654663,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 12,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01717019081116,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 13,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01159620285034,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 14,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01070308685303,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 15,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01049494743347,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 16,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "Sender address doesn't match display name",
+          "Generic Greetings"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 23.066368103027344,
+        "email_data": {
+          "subject": "hey darren",
+          "body_snippet": "it ' s me , kari bullington . i just thought i would drop you a line and say\r\nhello ! ! ! how are you ?\r\ni sure hated to hear about troy . i don ' t understand how something like that\r\ncan happen to s",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 17,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01227331161499,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 18,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01504993438721,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 19,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01740097999573,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 20,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 42.976747035980225,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 21,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.010241985321045,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 22,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02316474914551,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 23,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012129068374634,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 24,
+        "ground_truth": 1,
+        "prediction": 1,
+        "score": 80,
+        "reasons": [
+          "Suspicious urls",
+          "requests for personal information"
+        ],
+        "correct": true,
+        "status": "TP",
+        "duration": 57.03819179534912,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "elijah copeland elijahglowbytecom hottest girls start shooting rapt glances groin regain selfconfidence enhancing manliness httpwhitedonecom universityof room improvement area work onproject brings di",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 25,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "Generic Greetings"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 53.26084613800049,
+        "email_data": {
+          "subject": "[spambayes-dev] Error with 1.1a4",
+          "body_snippet": "\nHi there,\n\nJust upgraded my system to use:\nPython 2.4.4\ngdbm 1.8.3\nand  spambayes 1.1a4\n\nThis started generating error messages during\nthe procmail check with the text:\n\nException gdbm.error: \"Reader",
+          "sender": "Dag Nygren <yal@newtech.fi>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 26,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00916576385498,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 27,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 32.43885922431946,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 28,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00676202774048,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 29,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01165723800659,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 30,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013633012771606,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 31,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01463294029236,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 32,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 37.71129107475281,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 33,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 59.98745012283325,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 34,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013015031814575,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 35,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01817607879639,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 36,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014495849609375,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 37,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01188802719116,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 38,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01470327377319,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 39,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01039409637451,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 40,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00798201560974,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 41,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 23,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 54.897265911102295,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "february 2002 scheduled friday 16 west 1066 san juan 862 east 316 saturday 17 west 1065 san juan 867 east 317 sunday 18 west 1076 san juan 877 east 321 monday 19 west 1075 san juan 879 east 326 notes ",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 42,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01234269142151,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 43,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014700174331665,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 44,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": false,
+        "status": "FN",
+        "duration": 44.55149483680725,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "nothing taboo wives exposed voyeur dorm watch secret slut wife pics thousands forbidden panty shots remove",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 45,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00946927070618,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 46,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "Suspicious urls"
+        ],
+        "correct": false,
+        "status": "FN",
+        "duration": 54.16641306877136,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "get latest version cds download 99 wide range software applications drivers http oqqoe 29 oz 512 vhck 9 hlk plazajm net poet thirty years old simply overgrown child way see problem problem",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 47,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01411819458008,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 48,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 45,
+        "reasons": [],
+        "correct": false,
+        "status": "FN",
+        "duration": 48.44991707801819,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "berta denny bertaadvokathbdk scrumptious watch models certainly sign excellent style httppickrealcom thu 07 aug 2008 140438 0530 optimal choice watches",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 49,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.008405923843384,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 50,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01893091201782,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 51,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.020277976989746,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 52,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01911377906799,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 53,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.016085386276245,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 54,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 45,
+        "reasons": [],
+        "correct": false,
+        "status": "FN",
+        "duration": 45.81440186500549,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "dwight jensen hughexigentmorenowiktionaryorg stylish replica watches famous brands fashionable replica watches reliable replica patek philippe httppikedtajessumcom fri 08 aug 2008 123128 0200 looking ",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 55,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 40.28612303733826,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 56,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.008326053619385,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 57,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00869107246399,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 58,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.010151863098145,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 59,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.011784076690674,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 60,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02688002586365,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 61,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013827085494995,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 62,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01229810714722,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 63,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01152014732361,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 64,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.010687828063965,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 65,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01703190803528,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 66,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01559615135193,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 67,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.010169982910156,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 68,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.011744022369385,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 69,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.011664152145386,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 70,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00980520248413,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 71,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.020907163619995,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 72,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015438079833984,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 73,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 26.150581121444702,
+        "email_data": {
+          "subject": "Re: Perl problem (Scalar::Util)",
+          "body_snippet": "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA1\n\nOn 02/29/2008 03:57 PM, Bill Landry wrote:\n| Steven Stern wrote:\n|> I'm getting the following error from various perl programs:\n|>\n|> $sa-update\n|> Use o",
+          "sender": "Steven Stern <iwwlymspnp-jgifa@sterndata.com>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 74,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01361608505249,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 75,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 59.98471117019653,
+        "email_data": {
+          "subject": "agenda for ferc meeting re : eol",
+          "body_snippet": "fyi . here is our agenda for the ferc staff that is coming to houston to visit next monday . please call if you have any questions .\r\njim\r\n- - - - - - - - - - - - - - - - - - - - - - forwarded by jame",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 76,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012840032577515,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 77,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 40.39600586891174,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 78,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01126790046692,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 79,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0139422416687,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 80,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01103186607361,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 81,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01783990859985,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 82,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01425004005432,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 83,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01061701774597,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 84,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01141715049744,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 85,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01404690742493,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 86,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014354944229126,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 87,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.05321002006531,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 88,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 56.174318075180054,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 89,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00891065597534,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 90,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01091408729553,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 91,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01776838302612,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 92,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01384615898132,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 93,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00211811065674,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 94,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01113414764404,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 95,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013925075531006,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 96,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01809000968933,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 97,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01645016670227,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 98,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01817178726196,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 99,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 48.04309296607971,
+        "email_data": {
+          "subject": "Re[2]: [ILUG] hwclock",
+          "body_snippet": "> On 0020 +0100 %{!Mon, Aug 19, 2002 at 11:30:12PM +0100}, Anthony wrote:\n>> to the net. However, I didn't realise that Windows altered the hw clock\n>> as there was no mention of it in any of the docs",
+          "sender": "ccostelloe@flogas.ie",
+          "source_file": "SpamAssasin.csv"
+        }
+      },
+      {
+        "index": 100,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00885891914368,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 101,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.008780002593994,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 102,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01865792274475,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 103,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.06103205680847,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 104,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02038502693176,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 105,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 16,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 38.6219220161438,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "tw contract capacity release system implementation long awaited transwestern web based contract capacity release system go live sunday march 10 2002 implementation team site saturday evening thru sund",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 106,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01820516586304,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 107,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02430486679077,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 108,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013805866241455,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 109,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.016088008880615,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 110,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013741970062256,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 111,
+        "ground_truth": 1,
+        "prediction": 1,
+        "score": 65,
+        "reasons": [
+          "Sender address doesn't match display name",
+          "Suspicious urls",
+          "too good to be true offers"
+        ],
+        "correct": true,
+        "status": "TP",
+        "duration": 51.57141327857971,
+        "email_data": {
+          "subject": "100% Money Back Guarantee. ",
+          "body_snippet": "\nBe the stud in 2008, and achieve all your dreams of super size!\n\nPut on an average gain of 3.02 inches where it matters - and all gains are 100% permanent!\n\nhttp://foldfeel.com/\n\n\n",
+          "sender": "Jeanine Barajas <ClaudettepoplarRoland@oism.org>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 112,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015066146850586,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 113,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02336883544922,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 114,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 39.836127042770386,
+        "email_data": {
+          "subject": "el paso unveils wholesale trading desk .",
+          "body_snippet": "fyi -\r\n- - - - - original message - - - - -\r\nfrom : djcustomclips @ djinteractive . com @ enron [ mailto : imceanotes - djcustomclips + 40 djinteractive + 2 ecom + 40 enron @ enron . com ]\r\nsent : wed",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 115,
+        "ground_truth": 0,
+        "prediction": 1,
+        "score": 80,
+        "reasons": [
+          "Sender address doesn't match display name",
+          "requests for personal information"
+        ],
+        "correct": false,
+        "status": "FP",
+        "duration": 55.847819089889526,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "inter intra gisb enron north america forwarded contract forms may 25 review need resend keith ford txu fuel company contract administration supervisor forwarded keith ford bizsrv txu 06 19 2001 11 04 ",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 116,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0099720954895,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 117,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.017433166503906,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 118,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02152228355408,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 119,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 20,
+        "reasons": [
+          "Sender address doesn't match display name",
+          "spelling and grammar mistakes"
+        ],
+        "correct": false,
+        "status": "FN",
+        "duration": 38.37539792060852,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "tor 0 nto\r\nrx\r\ntop\r\n10 medications in generic form\r\nph 3 ntermlne\r\nvlagra\r\nclalls ( super vlagra )\r\nvallum\r\nxannax\r\namblen\r\npaxll\r\nvloxx\r\nnexlum\r\nllpltor\r\ncopy paste the following\r\nurl below on your b",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 120,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 47.51110506057739,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 121,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01314306259155,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 122,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01687288284302,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 123,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00922894477844,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 124,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01304912567139,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 125,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01647210121155,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 126,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02241110801697,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 127,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012234926223755,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 128,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 31.894819974899292,
+        "email_data": {
+          "subject": "Re: [Python-3000] [Python-Dev] Code freeze?",
+          "body_snippet": "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA1\n\nOn Feb 28, 2008, at 5:07 PM, Stephen J. Turnbull wrote:\n\n> Barry Warsaw writes:\n>\n>> I plan on cutting the alphas for 2.6 and 3.0 at about 6pm Eastern\n>>",
+          "sender": "Barry Warsaw <pjaxq@python.org>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 129,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 36.14715123176575,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 130,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 34.519665002822876,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 131,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 23.563879013061523,
+        "email_data": {
+          "subject": "RE: Slaughter in the Name of God",
+          "body_snippet": "> From: yyyy@spamassassin.taint.org [mailto:yyyy@spamassassin.taint.org]\n> Sent: Tuesday, September 17, 2002 9:50 AM\n> > ... we've been fighting the War on Terrorism for as long\n> > as there's been co",
+          "sender": "\"John Hall\" <johnhall@evergo.net>",
+          "source_file": "SpamAssasin.csv"
+        }
+      },
+      {
+        "index": 132,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01061391830444,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 133,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01317119598389,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 134,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.08682179450989,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 135,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.019148111343384,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 136,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01800799369812,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 137,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 45.436132192611694,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 138,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015557289123535,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 139,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.018797636032104,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 140,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 44.568865060806274,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 141,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00954604148865,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 142,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012223958969116,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 143,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02331614494324,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 144,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02077102661133,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 145,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02460289001465,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 146,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 43.87189698219299,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 147,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 53.32090401649475,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 148,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01668620109558,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 149,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01436805725098,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 150,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01889991760254,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 151,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.020655155181885,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 152,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01424288749695,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 153,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015503883361816,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 154,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02262616157532,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 155,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.017781019210815,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 156,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01978015899658,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 157,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01799392700195,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 158,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01744103431702,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 159,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02006411552429,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 160,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01850771903992,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 161,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02028822898865,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 162,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01854109764099,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 163,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01586699485779,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 164,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01222777366638,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 165,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0128231048584,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 166,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01795196533203,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 167,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01307010650635,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 168,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 59.965057134628296,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 169,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01420497894287,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 170,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 25,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": false,
+        "status": "FN",
+        "duration": 19.39732599258423,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "cnn alerts ramiznurlefatmedleycom cnn alerts custom alert alert name custom alert ledgers joker withdrawn oscar race fri 8 aug 2008 063228 0400 full story agreed receive email cnncom result cnncom pre",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 171,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 45.24766397476196,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 172,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 23,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 57.72500681877136,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "tw imbalance confirmation 10 98 hi michelle found copy imbalance confirmation sent tw mojave 09 98 point records agreed mojave ending imbalance 19 040 due mojave little blurry send copy would like sue",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 173,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01426577568054,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 174,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013861894607544,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 175,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 20,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 27.846496105194092,
+        "email_data": {
+          "subject": "Re: [ILUG] slashdot EW Dijkstra humor",
+          "body_snippet": "On Thu, Aug 08, 2002 at 11:27:59AM +0100, wintermute mentioned: > Interesting. I've always wondered about things 'considered' to be bad.  > Example the GOTO, most languages support a goto of some sort",
+          "sender": "\"John P. Looney\" <valen@tuatha.org>",
+          "source_file": "SpamAssasin.csv"
+        }
+      },
+      {
+        "index": 176,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 57.20967388153076,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 177,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02546691894531,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 178,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02887988090515,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 179,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.021340131759644,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 180,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013288259506226,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 181,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.020334005355835,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 182,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01820397377014,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 183,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0184268951416,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 184,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 47.275954246520996,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 185,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.017104148864746,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 186,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 23,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 58.62087893486023,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "real options conference cambridge steve given practitioner audience would prefer less technical presentation perhaps talk use real options enron general give examples graphically notation diagrammatic",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 187,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02184319496155,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 188,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 58.09776425361633,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 189,
+        "ground_truth": 0,
+        "prediction": 1,
+        "score": 70,
+        "reasons": [
+          "Sender address doesn't match display name",
+          "requests for personal information"
+        ],
+        "correct": false,
+        "status": "FP",
+        "duration": 50.2496280670166,
+        "email_data": {
+          "subject": "[Bug 4876] CRM114 Plugin for SpamAssassin (comments, please!)",
+          "body_snippet": "http://issues.apache.org/SpamAssassin/show_bug.cgi?id=4876\n\n\n\n\n\n------- Additional Comments From upad@mschuette.name  2008-02-12 15:00 -------\nIf you are interested in CRM114 you might also try my CRM",
+          "sender": "qydlqcws-iacfym@issues.apache.org",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 190,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 42.44836711883545,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 191,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01338815689087,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 192,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 43.223652839660645,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "perl jobs xycnvtnhzperlorg online url job httpjobsperlorgjob7946 subscribe list send mail jobssubscribeperlorg unsubscribe send mail jobsunsubscribeperlorg posted february 14 2008 job title part time ",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 193,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 32.23978114128113,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 194,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 20,
+        "reasons": [],
+        "correct": false,
+        "status": "FN",
+        "duration": 47.25324606895447,
+        "email_data": {
+          "subject": "Super colby solution",
+          "body_snippet": " check out,  prescriptions Worldwide Shipping check out here",
+          "sender": "buddy juri <zdg@djparrone.com>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 195,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02350616455078,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 196,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 56.889018058776855,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "adam l beberg bebergmithralcom 2 sep 2002 rosso wrote john waylan interviewed wired years back pulled 144 second run quarter mile 91mph battery pack hasnt broken yet expects break record next year top",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 197,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014304876327515,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 198,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01626801490784,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 199,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015291929244995,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 200,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01750612258911,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 201,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02076864242554,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 202,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.027283906936646,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 203,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01715803146362,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 204,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01315188407898,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 205,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02106499671936,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 206,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 37.33762502670288,
+        "email_data": {
+          "subject": "S3 Call for Participation",
+          "body_snippet": "----------------------------------------------------------------------\n\nCall for Participation\n\n*** Workshop on Self-sustaining Systems (S3) 2008 ***\n\nMay 15-16, 2008\nHasso-Plattner-Institut\nPotsdam, ",
+          "sender": "\"\\\\\"Martin v. L\u00f6wis\\\\\"\" <qpnysl@v.loewis.de>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 207,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0112509727478,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 208,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 44.28741502761841,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 209,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 50.40341591835022,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 210,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01313281059265,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 211,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0177960395813,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 212,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 57.30450510978699,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 213,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.010785818099976,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 214,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0357141494751,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 215,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02331495285034,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 216,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02654695510864,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 217,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 43.507312059402466,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 218,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.016287088394165,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 219,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02129602432251,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 220,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02297401428223,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 221,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01902389526367,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 222,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01495981216431,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 223,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01547908782959,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 224,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01538681983948,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 225,
+        "ground_truth": 1,
+        "prediction": 1,
+        "score": 87,
+        "reasons": [
+          "Suspicious urls",
+          "too good to be true offers"
+        ],
+        "correct": true,
+        "status": "TP",
+        "duration": 38.1200590133667,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "generic meds today special hey going want waste time precious however please take minute check store pay full price brand name medication get fraction price currently sale viagra shipping crazy low am",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 226,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01927995681763,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 227,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 27.122634887695312,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 228,
+        "ground_truth": 0,
+        "prediction": 1,
+        "score": 75,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": false,
+        "status": "FP",
+        "duration": 23.556020975112915,
+        "email_data": {
+          "subject": "follow up on transport pv quantities",
+          "body_snippet": "the following table summarizes the pv quantities associated with the three transportation contracts owned by the navy yard . you may use this number to look at the impact of a 1 cent change in demand ",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 229,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01517176628113,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 230,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 41.69300580024719,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 231,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01374006271362,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 232,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 23.54210114479065,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 233,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.009824991226196,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 234,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 59.98477005958557,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 235,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01577305793762,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 236,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 37.42763113975525,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 237,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01199793815613,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 238,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 58.109150886535645,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 239,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014808893203735,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 240,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.020299673080444,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 241,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 47.711495876312256,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 242,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014479875564575,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 243,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 39.34277701377869,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 244,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 41.97608304023743,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "andy armstrong kngfhextennet 16 nov 2007 1732 andy lester wrote thstraps cpan use th 30 th 2x heh didnt know andy armstrong hexten fri 08 aug 2008 025304 0000 testharnessstraps 510 code freeze duallif",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 245,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01740288734436,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 246,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02057194709778,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 247,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01958990097046,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 248,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 28.5613272190094,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 249,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0126519203186,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 250,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01886701583862,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 251,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01336097717285,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 252,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 58.39781713485718,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 253,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01037383079529,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 254,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01839900016785,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 255,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02088284492493,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 256,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01221799850464,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 257,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 52.9232497215271,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 258,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01031517982483,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 259,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.016576051712036,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 260,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01294803619385,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 261,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 32.068345069885254,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 262,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.008846044540405,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 263,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01048398017883,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 264,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 39.43957018852234,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 265,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 48.59290790557861,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 266,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01203107833862,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 267,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014817237854004,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 268,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01221513748169,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 269,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01138615608215,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 270,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 21,
+        "reasons": [],
+        "correct": false,
+        "status": "FN",
+        "duration": 59.50512099266052,
+        "email_data": {
+          "subject": "NOTIFICATION OF BEQUEST FUND",
+          "body_snippet": "FROM: Walter Smith (FOR TRUSTEES)\nPrincipal Partner (Wed lake Bell Guernsey Chambers)\nP O Box 251, Farnley House\nLa Charroterie St Peter Port, Guernsey, GY 1 4LG\nTel: +44 703 1923768 Fax: +44 870 9126",
+          "sender": "Wed lake Bell Guernsey Chambers <wlbgsmith44@yahoo.com>",
+          "source_file": "Nigerian_Fraud.csv"
+        }
+      },
+      {
+        "index": 271,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015440702438354,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 272,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 48.75070405006409,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 273,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 59.99816298484802,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 274,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.00762605667114,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 275,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01517081260681,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 276,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.016966104507446,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 277,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015583992004395,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 278,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01544404029846,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 279,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01656699180603,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 280,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 19.504884958267212,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 281,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01314091682434,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 282,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012572050094604,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 283,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0161828994751,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 284,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0214159488678,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 285,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01739192008972,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 286,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01270914077759,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 287,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014235973358154,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 288,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01701283454895,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 289,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015300273895264,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 290,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.016948223114014,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 291,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 25.91959500312805,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 292,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012614250183105,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 293,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.020041942596436,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 294,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01992917060852,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 295,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0126268863678,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 296,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01329588890076,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 297,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 46.88638687133789,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 298,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 40.536038875579834,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 299,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 0,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 54.515634059906006,
+        "email_data": {
+          "subject": "re : contracts",
+          "body_snippet": "michelle ,\r\nsee below . lets see how many we can get louise by 12 - 1 pm\r\npresto ' s needs to chnage to 1 / 3 1 / 3 1 / 3 grants rather than all next week , so hold his back .\r\nlouise , michelle and i",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 300,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01417899131775,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 301,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01149296760559,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 302,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01352906227112,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 303,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01829123497009,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 304,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 35.64564800262451,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 305,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01413083076477,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 306,
+        "ground_truth": 0,
+        "prediction": 1,
+        "score": 65,
+        "reasons": [
+          "Sender address doesn't match display name",
+          "Suspicious urls",
+          "spelling and grammar mistakes"
+        ],
+        "correct": false,
+        "status": "FP",
+        "duration": 53.843244791030884,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "bebo service opgdxdjnoreplybebocom tony meyer sarah oreilly written story know one another please click confirm story httpwwwbebocomconfirmstory11139380 please reply directly email questions contact u",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 307,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01121997833252,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 308,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01722502708435,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 309,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01769399642944,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 310,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 23,
+        "reasons": [],
+        "correct": false,
+        "status": "FN",
+        "duration": 20.479372024536133,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "get pres cription filled right jq autotransplantation vibracular glaucophanite seroalbumin untimeous seafarers insatisfactorily intensified colourful malocclusion doolees graminifolious prenatal subje",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 311,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 54.772613763809204,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "ysxshweetyrxxliyysxsliststuxonicenet send tuxoniceusers mailing list submissions enpsfhxzstvnzliststuxonicenet subscribe unsubscribe via world wide web visit httpliststuxonicenetmailmanlistinfotuxonic",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 312,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012418031692505,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 313,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 20,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 36.05543494224548,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "james r thompson bhmvdzlcsriikwebthompsoncom put request option added original message james knott mailtogjaidadguarogerscom sent thursday february 14 2008 249 pm suse linux subject opensuse opensuse ",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 314,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01160669326782,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 315,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 57.57548999786377,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 316,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 0,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 56.4623019695282,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "eric smith nvmkmhkiwaqodtruebladecom following python3000 discussion making porting 26 30 easier martin suggested making thread proposal add __future__ import unicode_string_literals would make string",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 317,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01756286621094,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 318,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01605486869812,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 319,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 33.982279777526855,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 320,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.011900901794434,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 321,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01927709579468,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 322,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 20,
+        "reasons": [
+          "requests for personal information"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 24.234161853790283,
+        "email_data": {
+          "subject": "english ` a ' versus ` some '",
+          "body_snippet": "could someone direct me to literature concerned with the semantics of english ` a ' contrasted with english ` some ' ? of course , details of relevant literature dealing with any language other than e",
+          "sender": "",
+          "source_file": "Ling.csv"
+        }
+      },
+      {
+        "index": 323,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01650905609131,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 324,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015815019607544,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 325,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01346516609192,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 326,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0173978805542,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 327,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0173020362854,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 328,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 35.03983402252197,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 329,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0115020275116,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 330,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02056908607483,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 331,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.012662172317505,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 332,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01939821243286,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 333,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01504111289978,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 334,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01984095573425,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 335,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02167201042175,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 336,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 57.45086479187012,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 337,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 46.44079399108887,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 338,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01980686187744,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 339,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.014504194259644,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 340,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01244306564331,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 341,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01209020614624,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 342,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 10,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 57.83911609649658,
+        "email_data": {
+          "subject": "re : noms / actual flow for 3 / 29 / 01",
+          "body_snippet": "we agree with the nomination .\r\n\" eileen ponton \" on 03 / 30 / 2001 10 : 05 : 40 am\r\nto : david avila / lsp / enserch / us @ tu , charlie stone / texas utilities @ tu , melissa\r\njones / texas utilitie",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 343,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01546382904053,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 344,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "requests for personal information"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 42.16560196876526,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "let talk turbines louise see turbine list attached confirm conversation turbine book shared 1 3 calger wiggs inlclude 3 x mhi 501 fs 1 x 501 5 abbl 1 ns coming canada please let know forgotten anythin",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 345,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 20,
+        "reasons": [
+          "too good to be true offers"
+        ],
+        "correct": false,
+        "status": "FN",
+        "duration": 34.21544289588928,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "mauricio faville ssheartycoachgordocom see growth boost endurance results results months patients access online health perfect variety health issues skin care osteoporosis smoking arthritis cardiovasc",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 346,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 49.5639910697937,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "andrei verovski aka macguru hadpjkc3starlettlv hi ive got sax2 crash 103nvidiakernelbigsmp26221701 log file attached reference anyone interested sax2 log sax2 version 81 svn release 149 20030317 svn r",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 347,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01465916633606,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 348,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.016106843948364,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 349,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 43.757811069488525,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 350,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 35.019038915634155,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 351,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01268267631531,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 352,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.011723041534424,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 353,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.019344091415405,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 354,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02726674079895,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 355,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02970290184021,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 356,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01713991165161,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 357,
+        "ground_truth": 1,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "Suspicious urls"
+        ],
+        "correct": false,
+        "status": "FN",
+        "duration": 22.425024032592773,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "percy massey percychinesenortonwolframcom ever since started herbal supplement sharon says sex much pleasurable comes much easily david florida usa get free bottles today change life wait httpzoomleap",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 358,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 12,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 47.359694957733154,
+        "email_data": {
+          "subject": "RE: URIBL",
+          "body_snippet": "> > Anyway I heard talking about URIBL, which as I have understod is a \n> > quite different service (it blacklists 'domains' rather \n> 'IPs'). But is \n> > it maybe a dangerous practice to fight spam? ",
+          "sender": "Rocco Scappatura <hwuau.lzqnjwdpyi@infracom.it>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 359,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.015141248703,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 360,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 57.03585505485535,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 361,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 36.91655778884888,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 362,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02123403549194,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 363,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.016028881073,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 364,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013818979263306,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 365,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01165008544922,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 366,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01523041725159,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 367,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01752233505249,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 368,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 15,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 58.459872007369995,
+        "email_data": {
+          "subject": "josey ranch est . - - may 2000",
+          "body_snippet": "fyi - - - - - - - - - - - - - - - - - - - - - - forwarded by susan d trevino / hou / ect on 04 / 20 / 2000 04 : 58 pm - - - - - - - - - - - - - - - - - - - - - - - - - - - bob withers on 04 / 20 / 200",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 369,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.0172278881073,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 370,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.025206089019775,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 371,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01655077934265,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 372,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 35.510823249816895,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 373,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 52.81484889984131,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 374,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.02581000328064,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 375,
+        "ground_truth": 1,
+        "prediction": 1,
+        "score": 85,
+        "reasons": [
+          "Sender address doesn't match display name",
+          "Too good to be true offers"
+        ],
+        "correct": true,
+        "status": "TP",
+        "duration": 47.664653062820435,
+        "email_data": {
+          "subject": "FDAapprovedViagraForValuedCustomer",
+          "body_snippet": "\nFastShippingYourHealthSafeSecure\nhttp://qemw4w.blu.livefilestore.com/y1paxJjF1W9tIfmGZFX0ULAotqGmQAwNhz-9tHvEZh7jNyRJQ-_4_TazROFUQHky-pRz74YuYzRjyt8zf7RLmbTaA/index.html\n\n\n",
+          "sender": "Micheal Connell <reeksetm537@moons.com>",
+          "source_file": "CEAS_08.csv"
+        }
+      },
+      {
+        "index": 376,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.049561977386475,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 377,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 53.67251801490784,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 378,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 50,
+        "reasons": [
+          "Sender address doesn't match display name"
+        ],
+        "correct": true,
+        "status": "TN",
+        "duration": 35.28441309928894,
+        "email_data": {
+          "subject": "re : may activity survey",
+          "body_snippet": "thanks , daren ,\r\nthese are the only stats that we need for now .\r\nshari",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 379,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01468229293823,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 380,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.03645896911621,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 381,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 30,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 29.843327045440674,
+        "email_data": {
+          "subject": "report requested",
+          "body_snippet": "lousie , attached , please find the report you requested on home cities with explanation .",
+          "sender": "",
+          "source_file": "Enron.csv"
+        }
+      },
+      {
+        "index": 382,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01217579841614,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 383,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 37.93296265602112,
+        "error": "Failed to parse JSON"
+      },
+      {
+        "index": 384,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01067900657654,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 385,
+        "ground_truth": 0,
+        "prediction": 1,
+        "score": 60,
+        "reasons": [
+          "Sender address doesn't match display name",
+          "requests for personal information"
+        ],
+        "correct": false,
+        "status": "FP",
+        "duration": 35.78401780128479,
+        "email_data": {
+          "subject": "western conference on linguistics",
+          "body_snippet": "teresa wells research assistant to dr . elly van gelderen arizona state university - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - call for papers w",
+          "sender": "",
+          "source_file": "Ling.csv"
+        }
+      },
+      {
+        "index": 386,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.013725996017456,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 387,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01720190048218,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 388,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01755094528198,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 389,
+        "ground_truth": 0,
+        "prediction": 0,
+        "score": 23,
+        "reasons": [],
+        "correct": true,
+        "status": "TN",
+        "duration": 52.19678807258606,
+        "email_data": {
+          "subject": "",
+          "body_snippet": "trading track rotations please find rotations outlined trading track along graduation dates changes comments etc please let know confirming rotations graduation dates participants end week bryce schne",
+          "sender": "",
+          "source_file": "phishing_email.csv"
+        }
+      },
+      {
+        "index": 390,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01315689086914,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 391,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01591992378235,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 392,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01755094528198,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 393,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01647090911865,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 394,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01796102523804,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 395,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01258707046509,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 396,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01403999328613,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 397,
+        "ground_truth": 0,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01153206825256,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 398,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.01579189300537,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      },
+      {
+        "index": 399,
+        "ground_truth": 1,
+        "prediction": "ERROR",
+        "score": null,
+        "correct": false,
+        "duration": 60.019954204559326,
+        "error": "HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=60)"
+      }
+    ]
+  },
+  "repeatability_results": [
+    {
+      "index": 10361,
+      "ground_truth": 0,
+      "score_mean": 12,
+      "score_variance": 0,
+      "reason_consistency": 1.0,
+      "scores": [
+        12
+      ],
+      "email_data": {
+        "subject": "[ILUG] web amusements...",
+        "body_snippet": "ok, so i was also learning about css this weekend (thanks to the fine folks in irc.linux.ie, #linux!).  i came up with the following in my travels.  first, two style sheets: http://ie.suberic.net/css/",
+        "sender": "kevin lyda <kevin+dated+1028341549.b9da18@ie.suberic.net>",
+        "source_file": "SpamAssasin.csv"
+      }
+    }
+  ]
+}

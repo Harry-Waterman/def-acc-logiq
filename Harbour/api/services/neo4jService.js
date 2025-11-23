@@ -38,6 +38,10 @@ function extractDomainFromUrl(url) {
 
 /**
  * Create or get a node (merges if exists)
+ * @param {Object} session - Neo4j session
+ * @param {string|string[]} label - Single label string or array of labels
+ * @param {Object} properties - Node properties
+ * @param {string} uniqueKey - Unique key property name
  */
 async function mergeNode(session, label, properties, uniqueKey) {
   // Filter out null/undefined values and the unique key
@@ -48,14 +52,25 @@ async function mergeNode(session, label, properties, uniqueKey) {
     }
   });
   
+  // Handle multiple labels (array) or single label (string)
+  const labels = Array.isArray(label) ? label : [label];
+  const primaryLabel = labels[0]; // First label is the primary one for MERGE
+  const secondaryLabels = labels.slice(1); // Additional labels to add
+  
   // Build SET clause for properties to update
   const setProps = Object.keys(propsToSet)
     .map(key => `n.${key} = $${key}`)
     .join(', ');
   
+  // Build SET clause for secondary labels (combine all secondary labels in one SET)
+  const setLabels = secondaryLabels.length > 0 
+    ? `SET n${secondaryLabels.map(l => `:${l}`).join('')}`
+    : '';
+  
   const query = `
-    MERGE (n:${label} {${uniqueKey}: $${uniqueKey}})
+    MERGE (n:${primaryLabel} {${uniqueKey}: $${uniqueKey}})
     ${setProps ? `SET ${setProps}` : ''}
+    ${setLabels}
     RETURN n
   `;
   
@@ -71,6 +86,14 @@ async function mergeNode(session, label, properties, uniqueKey) {
 
 /**
  * Create relationship between two nodes
+ * @param {Object} session - Neo4j session
+ * @param {string|string[]} fromLabel - Single label string or array of labels for source node
+ * @param {string} fromKey - Source node unique key property name
+ * @param {*} fromValue - Source node unique key value
+ * @param {string} relationshipType - Relationship type
+ * @param {string|string[]} toLabel - Single label string or array of labels for target node
+ * @param {string} toKey - Target node unique key property name
+ * @param {*} toValue - Target node unique key value
  */
 async function createRelationship(
   session,
@@ -82,9 +105,15 @@ async function createRelationship(
   toKey,
   toValue
 ) {
+  // Handle multiple labels (array) or single label (string)
+  const fromLabels = Array.isArray(fromLabel) ? fromLabel : [fromLabel];
+  const toLabels = Array.isArray(toLabel) ? toLabel : [toLabel];
+  const fromLabelString = fromLabels.map(l => `:${l}`).join('');
+  const toLabelString = toLabels.map(l => `:${l}`).join('');
+  
   const query = `
-    MATCH (from:${fromLabel} {${fromKey}: $fromValue})
-    MATCH (to:${toLabel} {${toKey}: $toValue})
+    MATCH (from${fromLabelString} {${fromKey}: $fromValue})
+    MATCH (to${toLabelString} {${toKey}: $toValue})
     MERGE (from)-[r:${relationshipType}]->(to)
     RETURN r
   `;
@@ -96,11 +125,54 @@ async function createRelationship(
 }
 
 /**
+ * Extract email from recipient (handles both object and string formats)
+ */
+function extractRecipientEmail(recipient) {
+  if (!recipient) return null;
+  if (typeof recipient === 'object' && recipient !== null) {
+    return recipient.email || null;
+  }
+  if (typeof recipient === 'string') {
+    // Check if it's an email format (contains @)
+    if (recipient.includes('@')) {
+      return recipient;
+    }
+    // Otherwise it's a display name, return null
+    return null;
+  }
+  return null;
+}
+
+/**
+ * Extract display name from recipient (handles both object and string formats)
+ */
+function extractRecipientDisplayName(recipient) {
+  if (!recipient) return null;
+  if (typeof recipient === 'object' && recipient !== null) {
+    return recipient.displayName || null;
+  }
+  if (typeof recipient === 'string') {
+    // If it's an email format, return null (no display name)
+    if (recipient.includes('@')) {
+      return null;
+    }
+    // Otherwise it's a display name
+    return recipient;
+  }
+  return null;
+}
+
+/**
  * Generate a unique identifier for an email based on its content
  */
 function generateEmailId(sender, recipients, dateTime) {
   const recipientArray = Array.isArray(recipients) ? recipients : [recipients];
-  const recipientStr = recipientArray.filter(Boolean).sort().join(',');
+  // Extract emails from recipients (handles both object and string formats)
+  const recipientEmails = recipientArray
+    .map(extractRecipientEmail)
+    .filter(Boolean)
+    .sort();
+  const recipientStr = recipientEmails.join(',');
   const content = `${sender || ''}|${recipientStr}|${dateTime || ''}`;
   return crypto.createHash('sha256').update(content).digest('hex').substring(0, 16);
 }
@@ -112,23 +184,61 @@ export async function createEmailGraph(emailData) {
   const session = driver.session();
   
   try {
-    // Extract data from payload
+    // Extract data from nested payload structure
     const {
-      sender,
-      displayName,
-      recipients,
-      dateTime,
-      attachments = [],
-      urls = [],
-      flags = [],
-      score,
+      classification = {},
+      email = {},
       installationId,
       userId
     } = emailData;
 
-    // Validate required fields
+    // Extract classification data
+    const score = classification?.score;
+    const flags = classification?.flags || [];
+
+    // Validate email object exists first
+    if (!email) {
+      throw new Error('email object is required in payload');
+    }
+
+    // Debug logging to help diagnose issues
+    console.log('Received email object:', JSON.stringify(email, null, 2).substring(0, 1000));
+
+    // Extract email data - validate sender structure
+    if (!email.sender) {
+      throw new Error(
+        `email.sender is required. Received email structure: ${JSON.stringify(email).substring(0, 500)}`
+      );
+    }
+
+    let sender;
+    let displayName;
+    
+    // Handle both object and string formats for sender
+    if (typeof email.sender === 'object' && email.sender !== null) {
+      sender = email.sender.email;
+      displayName = email.sender.displayName;
+      console.log('Extracted sender from object:', sender);
+    } else if (typeof email.sender === 'string') {
+      sender = email.sender;
+      console.log('Extracted sender from string:', sender);
+    } else {
+      console.log('Unexpected sender type:', typeof email.sender, email.sender);
+    }
+    
+    const recipients = email.recipients || [];
+    const dateTime = email.sentTime;
+    const urls = email.urls || [];
+    const attachments = email.attachments || [];
+
+    // Validate required fields with detailed error messages
     if (!sender) {
-      throw new Error('sender is required');
+      // Provide helpful error message with what we actually received
+      throw new Error(
+        `email.sender.email is required. ` +
+        `Received sender: ${JSON.stringify(email.sender)}, ` +
+        `Full email object: ${JSON.stringify(email).substring(0, 500)}`
+      );
     }
 
     // Ensure recipients is an array
@@ -155,21 +265,33 @@ export async function createEmailGraph(emailData) {
     if (sender) {
       const fromDomain = extractDomain(sender);
       
-      // Create FROM Address
-      await mergeNode(session, 'Address', { email: sender }, 'email');
+      // Create FROM Address with Sender label
+      await mergeNode(session, ['Address', 'Sender'], { email: sender }, 'email');
       
-      // Create DisplayName node if available
+      // Create DisplayName node if available with Sender label
       if (displayName) {
-        await mergeNode(session, 'DisplayName', { name: displayName }, 'name');
+        await mergeNode(session, ['DisplayName', 'Sender'], { name: displayName }, 'name');
         
         // Create relationship Address -> HAS_DISPLAY_NAME -> DisplayName
         await createRelationship(
           session,
-          'Address',
+          ['Address', 'Sender'],
           'email',
           sender,
           'HAS_DISPLAY_NAME',
-          'DisplayName',
+          ['DisplayName', 'Sender'],
+          'name',
+          displayName
+        );
+        
+        // Create relationship Email -> FROM -> DisplayName
+        await createRelationship(
+          session,
+          'Email',
+          'id',
+          emailId,
+          'FROM',
+          ['DisplayName', 'Sender'],
           'name',
           displayName
         );
@@ -182,7 +304,7 @@ export async function createEmailGraph(emailData) {
         'id',
         emailId,
         'FROM',
-        'Address',
+        ['Address', 'Sender'],
         'email',
         sender
       );
@@ -192,7 +314,7 @@ export async function createEmailGraph(emailData) {
         await mergeNode(session, 'Domain', { name: fromDomain }, 'name');
         await createRelationship(
           session,
-          'Address',
+          ['Address', 'Sender'],
           'email',
           sender,
           'HAS_DOMAIN',
@@ -204,40 +326,117 @@ export async function createEmailGraph(emailData) {
     }
 
     // Process TO addresses (recipients) - can be array or single
+    // Handle both object and string formats for recipients
     const toAddresses = Array.isArray(recipientList) ? recipientList : [recipientList];
-    for (const toAddr of toAddresses) {
-      if (!toAddr) continue;
+    for (const recipient of toAddresses) {
+      if (!recipient) continue;
       
-      const toDomain = extractDomain(toAddr);
+      let toEmail;
+      let toDisplayName;
       
-      // Create TO Address
-      await mergeNode(session, 'Address', { email: toAddr }, 'email');
+      // Handle both object and string formats for recipient
+      if (typeof recipient === 'object' && recipient !== null) {
+        toEmail = recipient.email;
+        toDisplayName = recipient.displayName;
+        console.log('Extracted recipient from object:', toEmail);
+      } else if (typeof recipient === 'string') {
+        // Check if it's an email format (contains @)
+        if (recipient.includes('@')) {
+          toEmail = recipient;
+          toDisplayName = null;
+        } else {
+          // It's a display name without email
+          toEmail = null;
+          toDisplayName = recipient;
+        }
+        console.log('Extracted recipient from string:', toEmail || toDisplayName);
+      } else {
+        console.log('Unexpected recipient type:', typeof recipient, recipient);
+        continue;
+      }
       
-      // Create relationship Email -> TO -> Address
-      await createRelationship(
-        session,
-        'Email',
-        'id',
-        emailId,
-        'TO',
-        'Address',
-        'email',
-        toAddr
-      );
+      // Skip if we don't have at least an email or display name
+      if (!toEmail && !toDisplayName) continue;
       
-      // Create Domain and link if domain exists
-      if (toDomain) {
-        await mergeNode(session, 'Domain', { name: toDomain }, 'name');
+      // If we have an email, process it as an Address
+      if (toEmail) {
+        const toDomain = extractDomain(toEmail);
+        
+        // Create TO Address with Receiver label
+        await mergeNode(session, ['Address', 'Receiver'], { email: toEmail }, 'email');
+        
+        // Create DisplayName node if available with Receiver label
+        if (toDisplayName) {
+          await mergeNode(session, ['DisplayName', 'Receiver'], { name: toDisplayName }, 'name');
+          
+          // Create relationship Address -> HAS_DISPLAY_NAME -> DisplayName
+          await createRelationship(
+            session,
+            ['Address', 'Receiver'],
+            'email',
+            toEmail,
+            'HAS_DISPLAY_NAME',
+            ['DisplayName', 'Receiver'],
+            'name',
+            toDisplayName
+          );
+          
+          // Create relationship Email -> TO -> DisplayName
+          await createRelationship(
+            session,
+            'Email',
+            'id',
+            emailId,
+            'TO',
+            ['DisplayName', 'Receiver'],
+            'name',
+            toDisplayName
+          );
+        }
+        
+        // Create relationship Email -> TO -> Address
         await createRelationship(
           session,
-          'Address',
+          'Email',
+          'id',
+          emailId,
+          'TO',
+          ['Address', 'Receiver'],
           'email',
-          toAddr,
-          'HAS_DOMAIN',
-          'Domain',
-          'name',
-          toDomain
+          toEmail
         );
+        
+        // Create Domain and link if domain exists
+        if (toDomain) {
+          await mergeNode(session, 'Domain', { name: toDomain }, 'name');
+          await createRelationship(
+            session,
+            ['Address', 'Receiver'],
+            'email',
+            toEmail,
+            'HAS_DOMAIN',
+            'Domain',
+            'name',
+            toDomain
+          );
+        }
+      } else if (toDisplayName) {
+        // If we only have a display name (no email), create DisplayName node with Receiver label
+        await mergeNode(session, ['DisplayName', 'Receiver'], { name: toDisplayName }, 'name');
+        
+        // Create relationship Email -> TO -> DisplayName
+        await createRelationship(
+          session,
+          'Email',
+          'id',
+          emailId,
+          'TO',
+          ['DisplayName', 'Receiver'],
+          'name',
+          toDisplayName
+        );
+        
+        console.log('Recipient has display name but no email:', toDisplayName);
       }
     }
 
@@ -305,22 +504,26 @@ export async function createEmailGraph(emailData) {
       );
     }
 
-    // Process Score (single number)
-    if (score !== undefined && score !== null && typeof score === 'number') {
-      // Create Score node
-      const scoreQuery = `
-        MERGE (s:Score {value: $value})
-        ON CREATE SET s.value = $value
-        ON MATCH SET s.value = $value
-        WITH s
-        MATCH (e:Email {id: $emailId})
-        MERGE (e)-[r:HAS_SCORE]->(s)
-        RETURN r
-      `;
-      await session.run(scoreQuery, {
-        emailId,
-        value: score
-      });
+    // Process Score (can be string or number)
+    if (score !== undefined && score !== null) {
+      // Convert string score to number if needed
+      const scoreValue = typeof score === 'string' ? parseFloat(score) : score;
+      if (!isNaN(scoreValue) && typeof scoreValue === 'number') {
+        // Create Score node
+        const scoreQuery = `
+          MERGE (s:Score {value: $value})
+          ON CREATE SET s.value = $value
+          ON MATCH SET s.value = $value
+          WITH s
+          MATCH (e:Email {id: $emailId})
+          MERGE (e)-[r:HAS_SCORE]->(s)
+          RETURN r
+        `;
+        await session.run(scoreQuery, {
+          emailId,
+          value: scoreValue
+        });
+      }
     }
 
     // Process Installation ID
