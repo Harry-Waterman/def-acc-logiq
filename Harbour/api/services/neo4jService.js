@@ -283,6 +283,18 @@ export async function createEmailGraph(emailData) {
           'name',
           displayName
         );
+        
+        // Create relationship Email -> FROM -> DisplayName
+        await createRelationship(
+          session,
+          'Email',
+          'id',
+          emailId,
+          'FROM',
+          ['DisplayName', 'Sender'],
+          'name',
+          displayName
+        );
       }
       
       // Create relationship Email -> FROM -> Address
@@ -368,6 +380,18 @@ export async function createEmailGraph(emailData) {
             'name',
             toDisplayName
           );
+          
+          // Create relationship Email -> TO -> DisplayName
+          await createRelationship(
+            session,
+            'Email',
+            'id',
+            emailId,
+            'TO',
+            ['DisplayName', 'Receiver'],
+            'name',
+            toDisplayName
+          );
         }
         
         // Create relationship Email -> TO -> Address
@@ -398,10 +422,20 @@ export async function createEmailGraph(emailData) {
         }
       } else if (toDisplayName) {
         // If we only have a display name (no email), create DisplayName node with Receiver label
-        // but we can't create an Address without an email, so just create the DisplayName
         await mergeNode(session, ['DisplayName', 'Receiver'], { name: toDisplayName }, 'name');
-        // Note: We don't create a TO relationship here since we need an Address node
-        // which requires an email. This is a limitation but handles the edge case.
+        
+        // Create relationship Email -> TO -> DisplayName
+        await createRelationship(
+          session,
+          'Email',
+          'id',
+          emailId,
+          'TO',
+          ['DisplayName', 'Receiver'],
+          'name',
+          toDisplayName
+        );
+        
         console.log('Recipient has display name but no email:', toDisplayName);
       }
     }
