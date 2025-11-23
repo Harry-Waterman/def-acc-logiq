@@ -1279,14 +1279,16 @@ def generate_summary_report(df: pd.DataFrame, repeat_df: pd.DataFrame, output_di
                     }).reset_index()
                     
                     if len(variance_by_size) > 1:
-                        var_corr = variance_by_size['model_size'].corr(variance_by_size['score_variance'])
-                        cons_corr = consistency_by_size['model_size'].corr(consistency_by_size['reason_consistency'])
+                        # Suppress numpy warnings for correlation calculation
+                        with np.errstate(divide='ignore', invalid='ignore'):
+                            var_corr = variance_by_size['model_size'].corr(variance_by_size['score_variance'])
+                            cons_corr = consistency_by_size['model_size'].corr(consistency_by_size['reason_consistency'])
                         
                         f.write("### Model Size vs Repeatability Correlation\n\n")
                         f.write("Analysis of whether larger models show different repeatability patterns:\n\n")
-                        if pd.notna(var_corr):
+                        if pd.notna(var_corr) and not np.isnan(var_corr):
                             f.write(f"- **Model Size vs Score Variance Correlation**: {var_corr:.3f}\n")
-                        if pd.notna(cons_corr):
+                        if pd.notna(cons_corr) and not np.isnan(cons_corr):
                             f.write(f"- **Model Size vs Reason Consistency Correlation**: {cons_corr:.3f}\n")
                         f.write("\n")
             
