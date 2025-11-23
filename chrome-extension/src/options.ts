@@ -38,11 +38,21 @@ async function saveSettings(settings: ApiSettings): Promise<void> {
 function showStatus(message: string, isError: boolean = false) {
   const statusEl = document.getElementById('status')!;
   statusEl.textContent = message;
-  statusEl.className = status ;
+  statusEl.className = isError ? 'status error' : 'status success';
   
   setTimeout(() => {
     statusEl.className = 'status';
   }, 3000);
+}
+
+function toggleApiFields(show: boolean) {
+  const apiFields = document.getElementById('apiFields')!;
+  apiFields.style.display = show ? 'block' : 'none';
+}
+
+function toggleExternalFields(show: boolean) {
+  const externalFields = document.getElementById('externalFields')!;
+  externalFields.style.display = show ? 'block' : 'none';
 }
 
 async function init() {
@@ -55,17 +65,30 @@ async function init() {
   const useExternalEl = document.getElementById('useExternal') as HTMLInputElement;
   const aiUrlEl = document.getElementById('aiUrl') as HTMLInputElement;
   const apiKeyAiEl = document.getElementById('apiKeyAi') as HTMLInputElement;
-  const model = document.getElementById('model') as HTMLButtonElement;
+  const modelEl = document.getElementById('model') as HTMLInputElement;
   const saveBtn = document.getElementById('saveBtn') as HTMLButtonElement;
   
   // Populate form
   apiEnabledEl.checked = settings.useApi;
   apiEndpointEl.value = settings.endpoint;
   apiKeyEl.value = settings.apiKeyHarbour;
-  useExternalEl = settings.useExternal;
-  aiUrlEl = settings.aiUrl;
-  apiKeyAiEl = settings.apiKeyAi;
-  model = settings.model;
+  useExternalEl.checked = settings.useExternal;
+  aiUrlEl.value = settings.aiUrl;
+  apiKeyAiEl.value = settings.apiKeyAi;
+  modelEl.value = settings.model;
+  
+  // Set initial visibility
+  toggleApiFields(settings.useApi);
+  toggleExternalFields(settings.useExternal);
+  
+  // Add change listeners for checkboxes
+  apiEnabledEl.addEventListener('change', () => {
+    toggleApiFields(apiEnabledEl.checked);
+  });
+  
+  useExternalEl.addEventListener('change', () => {
+    toggleExternalFields(useExternalEl.checked);
+  });
   
   // Save button handler
   saveBtn.addEventListener('click', async () => {
@@ -100,7 +123,7 @@ async function init() {
         useExternal: useExternalEl.checked,
         aiUrl: aiUrl,
         apiKeyAi: apiKeyAiEl.value.trim(),
-        model: model.value.trim()
+        model: modelEl.value.trim()
       });
       showStatus('Settings saved successfully!');
     } catch (error) {
