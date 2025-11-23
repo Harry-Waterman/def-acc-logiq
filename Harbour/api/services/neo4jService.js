@@ -112,23 +112,61 @@ export async function createEmailGraph(emailData) {
   const session = driver.session();
   
   try {
-    // Extract data from payload
+    // Extract data from nested payload structure
     const {
-      sender,
-      displayName,
-      recipients,
-      dateTime,
-      attachments = [],
-      urls = [],
-      flags = [],
-      score,
+      classification = {},
+      email = {},
       installationId,
       userId
     } = emailData;
 
-    // Validate required fields
+    // Extract classification data
+    const score = classification?.score;
+    const flags = classification?.flags || [];
+
+    // Validate email object exists first
+    if (!email) {
+      throw new Error('email object is required in payload');
+    }
+
+    // Debug logging to help diagnose issues
+    console.log('Received email object:', JSON.stringify(email, null, 2).substring(0, 1000));
+
+    // Extract email data - validate sender structure
+    if (!email.sender) {
+      throw new Error(
+        `email.sender is required. Received email structure: ${JSON.stringify(email).substring(0, 500)}`
+      );
+    }
+
+    let sender;
+    let displayName;
+    
+    // Handle both object and string formats for sender
+    if (typeof email.sender === 'object' && email.sender !== null) {
+      sender = email.sender.email;
+      displayName = email.sender.displayName;
+      console.log('Extracted sender from object:', sender);
+    } else if (typeof email.sender === 'string') {
+      sender = email.sender;
+      console.log('Extracted sender from string:', sender);
+    } else {
+      console.log('Unexpected sender type:', typeof email.sender, email.sender);
+    }
+    
+    const recipients = email.recipients || [];
+    const dateTime = email.sentTime;
+    const urls = email.urls || [];
+    const attachments = email.attachments || [];
+
+    // Validate required fields with detailed error messages
     if (!sender) {
-      throw new Error('sender is required');
+      // Provide helpful error message with what we actually received
+      throw new Error(
+        `email.sender.email is required. ` +
+        `Received sender: ${JSON.stringify(email.sender)}, ` +
+        `Full email object: ${JSON.stringify(email).substring(0, 500)}`
+      );
     }
 
     // Ensure recipients is an array
@@ -305,22 +343,26 @@ export async function createEmailGraph(emailData) {
       );
     }
 
-    // Process Score (single number)
-    if (score !== undefined && score !== null && typeof score === 'number') {
-      // Create Score node
-      const scoreQuery = `
-        MERGE (s:Score {value: $value})
-        ON CREATE SET s.value = $value
-        ON MATCH SET s.value = $value
-        WITH s
-        MATCH (e:Email {id: $emailId})
-        MERGE (e)-[r:HAS_SCORE]->(s)
-        RETURN r
-      `;
-      await session.run(scoreQuery, {
-        emailId,
-        value: score
-      });
+    // Process Score (can be string or number)
+    if (score !== undefined && score !== null) {
+      // Convert string score to number if needed
+      const scoreValue = typeof score === 'string' ? parseFloat(score) : score;
+      if (!isNaN(scoreValue) && typeof scoreValue === 'number') {
+        // Create Score node
+        const scoreQuery = `
+          MERGE (s:Score {value: $value})
+          ON CREATE SET s.value = $value
+          ON MATCH SET s.value = $value
+          WITH s
+          MATCH (e:Email {id: $emailId})
+          MERGE (e)-[r:HAS_SCORE]->(s)
+          RETURN r
+        `;
+        await session.run(scoreQuery, {
+          emailId,
+          value: scoreValue
+        });
+      }
     }
 
     // Process Installation ID

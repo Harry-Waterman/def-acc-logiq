@@ -1,13 +1,49 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8">
+    <title>TinyRod Settings</title>
     <style>
       body {
-        width: 300px;
-        padding: 15px;
-        font-family: sans-serif;
+        width: 400px;
+        padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
       }
-      .container {
+      h1 {
+        margin: 0 0 20px 0;
+        font-size: 18px;
+        color: #333;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      .section-title {
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #555;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #666;
+        font-size: 13px;
+      }
+      input[type="text"],
+      input[type="url"],
+      input[type="password"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 13px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+      }
+      input[type="checkbox"] {
+        margin-right: 8px;
+      }
+      .checkbox-container {
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -15,7 +51,47 @@
       .row {
         display: flex;
         align-items: center;
-        gap: 10px;
+        margin-bottom: 10px;
+      }
+      button {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      button:hover {
+        background-color: #357ae8;
+      }
+      button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      .status {
+        margin-top: 10px;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        display: none;
+      }
+      .status.success {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        display: block;
+      }
+      .status.error {
+        background-color: #ffebee;
+        color: #c62828;
+        display: block;
+      }
+      .help-text {
+        font-size: 11px;
+        color: #999;
+        margin-top: -5px;
+        margin-bottom: 10px;
       }
       label {
         font-size: 14px;
@@ -50,35 +126,44 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="row">
-        <input type="checkbox" id="telemetry" name="telemetry" checked disabled>
-        <label for="telemetry">Enable Telemetry</label>
+    
+    <h1>TinyRod Settings</h1>
+    
+    <div class="section">
+      <div class="section-title">API Configuration</div>
+      <div class="checkbox-container">
+        <input type="checkbox" id="apiEnabled" name="apiEnabled">
+        <label for="apiEnabled">Enable API Output</label>
+      </div>
+      <label for="apiEndpoint">API Endpoint URL:</label>
+      <input type="url" id="apiEndpoint" name="apiEndpoint" placeholder="https://api.example.com/api/emails">
+      <div class="help-text">The URL where classification results will be sent</div>
+      
+      <label for="apiKey">API Key (optional):</label>
+      <input type="password" id="apiKey" name="apiKey" placeholder="Enter your API key">
+      <div class="help-text">Leave empty if your API doesn't require authentication</div>
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="useExternal" name="useExternal">
+        <label for="useExternal">Use External Model</label>
       </div>
       
-      <div class="row">
-        <input type="checkbox" id="useExternal" name="useExternal">
-        <label for="useExternal">Use External API</label>
-      </div>
-
-      <div id="externalSettings" class="hidden">
-        <div>
-          <label for="apiUrl">API Endpoint URL</label>
-          <input type="text" id="apiUrl" placeholder="https://api.openai.com/v1">
-        </div>
-        <div>
-          <label for="apiKey">API Key</label>
-          <input type="password" id="apiKey" placeholder="sk-...">
-        </div>
-        <div>
-          <label for="model">Model</label>
-          <input type="text" id="model" placeholder="gpt-4o">
-        </div>
-      </div>
-
-      <button id="save">Save Settings</button>
-      <div id="status"></div>
+      <label for="apiUrl">API Endpoint URL:</label>
+      <input type="text" id="apiUrl" placeholder="https://api.openai.com/v1">
+      <div class="help-text">The URL where your external model is reached</div>
+      
+      <label for="apiKeyAi">API Key</label>
+      <input type="password" id="apiKeyAi" placeholder="sk-...">
+      <div class="help-text">Leave empty if your API doesn't require authentication</div>
+      
+      <label for="model">Model</label>
+      <input type="text" id="model" placeholder="gpt-4o">
+      <div class="help-text">The of your external model</div>
     </div>
+
+    <button id="saveBtn">Save Settings</button>
+    <div id="status" class="status"></div>
+   
     <script type="module" src="./options.ts"></script>
   </body>
 </html>

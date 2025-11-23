@@ -124,14 +124,20 @@ POST http://localhost:3000/api/emails
 Content-Type: application/json
 
 {
-  "sender": "sender@example.com",
-  "displayName": "Sender",
-  "recipients": ["recipient@example.com"],
-  "dateTime": "Thu 11/13/2025 4:46 PM",
-  "attachments": [file.txt],
-  "urls": ["https://example.com/link"],
-  "flags": ["REQUESTING MONEY"],
-  "score": 0.95,
+  "classification": {
+    "score": "87",
+    "flags": ["Suspicious urls", "requests for personal information"]
+  },
+  "email": {
+    "sender": {
+      "displayName": "Sender",
+      "email": "sender@example.com"
+    },
+    "recipients": ["recipient@example.com"],
+    "sentTime": "Thu 11/13/2025 4:46 PM",
+    "attachments": ["file.txt"],
+    "urls": ["https://example.com/link"]
+  },
   "installationId": "inst-001"
 }
 ```
