@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This report analyzes benchmark results for 15 models tested on phishing email detection.
+This report analyzes benchmark results for 16 models tested on phishing email detection.
 
 **Test Configuration:**
 - Sample Size: 400 emails (balanced 50/50)
@@ -48,6 +48,7 @@ This report analyzes benchmark results for 15 models tested on phishing email de
 | qwen_qwen3-8b-0.1-temp | qwen/qwen3-8b | 8.0 | 0.8625 | 0.8877005347593583 | 0.8341708542713567 | 0.8601036269430052 | 0.105 | 0.1658291457286432 | 166 | 179 | 21 | 33 | 2.9322172486782074 | 400 | 0.1 | 400 | 0.0 | 0.0 | 0.0025 | 0.0025 | 0.9975 |
 | qwen_qwen3-8b-0.7-temp | qwen/qwen3-8b | 8.0 | 0.8425 | 0.8624338624338624 | 0.8316326530612245 | 0.8467532467532467 | 0.13 | 0.1683673469387755 | 163 | 174 | 26 | 33 | 3.7322749555110932 | 400 | 0.7 | 400 | 0.005 | 0.0 | 0.005 | 0.01 | 0.99 |
 | [CLOUD]-gpt-5.1-0.1-temp | gpt-5.1-2025-11-13 | 5.1 | 0.9175 | 0.9940828402366864 | 0.84 | 0.9105691056910568 | 0.005 | 0.16 | 168 | 199 | 1 | 32 | 1.4917605406045913 | 400 | 0.1 | 400 | 0.0 | 0.0 | 0.0 | 0.0 | 1.0 |
+| [CLOUD]-gpt-5.1-0.7-temp | gpt-5.1-2025-11-13 | 5.1 | 0.9075 | 0.9822485207100592 | 0.83 | 0.8997289972899729 | 0.015 | 0.17 | 166 | 197 | 3 | 34 | 1.4758550786972047 | 400 | 0.7 | 400 | 0.0 | 0.0 | 0.0 | 0.0 | 1.0 |
 
 
 ## Key Insights
@@ -55,7 +56,7 @@ This report analyzes benchmark results for 15 models tested on phishing email de
 ### Accuracy Variation
 - Range: 9.00% to 91.75%
 - Spread: 82.75%
-- Mean: 61.15%
+- Mean: 63.00%
 
 ### Error Rate Analysis
 - **False Positive Rate (FPR)**: Critical for user experience
@@ -68,7 +69,7 @@ This report analyzes benchmark results for 15 models tested on phishing email de
 ### Latency Analysis
 - Fastest: qwen_qwen3-1.7b-0.1-temp (0.79s)
 - Slowest: phi-4-mini-reasoning-0.1-temp (55.49s)
-- Average: 6.91s
+- Average: 6.57s
 
 ## Repeatability Analysis
 
