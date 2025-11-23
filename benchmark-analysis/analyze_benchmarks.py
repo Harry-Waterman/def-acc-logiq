@@ -298,9 +298,12 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
     
     # FPR vs FNR
     ax4 = axes[1, 1]
-    for i, (idx, row) in enumerate(df.iterrows()):
+    if model_colors is None:
+        model_colors = get_model_color_map(df['model'].unique())
+    for idx, row in df.iterrows():
+        model_color = model_colors.get(row['model'], COLORS[0])
         ax4.scatter(row['fnr'], row['fpr'], s=200, alpha=0.7, 
-                   color=model_colors[i], label=row['model'])
+                   color=model_color, label=row['model'])
         # Add model name labels near points, adjust position to avoid legend
         ax4.annotate(row['model'], (row['fnr'], row['fpr']),
                     xytext=(5, 5), textcoords='offset points', fontsize=8,
