@@ -1,185 +1,127 @@
-# Evaluation Module
+# Phishing Detection Benchmark & Evaluation Tool (TestRig)
 
-Evaluation tools for assessing SLM model performance on phishing email detection.
+A robust evaluation framework for testing Small Language Models (SLMs) and LLMs on phishing email detection tasks. This tool aggregates multiple open-source datasets, normalizes them, and runs benchmarks against your local or remote LLM to measure **Accuracy** and **Repeatability**.
 
-## Overview
+## 🚀 Features
 
-This module provides:
-- **Accuracy Evaluation**: Compare model predictions against ground truth labels
-- **Repeatability Benchmark**: Assess model consistency across multiple runs
+- **Multi-Dataset Aggregation**: Automatically finds, loads, and unifies multiple CSV datasets (e.g., Nigerian Fraud, Enron, SpamAssassin) into a single standardized schema.
+- **Balanced Sampling**: Ensures fair testing by creating 50/50 splits of Benign vs. Malicious emails from the aggregated pool.
+- **Custom LLM Client**: Connects to any OpenAI-compatible API (specifically optimized for LMStudio/Local LLMs).
+- **Production-Grade Prompting**: Uses the exact same system prompt and logic as the Chrome Extension to ensure test validity.
+- **Two-Stage Evaluation**:
+    1.  **Accuracy & Security Metrics**: Measures how well the model correctly identifies phishing vs. legitimate emails, calculating **Accuracy**, **Precision**, **Recall**, **F1-Score**, **False Positive Rate (FPR)**, and **False Negative Rate (FNR)**.
+    2.  **Repeatability**: Measures the stability of the model's scoring and reasoning by querying the same email multiple times.
 
-## Configuration
+## 🛠 How It Works
 
-All constants (labels, reasons, dataset paths) are defined in `config.py`. Update these when integrating with your real model:
+### 1. Dataset Loading (`dataset_loader.py`)
+The tool scans the project root for CSV files and normalizes them. It handles different schemas:
+*   **Detailed**: `sender`, `receiver`, `date`, `subject`, `body`, `urls`, `label`
+*   **Simple**: `subject`, `body`, `label`
+*   **Combined**: `text_combined`, `label` (Parses Subject/Sender from body if possible)
 
-- `LABELS`: Standard label definitions
-- `LABEL_MAPPING`: Maps dataset labels to standard labels
-- `EXAMPLE_REASONS`: Example reasons for testing (replace with actual model output)
-- `DATASET_CONFIG`: Dataset file paths and column names
-- `EVALUATION_CONFIG`: Default test parameters
+**Quality Filters:**
+*   Automatically excludes emails with body content < 20 characters to remove empty/gibberish rows.
+*   Unifies all labels to `0` (Benign) and `1` (Malicious).
 
-## Quick Start
+All data is unified into a single DataFrame.
 
-```python
-from evaluation import evaluate_model_response, evaluate_batch, print_evaluation_report
-from evaluation.repeatability import assess_repeatability, print_repeatability_report
+### 2. Sampling & Balancing
+To prevent class imbalance bias:
+1.  The unified dataset is split into Benign and Malicious groups.
+2.  A random sample of size `N/2` is drawn from each group (where `N` is your sample size).
+3.  These samples are combined and shuffled to create the final test set.
 
-# Evaluate a single prediction
-is_correct, details = evaluate_model_response(
-    model_output={"label": "not_malicious", "reasons": [...]},
-    ground_truth_label="legitimate"
-)
+### 3. Evaluation Process (`benchmark_all.py`)
+The benchmark script runs two tests:
 
-# Evaluate batch
-results = evaluate_batch(model_outputs, ground_truth_labels)
-print_evaluation_report(results)
+#### A. Accuracy Test
+*   Iterates through the balanced sample.
+*   Sends each email to the LLM (including Subject, Sender, Body Snippet, and Attachments).
+*   Parses the JSON response (handling local model quirks like `<think>` tags).
+*   Compares the model's Score (>50 = Malicious) against the Ground Truth.
+*   **Calculates Advanced Metrics**:
+    *   **Confusion Matrix**: TP, TN, FP, FN
+    *   **FPR (False Positive Rate)**: Critical for UX (blocking legit emails).
+    *   **FNR (False Negative Rate)**: Critical for Security (missing threats).
+    *   **Latency**: Average time per inference.
 
-# Test repeatability
-repeatability_result = assess_repeatability(
-    your_model_function,
-    "email text",
-    num_runs=100
-)
-print_repeatability_report(repeatability_result)
-```
+#### B. Repeatability Test
+*   Selects a small subset (1 Benign, 1 Malicious) from the sample.
+*   Queries the LLM `X` times for the *same* email.
+*   Calculates:
+    *   **Score Variance**: How much the numerical score fluctuates.
+    *   **Reason Consistency**: How often the exact same set of reasons is returned.
 
-## Dataset
+## 📦 Usage
 
-**Location**: `dataset/Nigerian_Fraud.csv` (not committed to git)
+### Prerequisites
+*   Python 3.x
+*   Dependencies: `pandas`, `requests`
+*   A running LLM server (e.g., LMStudio) on `http://localhost:1234/v1` OR an OpenAI API Key.
 
-**Format**: CSV with columns:
-- `sender`
-- `receiver`
-- `date`
-- `subject`
-- `body`
-- `urls`
-- `label` (0 = legitimate, 1 = phishing)
+### 🚀 Quick Start: Run Full Paper Benchmarks
 
-**Source**: Nigerian Fraud email dataset (loaded locally in `dataset/Nigerian_Fraud.csv`)
-
-## Accuracy Evaluation
-
-### Functions
-
-- `evaluate_model_response(model_output, ground_truth_label, label_mapping=None)` - Single prediction
-- `evaluate_batch(model_outputs, ground_truth_labels, label_mapping=None)` - Batch evaluation
-- `evaluate_from_dataset(model_outputs, dataset_path, label_column="label", label_mapping=None)` - From CSV/JSON
-- `print_evaluation_report(results, detailed=False)` - Print formatted report
-
-### Label Mapping
-
-Normalize different label formats:
-
-```python
-label_mapping = {
-    "phishing": "malicious",
-    "legitimate": "not_malicious",
-    "not_malicious": "not_malicious",
-    "malicious": "malicious"
-}
-```
-
-### Example
-
-```python
-from evaluation import evaluate_from_dataset, print_evaluation_report
-
-results = evaluate_from_dataset(
-    model_outputs=your_predictions,
-    dataset_path="dataset/Nigerian_Fraud.csv",
-    label_column="label",
-    label_mapping={0: "not_malicious", 1: "malicious"}
-)
-
-print_evaluation_report(results, detailed=True)
-```
-
-## Repeatability Benchmark
-
-Assesses how consistent model outputs are when given the same input multiple times.
-
-### Functions
-
-- `assess_repeatability(model_function, test_input, num_runs=100, label_mapping=None)` - Single input
-- `benchmark_repeatability(model_function, test_inputs, num_runs=100, label_mapping=None)` - Multiple inputs
-- `print_repeatability_report(result, detailed=False)` - Print report
-
-### Metrics
-
-- **Consistency Score**: 0-100% (percentage of most common prediction)
-  - >95%: HIGHLY_REPEATABLE
-  - 80-94%: REPEATABLE
-  - 60-79%: MODERATELY_REPEATABLE
-  - <60%: NOT_REPEATABLE
-- **Agreement Rate**: Normalized consistency (0.0-1.0)
-- **Normalized Entropy**: Uncertainty measure (lower is better)
-
-### Example
-
-```python
-from evaluation.repeatability import assess_repeatability, print_repeatability_report
-
-def your_model(input_text):
-    # Your SLM model call
-    return {"label": "malicious", "reasons": [...]}
-
-result = assess_repeatability(
-    your_model,
-    "test email",
-    num_runs=100
-)
-
-print_repeatability_report(result)
-```
-
-## Test Scripts
-
-### Accuracy Evaluation
-```bash
-python evaluation/test_with_dataset.py
-```
-Tests accuracy evaluation with actual dataset emails.
-
-### Repeatability Benchmark
-```bash
-python evaluation/test_repeatability_with_dataset.py
-```
-Tests repeatability with actual dataset emails.
-
-## Integration
-
-### Model Output Format
-
-Your model should return:
-```python
-{
-    "label": "malicious" | "not_malicious",
-    "reasons": ["reason 1", "reason 2", ...]
-}
-```
-
-### Wrapper Function
-
-```python
-def my_slm_model(input_text):
-    response = your_slm_api_call(input_text)
-    return {
-        "label": response["label"],
-        "reasons": response.get("reasons", [])
-    }
-```
-
-## Installation
+To replicate the paper's methodology (Overall Performance, False Positive Stress Test, and Obvious Phish Test), use the provided shell script:
 
 ```bash
-pip install -r requirements.txt
+./def-acc-logiq/evaluation/run_paper_benchmarks.sh
 ```
 
-## Best Practices
+This runs 3 sequential experiments and saves standardized JSON reports.
 
-1. **Use actual dataset**: Test with real emails from the dataset
-2. **Sufficient runs**: Use at least 100 runs for repeatability tests
-3. **Monitor metrics**: Track accuracy and consistency over time
-4. **Set thresholds**: Define minimum acceptable performance (e.g., >95% consistency)
-5. **Label normalization**: Use label mapping to handle different label formats
+### 🧪 Multi-Model Benchmarking
+
+To benchmark a list of models (e.g., Qwen, Gemma, Phi-4) sequentially with manual model switching:
+
+```bash
+./def-acc-logiq/evaluation/run_multi_model_benchmark.sh
+```
+
+This script will pause and prompt you to load each model before running the test.
+
+### Manual Benchmarking
+
+Run the benchmark script directly for custom experiments:
+
+```bash
+python3 def-acc-logiq/evaluation/benchmark_all.py \
+  --model "google/gemma-3-4b" \
+  --sample-size 50 \
+  --repeat-runs 5 \
+  --seed 42
+```
+
+### CLI Arguments
+
+| Argument | Default | Description |
+| :--- | :--- | :--- |
+| `--api-key` | `""` | API Key for external providers (e.g. OpenAI). Adds `Authorization: Bearer <key>` header. |
+| `--model` | `local-model` | Name of the model to track in reports (e.g., "google/gemma-3-4b") |
+| `--sample-size` | `50` | Total number of emails to test (will be split 50/50 benign/malicious) |
+| `--repeat-runs` | `5` | Number of times to re-test specific emails for stability check |
+| `--api-url` | `http://localhost:1234/v1` | URL of your LLM API endpoint |
+| `--temperature` | `0.1` | Sampling temperature (0.0-1.0). Higher values increase creativity/variance. |
+| `--seed` | `None` | Random seed (int) for reproducible sampling. If set, the exact same emails will be selected. |
+| `--data-dir` | Project Root | Directory to scan for CSV datasets |
+
+## 📊 Output
+
+The tool outputs a real-time console report showing:
+*   Email Source & Metadata (Subject, Sender, Body Snippet)
+*   Model Prediction & Reasoning
+*   Latency
+
+At the end, it displays a **Confusion Matrix** and key metrics (Accuracy, Precision, Recall, F1, FPR, FNR) directly in the terminal.
+
+It also saves a detailed JSON file (`benchmark_results_seed<SEED>_<timestamp>.json`) containing:
+*   Configuration used
+*   Per-sample detailed results
+*   Repeatability metrics (Variance, Consistency %)
+
+## 🧩 Project Structure
+
+*   `benchmark_all.py`: Main entry point and orchestrator.
+*   `dataset_loader.py`: Handles CSV parsing, schema mapping, and data cleaning.
+*   `llm_client.py`: Manages API connections, prompting, and response parsing.
+*   `config.py`: Shared constants (legacy support).

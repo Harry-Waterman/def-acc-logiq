@@ -1,88 +1,101 @@
-# WebLLM Chrome Extension
+# TinyRod - Chrome Extension for Phishing Detection
 
-![Chrome Extension](https://github.com/mlc-ai/mlc-llm/assets/11940172/0d94cc73-eff1-4128-a6e4-70dc879f04e0)
+TinyRod is a client-side phishing detection extension for Outlook webmail (OWA) and Office 365. It leverages **WebLLM** and **WebGPU** to run a powerful Transformer model (Llama-3.1-8B) directly in the browser, ensuring email data never leaves the user's device unless configured otherwise.
 
-## Default Model
+## 🚀 Features
 
-The extension is configured via `model-config.json` (at the project root) to use **Qwen3-0.6B-q4f16_1-MLC** as the default model for phishing email detection. To switch to another model, edit that single config file — every script and the UI will update automatically. The selected model is bundled with the extension and does not require internet download at runtime.
+-   **Local Inference**: Runs `Llama-3.1-8B-Instruct` entirely in the browser using WebGPU. No data is sent to the cloud by default.
+-   **Outlook Integration**: Seamlessly injects a "Scan" button into the Outlook message toolbar.
+-   **Smart Extraction**: Automatically parses email metadata (Sender, Subject, Body, URLs, Attachments) from the Outlook DOM.
+-   **Real-time Analysis**: Provides a maliciousness score (0-100) and specific reasons for the verdict (e.g., "Sender address mismatch", "Urgent language").
+-   **Enterprise Ready**: Optional configuration to offload inference to a centralized API (e.g., Harbour) for aggregation and deeper analysis.
 
-## Setup
+## 🛠 Architecture
 
-### Quick Start (Recommended)
+The extension uses a modern Manifest V3 architecture with a focus on performance and security.
 
-For a complete setup in one command:
+### Components
 
-```bash
-npm run setup
-```
+1.  **Content Script (`content.js`)**:
+    *   **Role**: DOM interaction and UI injection.
+    *   **Function**:
+        *   Detects when the user is on Outlook/Office 365.
+        *   Injects the "Scan" button into the email toolbar.
+        *   On click, creates an iframe to host the Popup UI.
+        *   Extracts structured data (From, To, Body, URLs) from the active reading pane when requested.
 
-This will:
-1. Install all npm dependencies
-2. Download the model files (requires Python with `huggingface_hub`)
-3. Build the extension
+2.  **Popup UI (`popup.html` / `popup.ts`)**:
+    *   **Role**: User Interface and Orchestration.
+    *   **Function**:
+        *   Displays the scanning status and results.
+        *   Connects to the Content Script to retrieve email data.
+        *   Pre-processes data (truncates long bodies, limits URLs) to fit context windows.
+        *   Constructs the prompt and sends it to the inference engine.
 
-### Manual Setup
+3.  **Offscreen Document (`offscreen.ts` / `offscreen.html`)**:
+    *   **Role**: Dedicated WebLLM Host.
+    *   **Function**:
+        *   Hosts the `CreateMLCEngine` from `@mlc-ai/web-llm`.
+        *   This isolates the heavy WebGPU processing from the UI thread and Service Worker, ensuring stability and persistence during inference.
 
-#### 1. Install Dependencies
+4.  **Service Worker (`background.ts`)**:
+    *   **Role**: Message Bridge.
+    *   **Function**:
+        *   Routes messages between the Popup (UI) and the Offscreen Document (Engine).
+        *   Manages the lifecycle of the Offscreen document.
 
-```bash
-npm install
-```
+### Data Flow (Local Mode)
 
-#### 2. Download Model Files
+1.  **User** opens an email and clicks "Scan".
+2.  **Content Script** creates the Popup iframe.
+3.  **Popup** requests email content from the Content Script.
+4.  **Content Script** scrapes the DOM and returns a JSON object (Subject, Body, etc.).
+5.  **Popup** sends a classification request to the **Service Worker**.
+6.  **Service Worker** forwards the request to the **Offscreen Document**.
+7.  **Offscreen Document** runs the Llama-3.1 model via WebGPU and returns the JSON classification.
+8.  **Popup** displays the Score and Reasons to the user.
 
-The model files need to be downloaded and placed under `src/models/<modelName>/` (the folder is determined by `model-config.json`):
+## 📦 Installation
 
-**Option A: Using download script (requires Python)**
-```bash
-# Install Python's huggingface_hub if not already installed
-pip install huggingface_hub
+### Prerequisites
+-   Google Chrome or a Chromium-based browser (Edge, Brave).
+-   A GPU capable of running WebGPU (most modern integrated or dedicated GPUs).
 
-# Download model
-npm run download-model
-```
+### Setup
+1.  Navigate to the `def-acc-logiq/chrome-extension` directory.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Build the extension:
+    ```bash
+    npm run build
+    ```
+4.  Open Chrome and go to `chrome://extensions/`.
+5.  Enable **Developer mode** (top right).
+6.  Click **Load unpacked** and select the `def-acc-logiq/chrome-extension/dist` folder.
 
-**Option B: Manual download**
-1. Visit the Hugging Face repo from `model-config.json` (default: https://huggingface.co/mlc-ai/Qwen3-0.6B-q4f16_1-MLC)
-2. Click "Files and versions" tab
-3. Download all files (or use the "Download repository" button)
-4. Extract all files to `src/models/<modelName>/`
+## ⚙️ Configuration
 
-Required files include:
-- `mlc-chat-config.json`
-- `params_shard_*.bin` (model weight files)
-- `tokenizer.json`
-- `tokenizer_config.json`
-- Other model artifacts
+### Local vs. Remote Inference
+By default, TinyRod runs locally. However, for enterprise deployment or testing, you can configure it to use an external API.
 
-#### 3. Build Extension
+1.  Right-click the extension icon and select **Options**.
+2.  **Use External API**: Check this box to disable local WebLLM.
+3.  **API URL**: Endpoint for the LLM (e.g., `https://api.openai.com/v1` or your internal Harbour instance).
+4.  **API Key**: Your access token.
+5.  **Model**: The model name string (e.g., `gpt-4o` or a custom model ID).
 
-```bash
-npm run build
-```
+### System Prompt
+The extension uses a strict system prompt to ensure consistent JSON output. It evaluates emails based on:
+-   Sender/Display name mismatches
+-   Generic greetings
+-   Urgent/Threatening language
+-   Suspicious URLs or attachments
+-   Requests for personal info
 
-**Note:** The build will fail if model files are missing. Make sure to download the model first!
+## 🧩 Development
 
-This will create a new directory at `chrome-extension/dist/` with the model files included.
-
-### 4. Load Extension in Chrome
-
-1. Go to Extensions > Manage Extensions
-2. Make sure developer mode toggle is selected
-3. Select Load Unpacked
-4. Add the `chrome-extension/dist/` directory
-
-The extension will now use the bundled model without requiring internet download!
-
-## Model Files
-
-Model files are stored in `src/models/<modelName>/` (model name comes from `model-config.json`) and are excluded from git (see `.gitignore`). They are automatically copied to `dist/models/` during the build process and bundled with the extension.
-
-### Build Process
-
-The build process includes:
-1. **Pre-build check**: Verifies model files exist before building (runs `scripts/check-model.js`)
-2. **Build**: Parcel bundles the extension
-3. **Post-build copy**: Ensures model files are copied to `dist/models/` (runs `scripts/copy-models.js` as a backup in case Parcel doesn't copy them automatically)
-
-If model files are missing, the build will fail with clear instructions on how to download them.
+-   **`src/manifest.json`**: Extension configuration.
+-   **`src/offscreen.ts`**: WebLLM engine initialization and chat completion logic.
+-   **`src/content.js`**: Logic for finding the Outlook toolbar and scraping specific DOM elements (e.g., `aria-label="Reading Pane"`).
