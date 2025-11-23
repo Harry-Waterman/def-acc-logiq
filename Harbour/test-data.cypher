@@ -11,53 +11,53 @@ CREATE (d3:Domain {name: 'legitimate-company.org'})
 CREATE (d4:Domain {name: 'phishing-attack.com'})
 CREATE (d5:Domain {name: 'trusted-service.io'});
 
-// Create Addresses
-CREATE (a1:Address {email: 'sender@example.com'})
-CREATE (a2:Address {email: 'recipient@legitimate-company.org'})
-CREATE (a3:Address {email: 'phisher@suspicious-site.net'})
-CREATE (a4:Address {email: 'user@trusted-service.io'})
-CREATE (a5:Address {email: 'victim@example.com'});
+// Create Addresses (with Sender/Receiver labels)
+CREATE (a1:Address:Sender {email: 'sender@example.com'})
+CREATE (a2:Address:Receiver {email: 'recipient@legitimate-company.org'})
+CREATE (a3:Address:Sender {email: 'phisher@suspicious-site.net'})
+CREATE (a4:Address:Sender {email: 'user@trusted-service.io'})
+CREATE (a5:Address:Receiver {email: 'victim@example.com'});
 
-// Create DisplayNames
-CREATE (dn1:DisplayName {name: 'John Sender'})
-CREATE (dn2:DisplayName {name: 'Legitimate Company Support'})
-CREATE (dn3:DisplayName {name: 'Security Alert'})
-CREATE (dn4:DisplayName {name: 'Trusted Service Team'})
-CREATE (dn5:DisplayName {name: 'Jane Victim'});
+// Create DisplayNames (with Sender/Receiver labels)
+CREATE (dn1:DisplayName:Sender {name: 'John Sender'})
+CREATE (dn2:DisplayName:Receiver {name: 'Legitimate Company Support'})
+CREATE (dn3:DisplayName:Sender {name: 'Security Alert'})
+CREATE (dn4:DisplayName:Sender {name: 'Trusted Service Team'})
+CREATE (dn5:DisplayName:Receiver {name: 'Jane Victim'});
 
-// Link Addresses to DisplayNames
-MATCH (a:Address {email: 'sender@example.com'}), (dn:DisplayName {name: 'John Sender'})
+// Link Addresses to DisplayNames (using Sender/Receiver labels)
+MATCH (a:Address:Sender {email: 'sender@example.com'}), (dn:DisplayName:Sender {name: 'John Sender'})
 CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
 
-MATCH (a:Address {email: 'recipient@legitimate-company.org'}), (dn:DisplayName {name: 'Legitimate Company Support'})
+MATCH (a:Address:Receiver {email: 'recipient@legitimate-company.org'}), (dn:DisplayName:Receiver {name: 'Legitimate Company Support'})
 CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
 
-MATCH (a:Address {email: 'phisher@suspicious-site.net'}), (dn:DisplayName {name: 'Security Alert'})
+MATCH (a:Address:Sender {email: 'phisher@suspicious-site.net'}), (dn:DisplayName:Sender {name: 'Security Alert'})
 CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
 
-MATCH (a:Address {email: 'user@trusted-service.io'}), (dn:DisplayName {name: 'Trusted Service Team'})
+MATCH (a:Address:Sender {email: 'user@trusted-service.io'}), (dn:DisplayName:Sender {name: 'Trusted Service Team'})
 CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
 
-MATCH (a:Address {email: 'victim@example.com'}), (dn:DisplayName {name: 'Jane Victim'})
+MATCH (a:Address:Receiver {email: 'victim@example.com'}), (dn:DisplayName:Receiver {name: 'Jane Victim'})
 CREATE (a)-[:HAS_DISPLAY_NAME]->(dn);
 
-// Link Addresses to Domains
-MATCH (a:Address {email: 'sender@example.com'}), (d:Domain {name: 'example.com'})
+// Link Addresses to Domains (using Sender/Receiver labels)
+MATCH (a:Address:Sender {email: 'sender@example.com'}), (d:Domain {name: 'example.com'})
 CREATE (a)-[:HAS_DOMAIN]->(d);
 
-MATCH (a:Address {email: 'recipient@legitimate-company.org'}), (d:Domain {name: 'legitimate-company.org'})
+MATCH (a:Address:Receiver {email: 'recipient@legitimate-company.org'}), (d:Domain {name: 'legitimate-company.org'})
 CREATE (a)-[:HAS_DOMAIN]->(d);
 
-MATCH (a:Address {email: 'phisher@suspicious-site.net'}), (d:Domain {name: 'suspicious-site.net'})
+MATCH (a:Address:Sender {email: 'phisher@suspicious-site.net'}), (d:Domain {name: 'suspicious-site.net'})
 CREATE (a)-[:HAS_DOMAIN]->(d);
 
-MATCH (a:Address {email: 'user@trusted-service.io'}), (d:Domain {name: 'trusted-service.io'})
+MATCH (a:Address:Sender {email: 'user@trusted-service.io'}), (d:Domain {name: 'trusted-service.io'})
 CREATE (a)-[:HAS_DOMAIN]->(d);
 
-MATCH (a:Address {email: 'victim@example.com'}), (d:Domain {name: 'example.com'})
+MATCH (a:Address:Receiver {email: 'victim@example.com'}), (d:Domain {name: 'example.com'})
 CREATE (a)-[:HAS_DOMAIN]->(d);
 
-// Create URLs
+// Create URLs (using 'url' property, not 'id')
 CREATE (u1:Url {url: 'https://example.com/verify-account'})
 CREATE (u2:Url {url: 'http://suspicious-site.net/steal-data'})
 CREATE (u3:Url {url: 'https://legitimate-company.org/login'})
@@ -87,12 +87,12 @@ CREATE (f3:Flag {type: 'SAFE'})
 CREATE (f4:Flag {type: 'SUSPICIOUS'})
 CREATE (f5:Flag {type: 'LEGITIMATE'});
 
-// Create Scores
-CREATE (s1:Score {value: 0.95})
-CREATE (s2:Score {value: 0.65})
-CREATE (s3:Score {value: 0.15})
-CREATE (s4:Score {value: 0.80})
-CREATE (s5:Score {value: 0.10});
+// Create Scores (numeric values, not strings)
+CREATE (s1:Score {value: 95})
+CREATE (s2:Score {value: 65})
+CREATE (s3:Score {value: 15})
+CREATE (s4:Score {value: 80})
+CREATE (s5:Score {value: 10});
 
 // Create Installation IDs and User IDs
 CREATE (i1:installationId {id: 'inst-001'})
@@ -103,7 +103,7 @@ CREATE (u1:userId {id: 'user-001'})
 CREATE (u2:userId {id: 'user-002'})
 CREATE (u3:userId {id: 'user-003'});
 
-// Link Users to Installations
+// Link Users to Installations (userId -> INSTALLED_BY -> installationId)
 MATCH (u:userId {id: 'user-001'}), (i:installationId {id: 'inst-001'})
 CREATE (u)-[:INSTALLED_BY]->(i);
 
@@ -141,37 +141,69 @@ CREATE (e5:Email {
     dateTime: datetime('2024-01-19T11:00:00Z')
 });
 
-// Link Emails to Addresses (FROM)
-MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (a:Address {email: 'sender@example.com'})
+// Link Emails to Addresses (FROM) - using Sender label
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (a:Address:Sender {email: 'sender@example.com'})
 CREATE (e)-[:FROM]->(a);
 
-MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (a:Address {email: 'phisher@suspicious-site.net'})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (a:Address:Sender {email: 'phisher@suspicious-site.net'})
 CREATE (e)-[:FROM]->(a);
 
-MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (a:Address {email: 'user@trusted-service.io'})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (a:Address:Sender {email: 'user@trusted-service.io'})
 CREATE (e)-[:FROM]->(a);
 
-MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (a:Address {email: 'phisher@suspicious-site.net'})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (a:Address:Sender {email: 'phisher@suspicious-site.net'})
 CREATE (e)-[:FROM]->(a);
 
-MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (a:Address {email: 'sender@example.com'})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (a:Address:Sender {email: 'sender@example.com'})
 CREATE (e)-[:FROM]->(a);
 
-// Link Emails to Addresses (TO)
-MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (a:Address {email: 'recipient@legitimate-company.org'})
+// Link Emails to DisplayNames (FROM) - using Sender label
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (dn:DisplayName:Sender {name: 'John Sender'})
+CREATE (e)-[:FROM]->(dn);
+
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (dn:DisplayName:Sender {name: 'Security Alert'})
+CREATE (e)-[:FROM]->(dn);
+
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (dn:DisplayName:Sender {name: 'Trusted Service Team'})
+CREATE (e)-[:FROM]->(dn);
+
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (dn:DisplayName:Sender {name: 'Security Alert'})
+CREATE (e)-[:FROM]->(dn);
+
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (dn:DisplayName:Sender {name: 'John Sender'})
+CREATE (e)-[:FROM]->(dn);
+
+// Link Emails to Addresses (TO) - using Receiver label
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (a:Address:Receiver {email: 'recipient@legitimate-company.org'})
 CREATE (e)-[:TO]->(a);
 
-MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (a:Address {email: 'victim@example.com'})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (a:Address:Receiver {email: 'victim@example.com'})
 CREATE (e)-[:TO]->(a);
 
-MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (a:Address {email: 'recipient@legitimate-company.org'})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (a:Address:Receiver {email: 'recipient@legitimate-company.org'})
 CREATE (e)-[:TO]->(a);
 
-MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (a:Address {email: 'victim@example.com'})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (a:Address:Receiver {email: 'victim@example.com'})
 CREATE (e)-[:TO]->(a);
 
-MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (a:Address {email: 'recipient@legitimate-company.org'})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (a:Address:Receiver {email: 'recipient@legitimate-company.org'})
 CREATE (e)-[:TO]->(a);
+
+// Link Emails to DisplayNames (TO) - using Receiver label
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (dn:DisplayName:Receiver {name: 'Legitimate Company Support'})
+CREATE (e)-[:TO]->(dn);
+
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (dn:DisplayName:Receiver {name: 'Jane Victim'})
+CREATE (e)-[:TO]->(dn);
+
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (dn:DisplayName:Receiver {name: 'Legitimate Company Support'})
+CREATE (e)-[:TO]->(dn);
+
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (dn:DisplayName:Receiver {name: 'Jane Victim'})
+CREATE (e)-[:TO]->(dn);
+
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (dn:DisplayName:Receiver {name: 'Legitimate Company Support'})
+CREATE (e)-[:TO]->(dn);
 
 // Link Emails to URLs
 MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (u:Url {url: 'https://example.com/verify-account'})
@@ -205,20 +237,20 @@ CREATE (e)-[:HAS_FLAG]->(f);
 MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (f:Flag {type: 'SAFE'})
 CREATE (e)-[:HAS_FLAG]->(f);
 
-// Link Emails to Scores
-MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (s:Score {value: 0.80})
+// Link Emails to Scores (using numeric values)
+MATCH (e:Email {id: 'a1b2c3d4e5f6g7h8'}), (s:Score {value: 80})
 CREATE (e)-[:HAS_SCORE]->(s);
 
-MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (s:Score {value: 0.95})
+MATCH (e:Email {id: 'b2c3d4e5f6g7h8i9'}), (s:Score {value: 95})
 CREATE (e)-[:HAS_SCORE]->(s);
 
-MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (s:Score {value: 0.15})
+MATCH (e:Email {id: 'c3d4e5f6g7h8i9j0'}), (s:Score {value: 15})
 CREATE (e)-[:HAS_SCORE]->(s);
 
-MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (s:Score {value: 0.95})
+MATCH (e:Email {id: 'd4e5f6g7h8i9j0k1'}), (s:Score {value: 95})
 CREATE (e)-[:HAS_SCORE]->(s);
 
-MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (s:Score {value: 0.10})
+MATCH (e:Email {id: 'e5f6g7h8i9j0k1l2'}), (s:Score {value: 10})
 CREATE (e)-[:HAS_SCORE]->(s);
 
 // Link Emails to Installation IDs
