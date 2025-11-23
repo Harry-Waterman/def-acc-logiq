@@ -184,7 +184,8 @@ The API automatically creates the following graph structure in Neo4j:
 - `Email` → `HAS_FLAG` → `Flag` (email flags)
 - `Email` → `HAS_SCORE` → `Score` (risk score)
 - `Email` → `OWNER` → `installationId` (installation that owns the email)
-- `installationId` → `INSTALLED_BY` → `userId` (user installation relationship)
+
+**Note**: Future feature - `userId` nodes and `installationId → INSTALLED_BY → userId` relationships will be added to link multiple installations to the same user.
 
 All nodes use `MERGE` operations, ensuring idempotency - duplicate submissions won't create duplicate nodes.
 

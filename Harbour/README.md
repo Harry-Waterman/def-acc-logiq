@@ -30,24 +30,39 @@ flowchart LR
  subgraph Database["Database"]
         Email("Email
         -----
+        id: id
         dateTime: dateTime")
-        Address("Address")
-        Domain("Domain")
-        Url("Url")
-        Flag("Flag")
-        Score("Score")
-        installationId("installationId")
-        userId("userId")
+        Address("Address
+        -----
+        email: string")
+        DisplayName("DisplayName
+        -----
+        name: string")
+        Domain("Domain
+        -----
+        name: string")
+        Url("Url
+        -----
+        id: id")
+        Flag("Flag
+        -----
+        type: string")
+        Score("Score
+        -----
+        value: int")
+        installationId("installationId
+        -----
+        id: id")
   end
 
     Email -- FROM --> Address
     Email -- TO --> Address
+    Address -- HAS_DISPLAY_NAME --> DisplayName
     Address -- HAS_DOMAIN --> Domain
     Email -- CONTAINS_URL --> Url
     Url -- HAS_DOMAIN --> Domain
     Email -- HAS_FLAG --> Flag
     Email -- HAS_SCORE --> Score
-    userId -- INSTALLED_BY --> installationId 
     Email -- OWNER --> installationId
 ```
 
@@ -299,8 +314,8 @@ The Harbour Dashboard provides a comprehensive view of email data with the follo
 
 1. **Graph Visualization**
    - Interactive graph showing the complete email network structure
-   - Displays nodes for: Email, Address, Domain, Url, Flag, Score, and installationId
-   - Shows relationships: FROM, TO, HAS_DOMAIN, CONTAINS_URL, HAS_FLAG, HAS_SCORE, OWNER
+   - Displays nodes for: Email, Address, DisplayName, Domain, Url, Flag, Score, and installationId
+   - Shows relationships: FROM, TO, HAS_DISPLAY_NAME, HAS_DOMAIN, CONTAINS_URL, HAS_FLAG, HAS_SCORE, OWNER
    - Auto-refreshes every 30 seconds
    - Fullscreen mode enabled
 
