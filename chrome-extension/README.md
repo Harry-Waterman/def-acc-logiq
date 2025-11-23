@@ -21,7 +21,7 @@ flowchart TB
  subgraph subGraph3["ML Engine"]
         OFF["Offscreen Document<br>offscreen.ts"]
         ML["WebLLM Engine<br>WebGPU Access"]
-        MODEL["Bundled Model Files"]
+        MODEL["Cached Model Files"]
   end
     BTN -- Injected --> WP
     CS -- Extracts Email Data --> WP
@@ -30,11 +30,12 @@ flowchart TB
     POP -- Displays --> RES
     POP -- Sends Messages --> BG
     CS -- Sends Messages --> BG
-    ML -- Loaded by --> MODEL
+    ML -- Loads --> MODEL
     POP -.Sends Results.-> API["Harbour API"]
     BG -- Forwards Messages --> OFF
     OFF -- Phishing Analysis --> ML
     ML -- JSON Response --> OFF
+    HF["Hugging Face"] -- Downloaded From --> MODEL
     OFF -- Results --> BG
     BG -- Results --> POP
 
