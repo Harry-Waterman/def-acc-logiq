@@ -1,84 +1,101 @@
-# WebLLM Chrome Extension
+# TinyRod - Chrome Extension for Phishing Detection
 
-![Chrome Extension](https://github.com/mlc-ai/mlc-llm/assets/11940172/0d94cc73-eff1-4128-a6e4-70dc879f04e0)
+TinyRod is a client-side phishing detection extension for Outlook webmail (OWA) and Office 365. It leverages **WebLLM** and **WebGPU** to run a powerful Transformer model (Llama-3.1-8B) directly in the browser, ensuring email data never leaves the user's device unless configured otherwise.
 
-## Architecture
+## 🚀 Features
 
-```mermaid
-flowchart TB
- subgraph subGraph0["Web Page"]
-        WP["Outlook/Gmail<br>Email Client"]
-        CS["Content Script<br>content.js"]
-        BTN["Scan Button"]
-  end
- subgraph subGraph1["Extension UI"]
-        POP["Popup/Options<br>popup.ts/options.ts"]
-        RES["Phishing Score<br>&amp; Reasons"]
-  end
- subgraph subGraph2["Extension Core"]
-        BG["Background Service Worker<br>background.ts"]
-  end
- subgraph subGraph3["ML Engine"]
-        OFF["Offscreen Document<br>offscreen.ts"]
-        ML["WebLLM Engine<br>WebGPU Access"]
-        MODEL["Cached Model Files"]
-  end
-    BTN -- Injected --> WP
-    CS -- Extracts Email Data --> WP
-    CS -- Creates --> BTN
-    BTN -- Opens --> POP
-    POP -- Displays --> RES
-    POP -- Sends Messages --> BG
-    CS -- Sends Messages --> BG
-    ML -- Loads --> MODEL
-    POP -.Sends Results.-> API["Harbour API"]
-    BG -- Forwards Messages --> OFF
-    OFF -- Phishing Analysis --> ML
-    ML -- JSON Response --> OFF
-    HF["Hugging Face"] -- Downloaded From --> MODEL
-    OFF -- Results --> BG
-    BG -- Results --> POP
+-   **Local Inference**: Runs `Llama-3.1-8B-Instruct` entirely in the browser using WebGPU. No data is sent to the cloud by default.
+-   **Outlook Integration**: Seamlessly injects a "Scan" button into the Outlook message toolbar.
+-   **Smart Extraction**: Automatically parses email metadata (Sender, Subject, Body, URLs, Attachments) from the Outlook DOM.
+-   **Real-time Analysis**: Provides a maliciousness score (0-100) and specific reasons for the verdict (e.g., "Sender address mismatch", "Urgent language").
+-   **Enterprise Ready**: Optional configuration to offload inference to a centralized API (e.g., Harbour) for aggregation and deeper analysis.
 
-    style WP fill:#e1f5ff
-    style CS fill:#fff4e1
-    style POP fill:#e8f5e9
-    style BG fill:#f3e5f5
-    style OFF fill:#fff3e0
-    style ML fill:#ffebee
-    style MODEL fill:#e0f2f1
-```
+## 🛠 Architecture
 
-### Component Overview
+The extension uses a modern Manifest V3 architecture with a focus on performance and security.
 
-- **Content Script** (`content.js`): Injected into web pages, detects email clients (Outlook/Gmail), extracts email metadata, and injects scan buttons
-- **Popup/Options** (`popup.ts`, `options.ts`): User interface for initiating scans and displaying phishing detection results
-- **Background Service Worker** (`background.ts`): Message router that manages the offscreen document and forwards communication between UI and ML engine
-- **Offscreen Document** (`offscreen.ts`): Hosts the WebLLM engine with WebGPU access for model inference (required for WebGPU in Chrome extensions)
-- **Model Files**: Bundled LLM model (default: Qwen3-0.6B-q4f16_1-MLC) stored in `src/models/` and copied to `dist/models/` during build
+### Components
 
-## Default Model
+1.  **Content Script (`content.js`)**:
+    *   **Role**: DOM interaction and UI injection.
+    *   **Function**:
+        *   Detects when the user is on Outlook/Office 365.
+        *   Injects the "Scan" button into the email toolbar.
+        *   On click, creates an iframe to host the Popup UI.
+        *   Extracts structured data (From, To, Body, URLs) from the active reading pane when requested.
 
-The extension is configured via `model-config.json` (at the project root) to use **Qwen3-0.6B-q4f16_1-MLC** as the default model for phishing email detection. To switch to another model, edit that single config file — every script and the UI will update automatically. The selected model is bundled with the extension and does not require internet download at runtime.
+2.  **Popup UI (`popup.html` / `popup.ts`)**:
+    *   **Role**: User Interface and Orchestration.
+    *   **Function**:
+        *   Displays the scanning status and results.
+        *   Connects to the Content Script to retrieve email data.
+        *   Pre-processes data (truncates long bodies, limits URLs) to fit context windows.
+        *   Constructs the prompt and sends it to the inference engine.
 
-## Setup
+3.  **Offscreen Document (`offscreen.ts` / `offscreen.html`)**:
+    *   **Role**: Dedicated WebLLM Host.
+    *   **Function**:
+        *   Hosts the `CreateMLCEngine` from `@mlc-ai/web-llm`.
+        *   This isolates the heavy WebGPU processing from the UI thread and Service Worker, ensuring stability and persistence during inference.
 
-#### 1. Install Dependencies
+4.  **Service Worker (`background.ts`)**:
+    *   **Role**: Message Bridge.
+    *   **Function**:
+        *   Routes messages between the Popup (UI) and the Offscreen Document (Engine).
+        *   Manages the lifecycle of the Offscreen document.
 
-```bash
-npm install
-```
+### Data Flow (Local Mode)
 
-#### 2. Build Extension
+1.  **User** opens an email and clicks "Scan".
+2.  **Content Script** creates the Popup iframe.
+3.  **Popup** requests email content from the Content Script.
+4.  **Content Script** scrapes the DOM and returns a JSON object (Subject, Body, etc.).
+5.  **Popup** sends a classification request to the **Service Worker**.
+6.  **Service Worker** forwards the request to the **Offscreen Document**.
+7.  **Offscreen Document** runs the Llama-3.1 model via WebGPU and returns the JSON classification.
+8.  **Popup** displays the Score and Reasons to the user.
 
-```bash
-npm run build
-```
+## 📦 Installation
 
-This will create a new directory at `chrome-extension/dist/` with the model files included.
+### Prerequisites
+-   Google Chrome or a Chromium-based browser (Edge, Brave).
+-   A GPU capable of running WebGPU (most modern integrated or dedicated GPUs).
 
-### 3. Load Extension in Chrome
+### Setup
+1.  Navigate to the `def-acc-logiq/chrome-extension` directory.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Build the extension:
+    ```bash
+    npm run build
+    ```
+4.  Open Chrome and go to `chrome://extensions/`.
+5.  Enable **Developer mode** (top right).
+6.  Click **Load unpacked** and select the `def-acc-logiq/chrome-extension/dist` folder.
 
-1. Go to Extensions > Manage Extensions
-2. Make sure developer mode toggle is selected
-3. Select Load Unpacked
-4. Add the `chrome-extension/dist/` directory
+## ⚙️ Configuration
+
+### Local vs. Remote Inference
+By default, TinyRod runs locally. However, for enterprise deployment or testing, you can configure it to use an external API.
+
+1.  Right-click the extension icon and select **Options**.
+2.  **Use External API**: Check this box to disable local WebLLM.
+3.  **API URL**: Endpoint for the LLM (e.g., `https://api.openai.com/v1` or your internal Harbour instance).
+4.  **API Key**: Your access token.
+5.  **Model**: The model name string (e.g., `gpt-4o` or a custom model ID).
+
+### System Prompt
+The extension uses a strict system prompt to ensure consistent JSON output. It evaluates emails based on:
+-   Sender/Display name mismatches
+-   Generic greetings
+-   Urgent/Threatening language
+-   Suspicious URLs or attachments
+-   Requests for personal info
+
+## 🧩 Development
+
+-   **`src/manifest.json`**: Extension configuration.
+-   **`src/offscreen.ts`**: WebLLM engine initialization and chat completion logic.
+-   **`src/content.js`**: Logic for finding the Outlook toolbar and scraping specific DOM elements (e.g., `aria-label="Reading Pane"`).
