@@ -261,17 +261,73 @@ def extract_model_size(model_name: str) -> float:
         return float(match.group(1))
     return 0.0
 
+def calculate_bestness_score(df: pd.DataFrame) -> pd.Series:
+    """
+    Calculate a composite 'bestness' score for each model.
+    Higher score = better overall performance.
+    
+    Combines normalized metrics:
+    - Higher is better: accuracy, precision, recall, F1, success_rate
+    - Lower is better: latency, FPR, FNR, error rates (inverted)
+    """
+    scores = pd.Series(index=df.index, dtype=float)
+    
+    # Metrics where higher is better (normalize to 0-1)
+    higher_better = ['accuracy', 'precision', 'recall', 'f1']
+    if 'success_rate' in df.columns:
+        higher_better.append('success_rate')
+    
+    # Metrics where lower is better (invert after normalizing)
+    lower_better = ['avg_latency', 'fpr', 'fnr']
+    if 'total_error_rate' in df.columns:
+        lower_better.extend(['total_error_rate', 'timeout_rate', 'json_error_rate'])
+    
+    for idx in df.index:
+        score = 0.0
+        count = 0
+        
+        # Add higher-is-better metrics
+        for metric in higher_better:
+            if metric in df.columns and pd.notna(df.loc[idx, metric]):
+                # Normalize to 0-1 (assuming values are already 0-1 for most metrics)
+                val = df.loc[idx, metric]
+                score += val
+                count += 1
+        
+        # Add lower-is-better metrics (inverted)
+        for metric in lower_better:
+            if metric in df.columns and pd.notna(df.loc[idx, metric]):
+                val = df.loc[idx, metric]
+                # Normalize and invert: (max - val) / (max - min)
+                col_max = df[metric].max()
+                col_min = df[metric].min()
+                if col_max > col_min:
+                    normalized = (col_max - val) / (col_max - col_min)
+                    score += normalized
+                    count += 1
+        
+        # Average score
+        scores.loc[idx] = score / count if count > 0 else 0.0
+    
+    return scores
+
 def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Dict[str, tuple] = None):
     """Create comparison charts for accuracy metrics."""
-    # Increase figure size to accommodate all models and legends
-    fig, axes = plt.subplots(2, 2, figsize=(18, 14))
-    fig.suptitle('Model Performance Comparison', fontsize=16, fontweight='bold')
+    # Calculate bestness score and sort by it (best at top)
+    df_with_score = df.copy()
+    df_with_score['_bestness'] = calculate_bestness_score(df_with_score)
+    df_sorted_by_bestness = df_with_score.sort_values('_bestness', ascending=False)
     
-    # Accuracy
-    ax1 = axes[0, 0]
     if model_colors is None:
         model_colors = get_model_color_map(df['model'].unique())
-    df_sorted = df.sort_values('accuracy', ascending=True)
+    
+    # Increase figure size to accommodate all models and legends
+    fig, axes = plt.subplots(2, 2, figsize=(18, 14))
+    fig.suptitle('Model Performance Comparison\n(Models ordered by overall bestness score)', fontsize=16, fontweight='bold')
+    
+    # Accuracy - sorted by bestness (best at top)
+    ax1 = axes[0, 0]
+    df_sorted = df_sorted_by_bestness.sort_values('accuracy', ascending=True)
     # Use model-specific colors for each bar
     bar_colors = [model_colors.get(model, COLORS[0]) for model in df_sorted['model']]
     bars1 = ax1.barh(df_sorted['model'], df_sorted['accuracy'], color=bar_colors)
@@ -303,9 +359,9 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
     ax2.legend(loc='lower left', fontsize=7, framealpha=0.9)
     ax2.grid(alpha=0.3)
     
-    # F1 Score
+    # F1 Score - sorted by bestness (best at top)
     ax3 = axes[1, 0]
-    df_sorted_f1 = df.sort_values('f1', ascending=True)
+    df_sorted_f1 = df_sorted_by_bestness.sort_values('f1', ascending=True)
     # Use model-specific colors for each bar
     bar_colors_f1 = [model_colors.get(model, COLORS[0]) for model in df_sorted_f1['model']]
     bars3 = ax3.barh(df_sorted_f1['model'], df_sorted_f1['f1'], color=bar_colors_f1)
@@ -346,15 +402,20 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
 
 def plot_confusion_matrix_comparison(df: pd.DataFrame, output_dir: str):
     """Create confusion matrix visualization for all models."""
-    n_models = len(df)
+    # Sort by bestness score (best first)
+    df_with_score = df.copy()
+    df_with_score['_bestness'] = calculate_bestness_score(df_with_score)
+    df_sorted = df_with_score.sort_values('_bestness', ascending=False)
+    
+    n_models = len(df_sorted)
     fig, axes = plt.subplots(1, n_models, figsize=(5*n_models, 5))
     
     if n_models == 1:
         axes = [axes]
     
-    fig.suptitle('Confusion Matrix Comparison', fontsize=16, fontweight='bold')
+    fig.suptitle('Confusion Matrix Comparison\n(Models ordered by overall bestness score)', fontsize=16, fontweight='bold')
     
-    for idx, (_, row) in enumerate(df.iterrows()):
+    for idx, (_, row) in enumerate(df_sorted.iterrows()):
         cm = np.array([[row['tn'], row['fp']],
                        [row['fn'], row['tp']]])
         
@@ -378,18 +439,41 @@ def plot_latency_comparison(df: pd.DataFrame, output_dir: str, model_colors: Dic
     
     fig, ax = plt.subplots(figsize=(10, 6))
     
-    df_sorted = df.sort_values('avg_latency', ascending=True)
+    # Sort by latency value (fastest first) - handle outliers by using median or excluding extreme values
+    # Check for outliers (models with very high latency due to timeouts)
+    latency_median = df['avg_latency'].median()
+    latency_q75 = df['avg_latency'].quantile(0.75)
+    iqr = df['avg_latency'].quantile(0.75) - df['avg_latency'].quantile(0.25)
+    outlier_threshold = latency_q75 + 1.5 * iqr
+    
+    # Sort by latency (descending - fastest at top of chart)
+    # For barh charts, descending order puts fastest (lowest values) at top
+    df_sorted = df.sort_values('avg_latency', ascending=False)
     # Use model-specific colors for each bar
     bar_colors = [model_colors.get(model, COLORS[0]) for model in df_sorted['model']]
     bars = ax.barh(df_sorted['model'], df_sorted['avg_latency'], color=bar_colors)
     
     ax.set_xlabel('Average Latency (seconds)')
-    ax.set_title('Inference Latency Comparison')
+    ax.set_title('Inference Latency Comparison\n(Sorted by latency: fastest first)')
     ax.grid(axis='x', alpha=0.3)
+    
+    # Handle outliers - if any model has extremely high latency, add a note
+    if df_sorted['avg_latency'].max() > outlier_threshold:
+        outlier_models = df_sorted[df_sorted['avg_latency'] > outlier_threshold]
+        if len(outlier_models) > 0:
+            ax.text(0.98, 0.02, f'Note: {len(outlier_models)} model(s) have outlier latency', 
+                    transform=ax.transAxes, fontsize=8, ha='right',
+                    bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
     
     # Add value labels on bars
     for i, (idx, row) in enumerate(df_sorted.iterrows()):
-        ax.text(row['avg_latency'] + 0.05, i, f"{row['avg_latency']:.2f}s", 
+        # For very high latency, show value but maybe truncate display
+        latency_val = row['avg_latency']
+        if latency_val > outlier_threshold:
+            label = f"{latency_val:.1f}s*"
+        else:
+            label = f"{latency_val:.2f}s"
+        ax.text(row['avg_latency'] + max(0.05, latency_val * 0.02), i, label, 
                va='center', fontsize=9)
     
     plt.tight_layout()
@@ -445,9 +529,9 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
     ax1.axvline(x=0, color='gray', linestyle='--', alpha=0.5)
     ax1.grid(axis='x', alpha=0.3)
     
-    # Reason consistency by model
+    # Reason consistency by model - sort descending (higher consistency = better = higher in chart)
     ax2 = axes[0, 1]
-    consistency_by_model = repeat_df.groupby('model')['reason_consistency'].mean().sort_values()
+    consistency_by_model = repeat_df.groupby('model')['reason_consistency'].mean().sort_values(ascending=False)
     
     # Use model-specific colors for each bar
     bar_colors_consistency = [model_colors.get(model, COLORS[0]) for model in consistency_by_model.index]
@@ -574,11 +658,20 @@ def plot_latency_accuracy_tradeoff(df: pd.DataFrame, output_dir: str, model_colo
     
     fig, ax = plt.subplots(figsize=(13, 9))  # Increased size for better spacing
     
-    # Plot each model
+    # Plot each model - use opacity to indicate error rate if available
     for idx, row in df.iterrows():
         model_color = model_colors.get(row['model'], COLORS[0])
-        ax.scatter(row['avg_latency'], row['accuracy'], s=300, alpha=0.7, 
-                  color=model_color, label=row['model'], edgecolors='black', linewidth=1.5)
+        # Adjust opacity and edge width based on error rate
+        if 'total_error_rate' in df.columns:
+            error_rate = row.get('total_error_rate', 0)
+            alpha = 0.3 if error_rate > 0.1 else 0.7
+            edge_width = 3 if error_rate > 0.1 else 1.5
+        else:
+            alpha = 0.7
+            edge_width = 1.5
+        
+        ax.scatter(row['avg_latency'], row['accuracy'], s=300, alpha=alpha, 
+                  color=model_color, label=row['model'], edgecolors='black', linewidth=edge_width)
         # Add model name labels with smart positioning to avoid overlaps
         # Position labels based on quadrant
         if row['avg_latency'] < df['avg_latency'].median() and row['accuracy'] > df['accuracy'].median():
@@ -620,7 +713,10 @@ def plot_latency_accuracy_tradeoff(df: pd.DataFrame, output_dir: str, model_colo
     
     ax.set_xlabel('Average Latency (seconds)', fontsize=12, fontweight='bold')
     ax.set_ylabel('Accuracy', fontsize=12, fontweight='bold')
-    ax.set_title('Latency vs Accuracy Tradeoff', fontsize=14, fontweight='bold', pad=20)
+    title = 'Latency vs Accuracy Tradeoff'
+    if 'total_error_rate' in df.columns:
+        title += '\n(Models with high error rates shown with reduced opacity)'
+    ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
     ax.grid(alpha=0.3)
     # Move legend to avoid overlapping with quadrant labels
     ax.legend(loc='upper right', bbox_to_anchor=(0.98, 0.98), fontsize=8, framealpha=0.9, 
@@ -725,12 +821,22 @@ def plot_quadrant_analysis(df: pd.DataFrame, output_dir: str, model_colors: Dict
 
 def plot_metrics_heatmap(df: pd.DataFrame, output_dir: str):
     """Create comprehensive metrics heatmap."""
-    # Select metrics to display
+    # Select metrics to display - include error rates if available
     metrics = ['accuracy', 'precision', 'recall', 'f1', 'avg_latency', 'fpr', 'fnr']
     metric_labels = ['Accuracy', 'Precision', 'Recall', 'F1 Score', 'Latency (s)', 'FPR', 'FNR']
     
-    # Create matrix for heatmap
-    heatmap_data = df[['model'] + metrics].set_index('model')
+    # Add error rate metrics if available
+    if 'total_error_rate' in df.columns:
+        metrics.extend(['total_error_rate', 'timeout_rate', 'json_error_rate'])
+        metric_labels.extend(['Total Error Rate', 'Timeout Rate', 'JSON Error Rate'])
+    
+    # Calculate bestness score and sort models (best at top)
+    df_with_score = df.copy()
+    df_with_score['_bestness'] = calculate_bestness_score(df_with_score)
+    df_sorted = df_with_score.sort_values('_bestness', ascending=False)
+    
+    # Create matrix for heatmap (sorted by bestness)
+    heatmap_data = df_sorted[['model'] + metrics].set_index('model')
     heatmap_data.columns = metric_labels
     
     # Normalize all metrics to 0-1 scale for consistent heatmap
@@ -739,7 +845,7 @@ def plot_metrics_heatmap(df: pd.DataFrame, output_dir: str):
     heatmap_data_normalized = heatmap_data.copy()
     
     # Metrics where lower is better (need inversion)
-    lower_is_better = ['Latency (s)', 'FPR', 'FNR']
+    lower_is_better = ['Latency (s)', 'FPR', 'FNR', 'Total Error Rate', 'Timeout Rate', 'JSON Error Rate']
     
     for col in heatmap_data_normalized.columns:
         min_val = heatmap_data_normalized[col].min()
@@ -878,13 +984,22 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
     if model_colors is None:
         model_colors = get_model_color_map(per_email_df['model'].unique())
     
+    # Calculate model ordering by success rate (for consistent sorting across all panels)
+    # Calculate success rate per model - select status column first to avoid FutureWarning
+    model_success_rates = per_email_df.groupby('model')['status'].apply(
+        lambda x: len(x[x.isin(['TP', 'TN'])]) / len(x) if len(x) > 0 else 0
+    )
+    # The result is a Series with model as index, so we can sort directly
+    model_success_rates = model_success_rates.sort_values(ascending=False)
+    models_sorted = model_success_rates.index.tolist()
+    
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-    fig.suptitle('Per-Email Accuracy Statistics', fontsize=16, fontweight='bold')
+    fig.suptitle('Per-Email Accuracy Statistics\n(Models ordered by success rate)', fontsize=16, fontweight='bold')
     
     # 1. Score distribution: Correct vs Incorrect predictions (shows model calibration)
     ax1 = axes[0, 0]
     score_bins = get_score_bins()
-    for model in per_email_df['model'].unique():
+    for model in models_sorted:
         model_data = per_email_df[per_email_df['model'] == model]
         correct_scores = model_data[model_data['correct'] == True]['score']
         incorrect_scores = model_data[model_data['correct'] == False]['score']
@@ -908,7 +1023,7 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
     # 2. Score distribution by model
     ax2 = axes[0, 1]
     score_bins = get_score_bins()  # Use same aligned bins for consistency
-    for model in per_email_df['model'].unique():
+    for model in models_sorted:
         model_scores = per_email_df[per_email_df['model'] == model]['score']
         model_color = model_colors.get(model, COLORS[0])
         ax2.hist(model_scores, alpha=0.5, label=model, bins=score_bins, 
@@ -923,6 +1038,8 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
     # 3. Status breakdown (TP, TN, FP, FN, TIMEOUT, ERROR) by model
     ax3 = axes[1, 0]
     status_counts = per_email_df.groupby(['model', 'status']).size().unstack(fill_value=0)
+    # Reorder status_counts by success rate (already calculated above)
+    status_counts = status_counts.reindex(model_success_rates.index)
     
     # Define color mapping for all possible statuses
     status_colors = {
@@ -959,7 +1076,7 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
     ax4 = axes[1, 1]
     max_duration = per_email_df['duration'].max()
     duration_bins = get_duration_bins(max_duration)
-    for model in per_email_df['model'].unique():
+    for model in models_sorted:
         model_durations = per_email_df[per_email_df['model'] == model]['duration']
         model_color = model_colors.get(model, COLORS[0])
         ax4.hist(model_durations, alpha=0.5, label=model, bins=duration_bins, 
@@ -993,6 +1110,9 @@ def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str):
     # 1. Average reason consistency by model and email type
     ax1 = axes[0]
     consistency_by_type = repeat_df_copy.groupby(['model', 'email_type'])['reason_consistency'].mean().unstack(fill_value=0)
+    # Sort by overall consistency (average of benign and malicious) - higher is better
+    overall_consistency = consistency_by_type.mean(axis=1).sort_values(ascending=False)
+    consistency_by_type = consistency_by_type.reindex(overall_consistency.index)
     # Use grouped bar chart instead of stacked
     x = np.arange(len(consistency_by_type.index))
     width = 0.35
@@ -1013,6 +1133,8 @@ def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str):
     # 2. Score variance by model and email type
     ax2 = axes[1]
     variance_by_type = repeat_df_copy.groupby(['model', 'email_type'])['score_variance'].mean().unstack(fill_value=0)
+    # Sort by overall variance (lower is better) - use same order as consistency chart
+    variance_by_type = variance_by_type.reindex(overall_consistency.index)
     # Use grouped bar chart instead of stacked
     x = np.arange(len(variance_by_type.index))
     models = variance_by_type.index
@@ -1467,6 +1589,42 @@ def main():
     df = extract_summary_metrics(results)
     repeat_df = extract_repeatability_metrics(results)
     per_email_df = extract_per_email_metrics(results)
+    
+    # Add error rate metrics to summary dataframe
+    if not per_email_df.empty:
+        error_rates = []
+        for model in df['model'].unique():
+            model_data = per_email_df[per_email_df['model'] == model]
+            total = len(model_data)
+            if total > 0:
+                timeouts = len(model_data[model_data['status'] == 'TIMEOUT'])
+                json_errors = len(model_data[model_data['status'] == 'JSON_ERROR'])
+                other_errors = len(model_data[model_data['status'] == 'ERROR'])
+                total_errors = timeouts + json_errors + other_errors
+                
+                error_rates.append({
+                    'model': model,
+                    'timeout_rate': timeouts / total,
+                    'json_error_rate': json_errors / total,
+                    'error_rate': other_errors / total,
+                    'total_error_rate': total_errors / total,
+                    'success_rate': (total - total_errors) / total
+                })
+            else:
+                error_rates.append({
+                    'model': model,
+                    'timeout_rate': 0,
+                    'json_error_rate': 0,
+                    'error_rate': 0,
+                    'total_error_rate': 0,
+                    'success_rate': 1.0
+                })
+        
+        error_rates_df = pd.DataFrame(error_rates)
+        df = df.merge(error_rates_df, on='model', how='left')
+        # Fill NaN with 0 for models without per-email data
+        error_cols = ['timeout_rate', 'json_error_rate', 'error_rate', 'total_error_rate', 'success_rate']
+        df[error_cols] = df[error_cols].fillna(0)
     
     print(f"✓ Extracted metrics for {len(df)} models\n")
     
