@@ -56,7 +56,9 @@ flowchart LR
   end
 
     Email -- FROM --> Address
+    Email -- FROM --> DisplayName
     Email -- TO --> Address
+    Email -- TO --> DisplayName
     Address -- HAS_DISPLAY_NAME --> DisplayName
     Address -- HAS_DOMAIN --> Domain
     Email -- CONTAINS_URL --> Url

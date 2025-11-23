@@ -155,7 +155,7 @@ The API automatically creates the following graph structure in Neo4j:
 - **Address** nodes for FROM and TO email addresses:
   - `id`: The email address (e.g., "sender@example.com")
   
-- **DisplayName** nodes for sender display names:
+- **DisplayName** nodes for sender and recipient display names:
   - `name`: The display name (e.g., "John Doe")
   
 - **Domain** nodes extracted from email addresses and URLs:
@@ -176,8 +176,10 @@ The API automatically creates the following graph structure in Neo4j:
 ### Relationships
 
 - `Email` → `FROM` → `Address` (sender email address)
+- `Email` → `FROM` → `DisplayName` (sender display name)
 - `Email` → `TO` → `Address` (recipient email addresses)
-- `Address` → `HAS_DISPLAY_NAME` → `DisplayName` (sender display name)
+- `Email` → `TO` → `DisplayName` (recipient display names)
+- `Address` → `HAS_DISPLAY_NAME` → `DisplayName` (when both email and display name are present)
 - `Address` → `HAS_DOMAIN` → `Domain` (domain from email addresses)
 - `Email` → `CONTAINS_URL` → `Url` (URLs found in email)
 - `Url` → `HAS_DOMAIN` → `Domain` (domain from URLs)
