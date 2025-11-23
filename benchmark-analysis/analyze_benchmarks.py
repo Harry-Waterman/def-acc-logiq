@@ -492,24 +492,40 @@ def plot_confusion_matrix_comparison(df: pd.DataFrame, output_dir: str):
     df_sorted = df_with_score.sort_values('_bestness', ascending=False)
     
     n_models = len(df_sorted)
-    fig, axes = plt.subplots(1, n_models, figsize=(5*n_models, 5))
     
-    if n_models == 1:
-        axes = [axes]
+    # Arrange in a grid: use 3 columns, calculate rows needed
+    cols = 3
+    rows = (n_models + cols - 1) // cols  # Ceiling division
     
+    fig, axes = plt.subplots(rows, cols, figsize=(5*cols, 5*rows))
     fig.suptitle('Confusion Matrix Comparison\n(Models ordered by overall bestness score)', fontsize=16, fontweight='bold')
+    
+    # Flatten axes array for easier iteration
+    # Handle different return types from subplots (single axes, 1D array, or 2D array)
+    if n_models == 1:
+        axes_flat = [axes]
+    elif rows == 1:
+        # When rows=1, subplots returns a 1D array (or single axes if cols=1)
+        axes_flat = list(axes) if hasattr(axes, '__iter__') and not isinstance(axes, str) else [axes]
+    else:
+        # When rows>1, subplots returns a 2D array that needs flattening
+        axes_flat = list(axes.flatten())
     
     for idx, (_, row) in enumerate(df_sorted.iterrows()):
         cm = np.array([[row['tn'], row['fp']],
                        [row['fn'], row['tp']]])
         
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=axes[idx],
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=axes_flat[idx],
                    xticklabels=['Benign', 'Malicious'],
                    yticklabels=['Benign', 'Malicious'],
                    cbar_kws={'label': 'Count'})
-        axes[idx].set_title(f"{row['model']}\nAccuracy: {row['accuracy']:.2%}")
-        axes[idx].set_ylabel('True Label')
-        axes[idx].set_xlabel('Predicted Label')
+        axes_flat[idx].set_title(f"{row['model']}\nAccuracy: {row['accuracy']:.2%}")
+        axes_flat[idx].set_ylabel('True Label')
+        axes_flat[idx].set_xlabel('Predicted Label')
+    
+    # Hide unused subplots
+    for idx in range(n_models, len(axes_flat)):
+        axes_flat[idx].axis('off')
     
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'confusion_matrices.png'), dpi=300, bbox_inches='tight')
