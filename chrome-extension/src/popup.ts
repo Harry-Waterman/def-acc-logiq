@@ -131,7 +131,7 @@ let initProgressCallback = (report: InitProgressReport) => {
 };
 
 // initially selected model
-const selectedModel = "Llama-3.1-8B-Instruct-q4f16_1-MLC";
+const selectedModel = "Qwen3-0.6B-q4f16_1-MLC";
 
 let engine: MLCEngineInterface;
 
@@ -256,6 +256,8 @@ async function classifyEmail() {
     try {
       const result = JSON.parse(resultText);
       displayResult(result, resultText);
+      // Send to API if enabled
+      await sendToApi(result, context);
     } catch (e) {
       console.error("JSON Parse Error", e);
       displayResult({ score: "Error", reasons: ["Failed to parse LLM response"] }, resultText);
@@ -265,6 +267,126 @@ async function classifyEmail() {
     console.error("Classification Error:", err);
   } finally {
     document.getElementById("loading-indicator")!.style.display = "none";
+  }
+}
+
+// Generate or retrieve persistent installation ID
+async function getInstallationId(): Promise<string> {
+  const result = await chrome.storage.local.get(['installationId']);
+  
+  if (result.installationId) {
+    return result.installationId;
+  }
+  
+  // Generate a new installation ID (UUID v4 format)
+  const installationId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+  
+  // Store it for persistence
+  await chrome.storage.local.set({ installationId });
+  
+  return installationId;
+}
+
+// Function to send classification results to external API
+async function sendToApi(classificationResult: any, emailContext: string) {
+  try {
+    // Load API settings from storage
+    const settings = await chrome.storage.sync.get(['apiEnabled', 'apiEndpoint', 'apiKey']);
+    
+    if (!settings.apiEnabled || !settings.apiEndpoint) {
+      console.log("API output disabled or not configured");
+      return;
+    }
+    
+    // Get or generate installation ID
+    const installationId = await getInstallationId();
+
+    // Parse email context to include in payload
+    let emailData: any = {};
+    try {
+      emailData = JSON.parse(emailContext);
+      // Remove body and subject from email data
+      const { body, subject, ...emailDataWithoutBodyAndSubject } = emailData;
+      emailData = emailDataWithoutBodyAndSubject;
+    } catch (e) {
+      // If parsing fails, don't include body
+      emailData = {};
+    }
+
+    // Prepare payload
+    const payload = {
+      installationId: installationId,
+      classification: {
+        score: classificationResult.score,
+        flags: classificationResult.reasons || []
+      },
+      email: emailData
+    };
+
+    // Prepare headers
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (settings.apiKey) {
+      headers['Authorization'] = `Bearer ${settings.apiKey}`;
+    }
+
+    // Show API status indicator
+    updateApiStatus('sending');
+
+    // Send to API
+    const response = await fetch(settings.apiEndpoint, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+
+    const responseData = await response.json().catch(() => ({}));
+    console.log("API response:", responseData);
+    updateApiStatus('success');
+
+  } catch (error) {
+    console.error("API Error:", error);
+    updateApiStatus('error', error instanceof Error ? error.message : String(error));
+  }
+}
+
+// Update API status indicator in UI
+function updateApiStatus(status: 'sending' | 'success' | 'error', message?: string) {
+  const apiStatusEl = document.getElementById("api-status");
+  if (!apiStatusEl) return;
+
+  apiStatusEl.style.display = "block";
+  apiStatusEl.className = `api-status ${status}`;
+
+  switch (status) {
+    case 'sending':
+      apiStatusEl.textContent = '📤 Sending to API...';
+      apiStatusEl.style.color = '#666';
+      break;
+    case 'success':
+      apiStatusEl.textContent = '✅ Sent to API successfully';
+      apiStatusEl.style.color = '#2e7d32';
+      setTimeout(() => {
+        apiStatusEl.style.display = 'none';
+      }, 3000);
+      break;
+    case 'error':
+      apiStatusEl.textContent = `❌ API Error: ${message || 'Unknown error'}`;
+      apiStatusEl.style.color = '#c62828';
+      setTimeout(() => {
+        apiStatusEl.style.display = 'none';
+      }, 5000);
+      break;
   }
 }
 
