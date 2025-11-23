@@ -253,8 +253,12 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
     
     # Accuracy
     ax1 = axes[0, 0]
+    if model_colors is None:
+        model_colors = get_model_color_map(df['model'].unique())
     df_sorted = df.sort_values('accuracy', ascending=True)
-    bars1 = ax1.barh(df_sorted['model'], df_sorted['accuracy'], color=COLORS[0])
+    # Use model-specific colors for each bar
+    bar_colors = [model_colors.get(model, COLORS[0]) for model in df_sorted['model']]
+    bars1 = ax1.barh(df_sorted['model'], df_sorted['accuracy'], color=bar_colors)
     # Add value labels on bars
     for i, (idx, row) in enumerate(df_sorted.iterrows()):
         ax1.text(row['accuracy'] + 0.01, i, f"{row['accuracy']:.2%}", 
@@ -286,7 +290,9 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
     # F1 Score
     ax3 = axes[1, 0]
     df_sorted_f1 = df.sort_values('f1', ascending=True)
-    bars3 = ax3.barh(df_sorted_f1['model'], df_sorted_f1['f1'], color=COLORS[2])
+    # Use model-specific colors for each bar
+    bar_colors_f1 = [model_colors.get(model, COLORS[0]) for model in df_sorted_f1['model']]
+    bars3 = ax3.barh(df_sorted_f1['model'], df_sorted_f1['f1'], color=bar_colors_f1)
     # Add value labels on bars
     for i, (idx, row) in enumerate(df_sorted_f1.iterrows()):
         ax3.text(row['f1'] + 0.01, i, f"{row['f1']:.2%}", 
@@ -349,12 +355,17 @@ def plot_confusion_matrix_comparison(df: pd.DataFrame, output_dir: str):
     plt.close()
     print("✓ Created confusion_matrices.png")
 
-def plot_latency_comparison(df: pd.DataFrame, output_dir: str):
+def plot_latency_comparison(df: pd.DataFrame, output_dir: str, model_colors: Dict[str, tuple] = None):
     """Create latency comparison chart."""
+    if model_colors is None:
+        model_colors = get_model_color_map(df['model'].unique())
+    
     fig, ax = plt.subplots(figsize=(10, 6))
     
     df_sorted = df.sort_values('avg_latency', ascending=True)
-    bars = ax.barh(df_sorted['model'], df_sorted['avg_latency'], color=COLORS[4])
+    # Use model-specific colors for each bar
+    bar_colors = [model_colors.get(model, COLORS[0]) for model in df_sorted['model']]
+    bars = ax.barh(df_sorted['model'], df_sorted['avg_latency'], color=bar_colors)
     
     ax.set_xlabel('Average Latency (seconds)')
     ax.set_title('Inference Latency Comparison')
@@ -370,11 +381,14 @@ def plot_latency_comparison(df: pd.DataFrame, output_dir: str):
     plt.close()
     print("✓ Created latency_comparison.png")
 
-def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str):
+def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_colors: Dict[str, tuple] = None):
     """Create repeatability analysis visualizations."""
     if repeat_df.empty:
         print("⚠ No repeatability data available")
         return
+    
+    if model_colors is None:
+        model_colors = get_model_color_map(repeat_df['model'].unique())
     
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
     fig.suptitle('Repeatability Analysis', fontsize=16, fontweight='bold')
@@ -402,7 +416,9 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str):
         x_max = variance_by_model.max() * 1.1
         ax1.set_xlim(x_min, x_max)
     
-    bars1 = ax1.barh(variance_by_model.index, variance_by_model.values, color=COLORS[5])
+    # Use model-specific colors for each bar
+    bar_colors_variance = [model_colors.get(model, COLORS[0]) for model in variance_by_model.index]
+    bars1 = ax1.barh(variance_by_model.index, variance_by_model.values, color=bar_colors_variance)
     # Add value labels on bars
     for i, (idx, val) in enumerate(variance_by_model.items()):
         label_x = val + (x_max - x_min) * 0.01 if val >= 0 else val - (x_max - x_min) * 0.01
@@ -417,7 +433,9 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str):
     ax2 = axes[0, 1]
     consistency_by_model = repeat_df.groupby('model')['reason_consistency'].mean().sort_values()
     
-    bars2 = ax2.barh(consistency_by_model.index, consistency_by_model.values, color=COLORS[6])
+    # Use model-specific colors for each bar
+    bar_colors_consistency = [model_colors.get(model, COLORS[0]) for model in consistency_by_model.index]
+    bars2 = ax2.barh(consistency_by_model.index, consistency_by_model.values, color=bar_colors_consistency)
     # Add value labels on bars
     for i, (idx, val) in enumerate(consistency_by_model.items()):
         ax2.text(val + 0.02, i, f'{val:.2f}', va='center', fontsize=9)
@@ -1385,9 +1403,9 @@ def main():
     print("📈 Creating visualizations...")
     plot_accuracy_comparison(df, viz_dir, model_colors)
     plot_confusion_matrix_comparison(df, viz_dir)
-    plot_latency_comparison(df, viz_dir)
+    plot_latency_comparison(df, viz_dir, model_colors)
     if not repeat_df.empty:
-        plot_repeatability_analysis(repeat_df, viz_dir)
+        plot_repeatability_analysis(repeat_df, viz_dir, model_colors)
         plot_reason_consistency_by_type(repeat_df, viz_dir)
         plot_model_size_correlation(df, repeat_df, viz_dir)
         plot_temperature_impact(repeat_df, viz_dir)
