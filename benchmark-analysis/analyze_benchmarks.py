@@ -414,9 +414,9 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
     bars = ax.barh(df_sorted['model'], accuracy_values, color=bar_colors, edgecolor='black', linewidth=0.5)
     for i, (idx, row) in enumerate(df_sorted.iterrows()):
         acc_val = accuracy_values.iloc[i]
-        ax.text(acc_val + 0.01, i, f"{acc_val:.2%}", va='center', fontsize=9)
-    ax.set_xlabel('Accuracy', fontsize=12, fontweight='bold')
-    ax.set_title('Overall Accuracy\n(Models ordered by bestness score)', fontsize=14, fontweight='bold')
+        ax.text(acc_val + 0.01, i, f"{acc_val:.2%}", va='center', fontsize=20)
+    ax.set_xlabel('Accuracy', fontsize=20, fontweight='bold')
+    ax.set_title('Overall Accuracy\n(Models ordered by bestness score)', fontsize=18, fontweight='bold')
     ax.set_xlim(0, max(1.1, accuracy_values.max() * 1.1))
     ax.grid(axis='x', alpha=0.3)
     plt.tight_layout()
@@ -439,12 +439,12 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
         recall_val = recall_values.loc[idx]
         ax.scatter(recall_val, prec_val, s=200, alpha=0.7, 
                    color=model_color, label=row['model'], edgecolors='black', linewidth=0.5)
-    ax.set_xlabel('Sensitivity (Recall)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Precision', fontsize=12, fontweight='bold')
-    ax.set_title('Precision vs Sensitivity (Recall)', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Sensitivity (Recall)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Precision', fontsize=20, fontweight='bold')
+    ax.set_title('Precision vs Sensitivity (Recall)', fontsize=18, fontweight='bold')
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9, markerscale=0.6)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9, markerscale=0.6)
     ax.grid(alpha=0.3)
     plt.tight_layout()
     plt.savefig(os.path.join(accuracy_dir, 'precision_vs_recall.png'), dpi=300, bbox_inches='tight')
@@ -465,9 +465,9 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
     bars = ax.barh(df_sorted_f1['model'], f1_values, color=bar_colors_f1, edgecolor='black', linewidth=0.5)
     for i, (idx, row) in enumerate(df_sorted_f1.iterrows()):
         f1_val = f1_values.iloc[i]
-        ax.text(f1_val + 0.01, i, f"{f1_val:.2%}", va='center', fontsize=9)
-    ax.set_xlabel('F1 Score', fontsize=12, fontweight='bold')
-    ax.set_title('F1 Score Comparison\n(Models ordered by bestness score)', fontsize=14, fontweight='bold')
+        ax.text(f1_val + 0.01, i, f"{f1_val:.2%}", va='center', fontsize=20)
+    ax.set_xlabel('F1 Score', fontsize=20, fontweight='bold')
+    ax.set_title('F1 Score Comparison\n(Models ordered by bestness score)', fontsize=18, fontweight='bold')
     ax.set_xlim(0, max(1.1, f1_values.max() * 1.1))
     ax.grid(axis='x', alpha=0.3)
     plt.tight_layout()
@@ -490,12 +490,12 @@ def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str, model_colors: Di
         fnr_val = fnr_values.loc[idx]
         ax.scatter(fnr_val, fpr_val, s=200, alpha=0.7, 
                    color=model_color, label=row['model'], edgecolors='black', linewidth=0.5)
-    ax.set_xlabel('False Negative Rate (FNR)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('False Positive Rate (FPR)', fontsize=12, fontweight='bold')
-    ax.set_title('Error Rates: FPR vs FNR', fontsize=14, fontweight='bold')
+    ax.set_xlabel('False Negative Rate (FNR)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('False Positive Rate (FPR)', fontsize=20, fontweight='bold')
+    ax.set_title('Error Rates: FPR vs FNR', fontsize=18, fontweight='bold')
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9, ncol=1, markerscale=0.6)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9, ncol=1, markerscale=0.6)
     ax.grid(alpha=0.3)
     plt.tight_layout()
     plt.savefig(os.path.join(accuracy_dir, 'fpr_vs_fnr.png'), dpi=300, bbox_inches='tight')
@@ -516,7 +516,7 @@ def plot_confusion_matrix_comparison(df: pd.DataFrame, output_dir: str):
     rows = (n_models + cols - 1) // cols  # Ceiling division
     
     fig, axes = plt.subplots(rows, cols, figsize=(5*cols, 5*rows))
-    fig.suptitle('Confusion Matrix Comparison\n(Models ordered by overall bestness score)', fontsize=16, fontweight='bold')
+    fig.suptitle('Confusion Matrix Comparison\n(Models ordered by overall bestness score)', fontsize=20, fontweight='bold')
     
     # Flatten axes array for easier iteration
     # Handle different return types from subplots (single axes, 1D array, or 2D array)
@@ -595,7 +595,7 @@ def plot_latency_comparison(df: pd.DataFrame, output_dir: str, model_colors: Dic
     outlier_models = df_sorted[df_sorted['avg_latency'] > outlier_threshold]
     if len(outlier_models) > 0:
         ax.text(0.98, 0.02, f'Note: {len(outlier_models)} model(s) have outlier latency', 
-                transform=ax.transAxes, fontsize=8, ha='right',
+                transform=ax.transAxes, fontsize=11, ha='right',
                 bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
     
     # Add value labels on bars
@@ -609,7 +609,7 @@ def plot_latency_comparison(df: pd.DataFrame, output_dir: str, model_colors: Dic
         # Position label at the end of the bar
         label_x = latency_val + max(0.05, max_latency * 0.02)
         ax.text(label_x, i, label, 
-               va='center', fontsize=9)
+               va='center', fontsize=20)
     
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'latency_comparison.png'), dpi=300, bbox_inches='tight')
@@ -642,7 +642,7 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
         ax.set_xlim(x_min, x_max)
         ax.text(0.5, 0.5, 'Note: All models show zero variance\n(only 1 run per email in this benchmark)',
                 transform=ax.transAxes, ha='center', va='center',
-                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5), fontsize=10)
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5), fontsize=18)
     else:
         x_min = min(0, variance_by_model.min() * 1.1)
         x_max = variance_by_model.max() * 1.1
@@ -652,9 +652,9 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
     bars = ax.barh(variance_by_model.index, variance_by_model.values, color=bar_colors, edgecolor='black', linewidth=0.5)
     for i, (idx, val) in enumerate(variance_by_model.items()):
         label_x = val + (x_max - x_min) * 0.01 if val >= 0 else val - (x_max - x_min) * 0.01
-        ax.text(label_x, i, f'{val:.4f}', va='center', fontsize=9)
-    ax.set_xlabel('Average Score Variance', fontsize=12, fontweight='bold')
-    ax.set_title('Consistency: Lower Variance = More Consistent', fontsize=14, fontweight='bold')
+        ax.text(label_x, i, f'{val:.4f}', va='center', fontsize=20)
+    ax.set_xlabel('Average Score Variance', fontsize=20, fontweight='bold')
+    ax.set_title('Consistency: Lower Variance = More Consistent', fontsize=18, fontweight='bold')
     ax.axvline(x=0, color='gray', linestyle='--', alpha=0.5)
     ax.grid(axis='x', alpha=0.3)
     plt.tight_layout()
@@ -670,10 +670,10 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
     bar_colors = [model_colors.get(model, COLORS[0]) for model in consistency_by_model.index]
     bars = ax.barh(consistency_by_model.index, consistency_by_model.values, color=bar_colors, edgecolor='black', linewidth=0.5)
     for i, (idx, val) in enumerate(consistency_by_model.items()):
-        ax.text(val + 0.02, i, f'{val:.2f}', va='center', fontsize=9)
-    ax.set_xlabel('Average Reason Consistency', fontsize=12, fontweight='bold')
+        ax.text(val + 0.02, i, f'{val:.2f}', va='center', fontsize=20)
+    ax.set_xlabel('Average Reason Consistency', fontsize=20, fontweight='bold')
     ax.set_title('Reason Consistency: Percentage of runs with identical reasons\n(1.0 = same reasons every time, measures repeatability not correctness)', 
-                fontsize=14, fontweight='bold')
+                fontsize=18, fontweight='bold')
     ax.set_xlim(0, 1.1)
     ax.grid(axis='x', alpha=0.3)
     plt.tight_layout()
@@ -708,12 +708,12 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
                label=f'{model} (Malicious)',
                color=model_color, alpha=0.9, edgecolor='black', linewidth=0.5, hatch='///')
     
-    ax.set_xlabel('Model', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Average Score Mean', fontsize=12, fontweight='bold')
-    ax.set_title('Score Mean by Model and Email Type', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Model', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Average Score Mean', fontsize=20, fontweight='bold')
+    ax.set_title('Score Mean by Model and Email Type', fontsize=18, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(models, rotation=45, ha='right')
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=7, framealpha=0.9, ncol=1)
+    ax.set_xticklabels(models, rotation=45, ha='right', fontsize=12)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=18, framealpha=0.9, ncol=1)
     ax.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     plt.savefig(os.path.join(repeatability_dir, 'score_mean_by_type.png'), dpi=300, bbox_inches='tight')
@@ -733,12 +733,12 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str, model_
                    s=300, alpha=0.7, color=model_color, label=row['model'],
                    edgecolors='black', linewidth=1.5, zorder=5)
     
-    ax.set_xlabel('Average Score Variance\n(Lower = More Consistent Scores)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Average Reason Consistency\n(Higher = More Consistent Reasons)', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Average Score Variance\n(Lower = More Consistent Scores)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Average Reason Consistency\n(Higher = More Consistent Reasons)', fontsize=20, fontweight='bold')
     ax.set_title('Consistency Trade-off: Score Variance vs Reason Consistency\n(Ideal: Low variance, High consistency)', 
-                fontsize=14, fontweight='bold')
+                fontsize=18, fontweight='bold')
     ax.grid(alpha=0.3)
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9, ncol=1, markerscale=0.6)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9, ncol=1, markerscale=0.6)
     plt.tight_layout()
     plt.savefig(os.path.join(repeatability_dir, 'variance_vs_consistency.png'), dpi=300, bbox_inches='tight')
     plt.close()
@@ -770,12 +770,12 @@ def plot_radar_chart(df: pd.DataFrame, output_dir: str, model_colors: Dict[str, 
         ax.fill(angles, values, alpha=0.15, color=model_color)
     
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels([m.replace('_', ' ').title() for m in metrics_to_plot])
+    ax.set_xticklabels([m.replace('_', ' ').title() for m in metrics_to_plot], fontsize=12)
     ax.set_ylim(0, 1)
     ax.set_title('Multi-Metric Performance Comparison (Radar Chart)', 
                  size=14, fontweight='bold', pad=20)
     # Move legend further outside to avoid overlap
-    ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1.0), fontsize=9, framealpha=0.9)
+    ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1.0), fontsize=20, framealpha=0.9)
     ax.grid(True)
     
     plt.tight_layout(rect=[0, 0, 0.85, 1])  # Leave space on right for legend
@@ -813,27 +813,27 @@ def plot_latency_accuracy_tradeoff(df: pd.DataFrame, output_dir: str, model_colo
     
     # Add quadrant labels
     ax.text(0.02, 0.98, 'High Accuracy\nLow Latency\n(Ideal)', 
-           transform=ax.transAxes, fontsize=10, verticalalignment='top',
+           transform=ax.transAxes, fontsize=18, verticalalignment='top',
            bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.3))
     ax.text(0.98, 0.98, 'High Accuracy\nHigh Latency', 
-           transform=ax.transAxes, fontsize=10, verticalalignment='top', horizontalalignment='right',
+           transform=ax.transAxes, fontsize=18, verticalalignment='top', horizontalalignment='right',
            bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.3))
     ax.text(0.02, 0.02, 'Low Accuracy\nLow Latency', 
-           transform=ax.transAxes, fontsize=10, verticalalignment='bottom',
+           transform=ax.transAxes, fontsize=18, verticalalignment='bottom',
            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.3))
     ax.text(0.98, 0.02, 'Low Accuracy\nHigh Latency\n(Worst)', 
-           transform=ax.transAxes, fontsize=10, verticalalignment='bottom', horizontalalignment='right',
+           transform=ax.transAxes, fontsize=18, verticalalignment='bottom', horizontalalignment='right',
            bbox=dict(boxstyle='round', facecolor='lightcoral', alpha=0.3))
     
-    ax.set_xlabel('Average Latency (seconds)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Accuracy', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Average Latency (seconds)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Accuracy', fontsize=20, fontweight='bold')
     title = 'Latency vs Accuracy Tradeoff'
     if 'total_error_rate' in df.columns:
         title += '\n(Models with high error rates shown with reduced opacity)'
-    ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+    ax.set_title(title, fontsize=18, fontweight='bold', pad=20)
     ax.grid(alpha=0.3)
     # Move legend outside to avoid overlapping
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9, 
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9, 
              ncol=1, frameon=True, markerscale=0.6)
     
     plt.tight_layout()
@@ -903,12 +903,12 @@ def plot_quadrant_analysis(df: pd.DataFrame, output_dir: str, model_colors: Dict
     ax.fill_between([latency_threshold, xlim[1]], ylim[0], accuracy_threshold, 
                     alpha=0.1, color='red', label='Worst Quadrant')
     
-    ax.set_xlabel('Average Latency (seconds)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Accuracy', fontsize=12, fontweight='bold')
-    ax.set_title('Quadrant Analysis: Accuracy vs Latency', fontsize=14, fontweight='bold', pad=20)
+    ax.set_xlabel('Average Latency (seconds)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Accuracy', fontsize=20, fontweight='bold')
+    ax.set_title('Quadrant Analysis: Accuracy vs Latency', fontsize=18, fontweight='bold', pad=20)
     ax.grid(alpha=0.3, zorder=0)
     # Legend shows all models (no annotations on points) - moved outside
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9, 
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9, 
              ncol=1, columnspacing=1, handletextpad=0.5, markerscale=0.6)
     
     plt.tight_layout()
@@ -981,9 +981,9 @@ def plot_metrics_heatmap(df: pd.DataFrame, output_dir: str):
                 cbar_kws={'label': 'Performance (normalized for color, raw values shown)'}, fmt='.3f', 
                 annot_kws={'size': 9})
     ax.set_title('Comprehensive Metrics Heatmap\n(Actual values shown, color indicates performance)', 
-                 fontsize=12, fontweight='bold', pad=10)
-    ax.set_xlabel('Metrics', fontsize=10)
-    ax.set_ylabel('Models', fontsize=10)
+                 fontsize=20, fontweight='bold', pad=10)
+    ax.set_xlabel('Metrics', fontsize=18)
+    ax.set_ylabel('Models', fontsize=18)
     
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'metrics_heatmap.png'), dpi=300, bbox_inches='tight')
@@ -1042,19 +1042,19 @@ def plot_pareto_frontier(df: pd.DataFrame, output_dir: str, model_colors: Dict[s
         ax.axvspan(0, best_point[0], alpha=0.1, color='green', label='Efficient Region')
         ax.axhspan(best_point[1], 1, alpha=0.1, color='green')
     
-    ax.set_xlabel('Average Latency (seconds)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Accuracy', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Average Latency (seconds)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Accuracy', fontsize=20, fontweight='bold')
     ax.set_title('Pareto Frontier: Efficiency Analysis\n(Points on frontier are not dominated)', 
-                fontsize=14, fontweight='bold', pad=20)
+                fontsize=18, fontweight='bold', pad=20)
     ax.grid(alpha=0.3)
     # Move legend outside to avoid overlapping with description text
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9, 
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9, 
              ncol=1, columnspacing=1, markerscale=0.6)
     
     # Add text explaining Pareto frontier - move to lower left to avoid legend
     ax.text(0.02, 0.15, 
            'Pareto Frontier: Models where no other model\nhas both lower latency AND higher accuracy',
-           transform=ax.transAxes, fontsize=9, verticalalignment='bottom',
+           transform=ax.transAxes, fontsize=20, verticalalignment='bottom',
            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.7))
     
     plt.tight_layout()
@@ -1097,12 +1097,12 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
         ax.hist(incorrect_scores, alpha=0.5, label=f'{model} (Incorrect)', bins=score_bins,
                 edgecolor='black', linewidth=0.5, color=darker_color, hatch='///', align='mid')
     
-    ax.set_xlabel('Score (0-100)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Frequency', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Score (0-100)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Frequency', fontsize=20, fontweight='bold')
     ax.set_title('Score Distribution: Correct vs Incorrect Predictions\n(Shows model calibration)', 
-                fontsize=14, fontweight='bold')
+                fontsize=18, fontweight='bold')
     ax.set_xlim(*get_score_axis_limits())
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, ncol=1, framealpha=0.9)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, ncol=1, framealpha=0.9)
     ax.grid(alpha=0.3, axis='y')
     plt.tight_layout()
     plt.savefig(os.path.join(per_email_dir, 'score_dist_correct_incorrect.png'), dpi=300, bbox_inches='tight')
@@ -1117,11 +1117,11 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
         model_color = model_colors.get(model, COLORS[0])
         ax.hist(model_scores, alpha=0.5, label=model, bins=score_bins, 
                 edgecolor='black', linewidth=0.5, align='mid', color=model_color)
-    ax.set_xlabel('Score (0-100)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Frequency', fontsize=12, fontweight='bold')
-    ax.set_title('Score Distribution by Model', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Score (0-100)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Frequency', fontsize=20, fontweight='bold')
+    ax.set_title('Score Distribution by Model', fontsize=18, fontweight='bold')
     ax.set_xlim(*get_score_axis_limits())
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9)
     ax.grid(alpha=0.3, axis='y')
     plt.tight_layout()
     plt.savefig(os.path.join(per_email_dir, 'score_dist_by_model.png'), dpi=300, bbox_inches='tight')
@@ -1147,10 +1147,10 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
     colors = [status_colors.get(status, 'lightgray') for status in all_statuses]
     
     status_counts.plot(kind='barh', stacked=True, ax=ax, color=colors)
-    ax.set_xlabel('Count', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Count', fontsize=20, fontweight='bold')
     ax.set_title('Prediction Status Breakdown by Model\n(Includes timeouts/errors)', 
-                fontsize=14, fontweight='bold')
-    ax.legend(title='Status', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9)
+                fontsize=18, fontweight='bold')
+    ax.legend(title='Status', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9)
     ax.grid(axis='x', alpha=0.3)
     
     error_statuses = ['TIMEOUT', 'JSON_ERROR', 'ERROR']
@@ -1159,7 +1159,7 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
         error_models = per_email_df[per_email_df['status'].isin(error_statuses)]['model'].unique()
         if len(error_models) > 0:
             ax.text(0.98, 0.02, f'WARNING: {len(error_models)} model(s) have timeouts/errors', 
-                    transform=ax.transAxes, fontsize=8, ha='right',
+                    transform=ax.transAxes, fontsize=11, ha='right',
                     bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
     plt.tight_layout()
     plt.savefig(os.path.join(per_email_dir, 'status_breakdown.png'), dpi=300, bbox_inches='tight')
@@ -1175,11 +1175,11 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
         model_color = model_colors.get(model, COLORS[0])
         ax.hist(model_durations, alpha=0.5, label=model, bins=duration_bins, 
                 edgecolor='black', linewidth=0.5, align='mid', color=model_color)
-    ax.set_xlabel('Inference Duration (seconds)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Frequency', fontsize=12, fontweight='bold')
-    ax.set_title('Inference Duration Distribution by Model', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Inference Duration (seconds)', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Frequency', fontsize=20, fontweight='bold')
+    ax.set_title('Inference Duration Distribution by Model', fontsize=18, fontweight='bold')
     ax.set_xlim(duration_bins[0], duration_bins[-1] - DURATION_BIN_WIDTH)
-    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, framealpha=0.9)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=11, framealpha=0.9)
     ax.grid(alpha=0.3, axis='y')
     plt.tight_layout()
     plt.savefig(os.path.join(per_email_dir, 'duration_distribution.png'), dpi=300, bbox_inches='tight')
@@ -1221,13 +1221,13 @@ def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str, mo
                label='Benign' if i == 0 else '', edgecolor='black', linewidth=0.5)
         ax.bar(x[i] + width/2, malicious_val, width, color=model_color, alpha=0.9, 
                label='Malicious' if i == 0 else '', edgecolor='black', linewidth=0.5)
-    ax.set_xlabel('Model', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Average Reason Consistency', fontsize=12, fontweight='bold')
-    ax.set_title('Reason Consistency: Benign vs Malicious Emails', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Model', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Average Reason Consistency', fontsize=20, fontweight='bold')
+    ax.set_title('Reason Consistency: Benign vs Malicious Emails', fontsize=18, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(models, rotation=45, ha='right')
+    ax.set_xticklabels(models, rotation=45, ha='right', fontsize=12)
     ax.set_ylim(0, 1.1)
-    ax.legend(title='Email Type', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=9, framealpha=0.9)
+    ax.legend(title='Email Type', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=20, framealpha=0.9)
     ax.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     plt.savefig(os.path.join(repeatability_dir, 'consistency_by_type.png'), dpi=300, bbox_inches='tight')
@@ -1248,12 +1248,12 @@ def plot_reason_consistency_by_type(repeat_df: pd.DataFrame, output_dir: str, mo
                label='Benign' if i == 0 else '', edgecolor='black', linewidth=0.5)
         ax.bar(x[i] + width/2, malicious_val, width, color=model_color, alpha=0.9, 
                label='Malicious' if i == 0 else '', edgecolor='black', linewidth=0.5)
-    ax.set_xlabel('Model', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Average Score Variance', fontsize=12, fontweight='bold')
-    ax.set_title('Score Variance: Benign vs Malicious Emails', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Model', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Average Score Variance', fontsize=20, fontweight='bold')
+    ax.set_title('Score Variance: Benign vs Malicious Emails', fontsize=18, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(models, rotation=45, ha='right')
-    ax.legend(title='Email Type', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=9, framealpha=0.9)
+    ax.set_xticklabels(models, rotation=45, ha='right', fontsize=12)
+    ax.legend(title='Email Type', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=20, framealpha=0.9)
     ax.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     plt.savefig(os.path.join(repeatability_dir, 'variance_by_type.png'), dpi=300, bbox_inches='tight')
@@ -1364,16 +1364,16 @@ def plot_temperature_impact(df: pd.DataFrame, output_dir: str, model_colors: Dic
                 if val > 0:  # Only label if there's data
                     height = bar.get_height()
                     ax.text(bar.get_x() + bar.get_width()/2., height,
-                           f'{val:.2f}', ha='center', va='bottom', fontsize=8)
+                           f'{val:.2f}', ha='center', va='bottom', fontsize=11)
         
-        ax.set_xlabel('Model', fontsize=12, fontweight='bold')
-        ax.set_ylabel(ylabel, fontsize=12, fontweight='bold')
-        ax.set_title(title, fontsize=14, fontweight='bold')
+        ax.set_xlabel('Model', fontsize=20, fontweight='bold')
+        ax.set_ylabel(ylabel, fontsize=20, fontweight='bold')
+        ax.set_title(title, fontsize=18, fontweight='bold')
         ax.set_xticks(x)
-        ax.set_xticklabels(models, rotation=45, ha='right', fontsize=9)
+        ax.set_xticklabels(models, rotation=45, ha='right', fontsize=12)
         ax.set_ylim(0, 1.05)  # Consistent 0-1 y-axis
         ax.grid(axis='y', alpha=0.3)
-        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=9, framealpha=0.9)
+        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=20, framealpha=0.9)
         plt.tight_layout()
         plt.savefig(os.path.join(temperature_dir, filename), dpi=300, bbox_inches='tight')
         plt.close()
