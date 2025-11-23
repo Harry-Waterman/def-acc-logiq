@@ -91,47 +91,68 @@ def extract_repeatability_metrics(results: List[Dict[str, Any]]) -> pd.DataFrame
 
 def plot_accuracy_comparison(df: pd.DataFrame, output_dir: str):
     """Create comparison charts for accuracy metrics."""
-    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    # Increase figure size to accommodate all models and legends
+    fig, axes = plt.subplots(2, 2, figsize=(18, 14))
     fig.suptitle('Model Performance Comparison', fontsize=16, fontweight='bold')
     
     # Accuracy
     ax1 = axes[0, 0]
     df_sorted = df.sort_values('accuracy', ascending=True)
-    ax1.barh(df_sorted['model'], df_sorted['accuracy'], color=COLORS[0])
+    bars1 = ax1.barh(df_sorted['model'], df_sorted['accuracy'], color=COLORS[0])
+    # Add value labels on bars
+    for i, (idx, row) in enumerate(df_sorted.iterrows()):
+        ax1.text(row['accuracy'] + 0.01, i, f"{row['accuracy']:.2%}", 
+                va='center', fontsize=9)
     ax1.set_xlabel('Accuracy')
     ax1.set_title('Overall Accuracy')
-    ax1.set_xlim(0, 1)
+    ax1.set_xlim(0, 1.1)  # Slightly extend to show labels
     ax1.grid(axis='x', alpha=0.3)
     
     # Precision vs Recall
     ax2 = axes[0, 1]
-    for i, row in df.iterrows():
+    # Use different colors for each model
+    model_colors = COLORS[:len(df)]
+    for i, (idx, row) in enumerate(df.iterrows()):
         ax2.scatter(row['recall'], row['precision'], s=200, alpha=0.7, 
-                   label=row['model'] if i < len(df) else '')
+                   color=model_colors[i], label=row['model'])
+        # Add model name labels near points
+        ax2.annotate(row['model'], (row['recall'], row['precision']),
+                    xytext=(5, 5), textcoords='offset points', fontsize=8)
     ax2.set_xlabel('Recall')
     ax2.set_ylabel('Precision')
     ax2.set_title('Precision vs Recall')
-    ax2.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    ax2.set_xlim(0, 1)
+    ax2.set_ylim(0, 1)
+    ax2.legend(loc='lower left', fontsize=7, framealpha=0.9)
     ax2.grid(alpha=0.3)
     
     # F1 Score
     ax3 = axes[1, 0]
     df_sorted_f1 = df.sort_values('f1', ascending=True)
-    ax3.barh(df_sorted_f1['model'], df_sorted_f1['f1'], color=COLORS[2])
+    bars3 = ax3.barh(df_sorted_f1['model'], df_sorted_f1['f1'], color=COLORS[2])
+    # Add value labels on bars
+    for i, (idx, row) in enumerate(df_sorted_f1.iterrows()):
+        ax3.text(row['f1'] + 0.01, i, f"{row['f1']:.2%}", 
+                va='center', fontsize=9)
     ax3.set_xlabel('F1 Score')
     ax3.set_title('F1 Score Comparison')
-    ax3.set_xlim(0, 1)
+    ax3.set_xlim(0, 1.1)  # Slightly extend to show labels
     ax3.grid(axis='x', alpha=0.3)
     
     # FPR vs FNR
     ax4 = axes[1, 1]
-    for i, row in df.iterrows():
+    for i, (idx, row) in enumerate(df.iterrows()):
         ax4.scatter(row['fnr'], row['fpr'], s=200, alpha=0.7, 
-                   label=row['model'] if i < len(df) else '')
+                   color=model_colors[i], label=row['model'])
+        # Add model name labels near points
+        ax4.annotate(row['model'], (row['fnr'], row['fpr']),
+                    xytext=(5, 5), textcoords='offset points', fontsize=8)
     ax4.set_xlabel('False Negative Rate (FNR)')
     ax4.set_ylabel('False Positive Rate (FPR)')
     ax4.set_title('Error Rates: FPR vs FNR')
-    ax4.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    ax4.set_xlim(0, 1)
+    ax4.set_ylim(0, 1)
+    ax4.legend(loc='upper right', fontsize=7, framealpha=0.9)
     ax4.grid(alpha=0.3)
     
     plt.tight_layout()
@@ -240,7 +261,7 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str):
         ax2.text(val + 0.02, i, f'{val:.2f}', va='center', fontsize=9)
     
     ax2.set_xlabel('Average Reason Consistency')
-    ax2.set_title('Reason Consistency: Higher = More Stable')
+    ax2.set_title('Reason Consistency: Same reasons across runs\n(Not accuracy - measures repeatability)')
     ax2.set_xlim(0, 1.1)  # Slightly extend to show labels
     ax2.grid(axis='x', alpha=0.3)
     
@@ -277,10 +298,14 @@ def plot_repeatability_analysis(repeat_df: pd.DataFrame, output_dir: str):
         ax4.set_yticklabels(models)
         ax4.set_xlabel('Reason Consistency')
         ax4.set_xlim(0.9, 1.05)
-        ax4.set_title('Reason Consistency by Model\n(All models: Perfect consistency = 1.0)')
+        ax4.set_title('Reason Consistency by Model\n(1.0 = Same reasons across runs, not perfect accuracy)')
         # Add value labels
         for i in range(len(models)):
             ax4.text(1.0, i, '1.00', va='center', ha='left', fontsize=9)
+        # Add annotation explaining the distinction
+        ax4.text(0.975, len(models) - 0.5, 'Note: Consistency measures\nrepeatability, not correctness',
+                ha='right', va='center', fontsize=8, style='italic',
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
     else:
         # Normal distribution
         for model in repeat_df['model'].unique():
