@@ -15,14 +15,26 @@ Receives email data from the Chrome extension and creates the graph structure in
 **Request Body:**
 ```json
 {
-  "sender": "sender@example.com",
-  "displayName": "Sender",
-  "recipients": ["recipient@example.com"],
-  "dateTime": "Thu 11/13/2025 4:46 PM",
-  "attachments": ["file.txt"],
-  "urls": ["https://example.com/link"],
-  "flags": ["REQUESTING MONEY"],
-  "score": 0.95,
+  classification: 
+  {
+    score: "87",
+    flags: 
+      [ "Suspicious urls",
+      "requests for personal information"
+      ]
+  },
+  email: 
+  {
+    sender: 
+    {
+      displayName: "geeksoutfit",
+      email: "support@geeksoutfit.com"
+    },
+    "recipients": ["recipient@example.com"],
+    "sentTime": "Thu 11/13/2025 4:46 PM",
+    "urls": ["https://example.com/link"],
+    "attachments": ["file.txt"]
+  },
   "installationId": "inst-001"
 }
 ```
@@ -133,14 +145,20 @@ Relationships are created according to the schema:
 curl -X POST http://localhost:3000/api/emails \
   -H "Content-Type: application/json" \
   -d '{
-    "sender": "sender@example.com",
-    "displayName": "Sender",
-    "recipients": ["recipient@example.com"],
-    "dateTime": "Thu 11/13/2025 4:46 PM",
-    "attachments": ["file.txt"],
-    "urls": ["https://example.com/link"],
-    "flags": ["REQUESTING MONEY"],
-    "score": 0.95,
+    "classification": {
+      "score": "87",
+      "flags": ["Suspicious urls", "requests for personal information"]
+    },
+    "email": {
+      "sender": {
+        "displayName": "Sender",
+        "email": "sender@example.com"
+      },
+      "recipients": ["recipient@example.com"],
+      "sentTime": "Thu 11/13/2025 4:46 PM",
+      "attachments": ["file.txt"],
+      "urls": ["https://example.com/link"]
+    },
     "installationId": "inst-001"
   }'
 ```
@@ -149,14 +167,20 @@ curl -X POST http://localhost:3000/api/emails \
 
 ```javascript
 const emailData = {
-  sender: "sender@example.com",
-  displayName: "Sender",
-  recipients: ["recipient@example.com"],
-  dateTime: "Thu 11/13/2025 4:46 PM",
-  attachments: ["file.txt"],
-  urls: ["https://example.com/link"],
-  flags: ["REQUESTING MONEY"],
-  score: 0.95,
+  classification: {
+    score: "87",
+    flags: ["Suspicious urls", "requests for personal information"]
+  },
+  email: {
+    sender: {
+      displayName: "Sender",
+      email: "sender@example.com"
+    },
+    recipients: ["recipient@example.com"],
+    sentTime: "Thu 11/13/2025 4:46 PM",
+    attachments: ["file.txt"],
+    urls: ["https://example.com/link"]
+  },
   installationId: "inst-001"
 };
 
