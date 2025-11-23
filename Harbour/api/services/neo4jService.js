@@ -96,11 +96,54 @@ async function createRelationship(
 }
 
 /**
+ * Extract email from recipient (handles both object and string formats)
+ */
+function extractRecipientEmail(recipient) {
+  if (!recipient) return null;
+  if (typeof recipient === 'object' && recipient !== null) {
+    return recipient.email || null;
+  }
+  if (typeof recipient === 'string') {
+    // Check if it's an email format (contains @)
+    if (recipient.includes('@')) {
+      return recipient;
+    }
+    // Otherwise it's a display name, return null
+    return null;
+  }
+  return null;
+}
+
+/**
+ * Extract display name from recipient (handles both object and string formats)
+ */
+function extractRecipientDisplayName(recipient) {
+  if (!recipient) return null;
+  if (typeof recipient === 'object' && recipient !== null) {
+    return recipient.displayName || null;
+  }
+  if (typeof recipient === 'string') {
+    // If it's an email format, return null (no display name)
+    if (recipient.includes('@')) {
+      return null;
+    }
+    // Otherwise it's a display name
+    return recipient;
+  }
+  return null;
+}
+
+/**
  * Generate a unique identifier for an email based on its content
  */
 function generateEmailId(sender, recipients, dateTime) {
   const recipientArray = Array.isArray(recipients) ? recipients : [recipients];
-  const recipientStr = recipientArray.filter(Boolean).sort().join(',');
+  // Extract emails from recipients (handles both object and string formats)
+  const recipientEmails = recipientArray
+    .map(extractRecipientEmail)
+    .filter(Boolean)
+    .sort();
+  const recipientStr = recipientEmails.join(',');
   const content = `${sender || ''}|${recipientStr}|${dateTime || ''}`;
   return crypto.createHash('sha256').update(content).digest('hex').substring(0, 16);
 }
@@ -242,40 +285,95 @@ export async function createEmailGraph(emailData) {
     }
 
     // Process TO addresses (recipients) - can be array or single
+    // Handle both object and string formats for recipients
     const toAddresses = Array.isArray(recipientList) ? recipientList : [recipientList];
-    for (const toAddr of toAddresses) {
-      if (!toAddr) continue;
+    for (const recipient of toAddresses) {
+      if (!recipient) continue;
       
-      const toDomain = extractDomain(toAddr);
+      let toEmail;
+      let toDisplayName;
       
-      // Create TO Address
-      await mergeNode(session, 'Address', { email: toAddr }, 'email');
+      // Handle both object and string formats for recipient
+      if (typeof recipient === 'object' && recipient !== null) {
+        toEmail = recipient.email;
+        toDisplayName = recipient.displayName;
+        console.log('Extracted recipient from object:', toEmail);
+      } else if (typeof recipient === 'string') {
+        // Check if it's an email format (contains @)
+        if (recipient.includes('@')) {
+          toEmail = recipient;
+          toDisplayName = null;
+        } else {
+          // It's a display name without email
+          toEmail = null;
+          toDisplayName = recipient;
+        }
+        console.log('Extracted recipient from string:', toEmail || toDisplayName);
+      } else {
+        console.log('Unexpected recipient type:', typeof recipient, recipient);
+        continue;
+      }
       
-      // Create relationship Email -> TO -> Address
-      await createRelationship(
-        session,
-        'Email',
-        'id',
-        emailId,
-        'TO',
-        'Address',
-        'email',
-        toAddr
-      );
+      // Skip if we don't have at least an email or display name
+      if (!toEmail && !toDisplayName) continue;
       
-      // Create Domain and link if domain exists
-      if (toDomain) {
-        await mergeNode(session, 'Domain', { name: toDomain }, 'name');
+      // If we have an email, process it as an Address
+      if (toEmail) {
+        const toDomain = extractDomain(toEmail);
+        
+        // Create TO Address
+        await mergeNode(session, 'Address', { email: toEmail }, 'email');
+        
+        // Create DisplayName node if available
+        if (toDisplayName) {
+          await mergeNode(session, 'DisplayName', { name: toDisplayName }, 'name');
+          
+          // Create relationship Address -> HAS_DISPLAY_NAME -> DisplayName
+          await createRelationship(
+            session,
+            'Address',
+            'email',
+            toEmail,
+            'HAS_DISPLAY_NAME',
+            'DisplayName',
+            'name',
+            toDisplayName
+          );
+        }
+        
+        // Create relationship Email -> TO -> Address
         await createRelationship(
           session,
+          'Email',
+          'id',
+          emailId,
+          'TO',
           'Address',
           'email',
-          toAddr,
-          'HAS_DOMAIN',
-          'Domain',
-          'name',
-          toDomain
+          toEmail
         );
+        
+        // Create Domain and link if domain exists
+        if (toDomain) {
+          await mergeNode(session, 'Domain', { name: toDomain }, 'name');
+          await createRelationship(
+            session,
+            'Address',
+            'email',
+            toEmail,
+            'HAS_DOMAIN',
+            'Domain',
+            'name',
+            toDomain
+          );
+        }
+      } else if (toDisplayName) {
+        // If we only have a display name (no email), create DisplayName node
+        // but we can't create an Address without an email, so just create the DisplayName
+        await mergeNode(session, 'DisplayName', { name: toDisplayName }, 'name');
+        // Note: We don't create a TO relationship here since we need an Address node
+        // which requires an email. This is a limitation but handles the edge case.
+        console.log('Recipient has display name but no email:', toDisplayName);
       }
     }
 
