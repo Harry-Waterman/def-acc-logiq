@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This report analyzes benchmark results for 7 models tested on phishing email detection.
+This report analyzes benchmark results for 8 models tested on phishing email detection.
 
 **Test Configuration:**
 - Sample Size: 400 emails (balanced 50/50)
@@ -26,8 +26,8 @@ This report analyzes benchmark results for 7 models tested on phishing email det
 ### ⚖️ Best F1 Score: qwen_qwen3-8b
 - F1: 86.01% (balanced precision/recall)
 
-### ⚡ Fastest Inference: qwen_qwen3-4b-2507
-- Average Latency: 1.87 seconds
+### ⚡ Fastest Inference: qwen_qwen3-1.7b
+- Average Latency: 0.79 seconds
 
 ## Detailed Metrics Table
 
@@ -37,7 +37,8 @@ This report analyzes benchmark results for 7 models tested on phishing email det
 | ibm_granite-4-h-tiny | ibm/granite-4-h-tiny | 4.0 | 0.585 | 0.6098484848484849 | 0.8214285714285714 | 0.7000000000000001 | 0.5852272727272727 | 0.17857142857142858 | 161 | 73 | 103 | 35 | 2.3115645277500154 | 400 | 0.1 | 400 | 0.0 | 0.07 | 0.0 | 0.07 | 0.93 |
 | liquid_lfm2-1.2b | liquid/lfm2-1.2b | 1.2 | 0.34 | 0.4095238095238095 | 0.5149700598802395 | 0.4562334217506631 | 0.7126436781609196 | 0.48502994011976047 | 86 | 50 | 124 | 81 | 2.22046317756176 | 400 | 0.1 | 400 | 0.005 | 0.1325 | 0.01 | 0.1475 | 0.8525 |
 | phi-4-mini-reasoning | microsoft/phi-4-mini-reasoning | 4.0 | 0.09 | 0.4444444444444444 | 0.26666666666666666 | 0.33333333333333337 | 0.13513513513513514 | 0.7333333333333333 | 4 | 32 | 5 | 11 | 55.48528385519981 | 400 | 0.1 | 400 | 0.7275 | 0.1425 | 0.0 | 0.87 | 0.13 |
-| qwen_qwen3-1.7b | qwen/qwen3-1.7b | 1.7 | 0.56 | 0.5869565217391305 | 0.413265306122449 | 0.48502994011976047 | 0.285 | 0.5867346938775511 | 81 | 143 | 57 | 115 | 13.52451581120491 | 400 | 0.1 | 400 | 0.0 | 0.0025 | 0.0075 | 0.01 | 0.99 |
+| qwen_qwen3-1.7b-reasoning | qwen/qwen3-1.7b | 1.7 | 0.56 | 0.5869565217391305 | 0.413265306122449 | 0.48502994011976047 | 0.285 | 0.5867346938775511 | 81 | 143 | 57 | 115 | 13.52451581120491 | 400 | 0.1 | 400 | 0.0 | 0.0025 | 0.0075 | 0.01 | 0.99 |
+| qwen_qwen3-1.7b | qwen/qwen3-1.7b | 1.7 | 0.49 | 0.0 | 0.0 | 0.0 | 0.02 | 1.0 | 0 | 196 | 4 | 199 | 0.7858496206998825 | 400 | 0.1 | 400 | 0.0 | 0.0 | 0.0025 | 0.0025 | 0.9975 |
 | qwen_qwen3-4b-2507 | qwen/qwen3-4b-2507 | 4.0 | 0.86 | 0.9044943820224719 | 0.8090452261306532 | 0.8541114058355437 | 0.085 | 0.19095477386934673 | 161 | 183 | 17 | 38 | 1.8692622697353363 | 400 | 0.1 | 400 | 0.0 | 0.0 | 0.0025 | 0.0025 | 0.9975 |
 | qwen_qwen3-8b | qwen/qwen3-8b | 8.0 | 0.8625 | 0.8877005347593583 | 0.8341708542713567 | 0.8601036269430052 | 0.105 | 0.1658291457286432 | 166 | 179 | 21 | 33 | 2.9322172486782074 | 400 | 0.1 | 400 | 0.0 | 0.0 | 0.0025 | 0.0025 | 0.9975 |
 
@@ -47,43 +48,33 @@ This report analyzes benchmark results for 7 models tested on phishing email det
 ### Accuracy Variation
 - Range: 9.00% to 86.25%
 - Spread: 77.25%
-- Mean: 57.29%
+- Mean: 56.25%
 
 ### Error Rate Analysis
 - **False Positive Rate (FPR)**: Critical for user experience
-  - Lowest: qwen_qwen3-4b-2507 (8.50%)
+  - Lowest: qwen_qwen3-1.7b (2.00%)
   - Highest: liquid_lfm2-1.2b (71.26%)
 - **False Negative Rate (FNR)**: Critical for security
   - Lowest: google_gemma-3-4b (14.65%)
-  - Highest: phi-4-mini-reasoning (73.33%)
+  - Highest: qwen_qwen3-1.7b (100.00%)
 
 ### Latency Analysis
-- Fastest: qwen_qwen3-4b-2507 (1.87s)
+- Fastest: qwen_qwen3-1.7b (0.79s)
 - Slowest: phi-4-mini-reasoning (55.49s)
-- Average: 11.54s
+- Average: 10.20s
 
 ## Repeatability Analysis
 
 ### Score Consistency
 | mean | std |
 | --- | --- |
-| 0.0 | 0.0 |
-| 0.0 | 0.0 |
-| 0.0 | nan |
-| 0.0 | nan |
-| 0.0 | 0.0 |
-| 0.0 | 0.0 |
-| 18.15 | 25.667976157071674 |
+| 0.33454545454545453 | 0.4731187190484536 |
+| 0.7121212121212122 | 1.007091476235386 |
 
 
 ### Reason Consistency
 | mean | std |
 | --- | --- |
-| 1.0 | 0.0 |
-| 1.0 | 0.0 |
-| 1.0 | nan |
-| 1.0 | nan |
-| 1.0 | 0.0 |
 | 1.0 | 0.0 |
 | 1.0 | 0.0 |
 
@@ -96,24 +87,19 @@ This analysis shows whether models provide consistent reasoning for benign vs ma
 | --- | --- |
 | 1.0 | 1.0 |
 | 1.0 | 1.0 |
-| 1.0 | 0.0 |
-| 1.0 | 0.0 |
-| 1.0 | 1.0 |
-| 1.0 | 1.0 |
-| 1.0 | 1.0 |
 
 
 ### Model Size vs Repeatability Correlation
 
 Analysis of whether larger models show different repeatability patterns:
 
-- **Model Size vs Score Variance Correlation**: 0.834
+- Insufficient variance in model size or repeatability metrics to calculate meaningful correlations
 
 ## Recommendations
 
 - **For Production Use**: qwen_qwen3-8b offers the best balance of accuracy with low false positive rate
 - **For High-Security Environments**: google_gemma-3-4b minimizes false negatives (missed threats)
-- **For Real-Time Applications**: qwen_qwen3-4b-2507 provides the fastest inference suitable for browser-based detection
+- **For Real-Time Applications**: qwen_qwen3-1.7b provides the fastest inference suitable for browser-based detection
 ## Per-Email Statistics Analysis
 
 This section analyzes individual email-level performance patterns:
@@ -144,8 +130,12 @@ The following models experienced timeouts or errors during evaluation:
   - **Important**: Failed predictions are not included in TP/TN/FP/FN counts, which can make accuracy metrics misleading
   - Consider increasing timeout limits, fixing JSON output format, or optimizing model performance for future benchmarks
 
-- **qwen_qwen3-1.7b**: 1 JSON parsing errors, 3 other errors out of 400 total (396 successful, 1.0% failed)
+- **qwen_qwen3-1.7b-reasoning**: 1 JSON parsing errors, 3 other errors out of 400 total (396 successful, 1.0% failed)
   - JSON parsing errors indicate the model output was not valid JSON format
+  - **Important**: Failed predictions are not included in TP/TN/FP/FN counts, which can make accuracy metrics misleading
+  - Consider increasing timeout limits, fixing JSON output format, or optimizing model performance for future benchmarks
+
+- **qwen_qwen3-1.7b**: 1 other errors out of 400 total (399 successful, 0.2% failed)
   - **Important**: Failed predictions are not included in TP/TN/FP/FN counts, which can make accuracy metrics misleading
   - Consider increasing timeout limits, fixing JSON output format, or optimizing model performance for future benchmarks
 
@@ -183,8 +173,7 @@ The following visualizations are available:
 - `latency_comparison.png`: Inference speed comparison
 - `repeatability_analysis.png`: Consistency and repeatability metrics
 - `reason_consistency_by_type.png`: Reason consistency broken down by email type (benign vs malicious)
-- `model_size_correlation.png`: Correlation between model size and repeatability
-- `temperature_impact.png`: Impact of temperature settings on consistency
+- `temperature_impact.png`: Impact of temperature settings on accuracy metrics
 - `per_email_statistics.png`: Per-email accuracy statistics and distributions
 - `radar_chart.png`: Multi-metric radar comparison
 - `latency_accuracy_tradeoff.png`: Latency vs accuracy tradeoff scatter plot
