@@ -38,6 +38,10 @@ function extractDomainFromUrl(url) {
 
 /**
  * Create or get a node (merges if exists)
+ * @param {Object} session - Neo4j session
+ * @param {string|string[]} label - Single label string or array of labels
+ * @param {Object} properties - Node properties
+ * @param {string} uniqueKey - Unique key property name
  */
 async function mergeNode(session, label, properties, uniqueKey) {
   // Filter out null/undefined values and the unique key
@@ -48,14 +52,25 @@ async function mergeNode(session, label, properties, uniqueKey) {
     }
   });
   
+  // Handle multiple labels (array) or single label (string)
+  const labels = Array.isArray(label) ? label : [label];
+  const primaryLabel = labels[0]; // First label is the primary one for MERGE
+  const secondaryLabels = labels.slice(1); // Additional labels to add
+  
   // Build SET clause for properties to update
   const setProps = Object.keys(propsToSet)
     .map(key => `n.${key} = $${key}`)
     .join(', ');
   
+  // Build SET clause for secondary labels (combine all secondary labels in one SET)
+  const setLabels = secondaryLabels.length > 0 
+    ? `SET n${secondaryLabels.map(l => `:${l}`).join('')}`
+    : '';
+  
   const query = `
-    MERGE (n:${label} {${uniqueKey}: $${uniqueKey}})
+    MERGE (n:${primaryLabel} {${uniqueKey}: $${uniqueKey}})
     ${setProps ? `SET ${setProps}` : ''}
+    ${setLabels}
     RETURN n
   `;
   
@@ -71,6 +86,14 @@ async function mergeNode(session, label, properties, uniqueKey) {
 
 /**
  * Create relationship between two nodes
+ * @param {Object} session - Neo4j session
+ * @param {string|string[]} fromLabel - Single label string or array of labels for source node
+ * @param {string} fromKey - Source node unique key property name
+ * @param {*} fromValue - Source node unique key value
+ * @param {string} relationshipType - Relationship type
+ * @param {string|string[]} toLabel - Single label string or array of labels for target node
+ * @param {string} toKey - Target node unique key property name
+ * @param {*} toValue - Target node unique key value
  */
 async function createRelationship(
   session,
@@ -82,9 +105,15 @@ async function createRelationship(
   toKey,
   toValue
 ) {
+  // Handle multiple labels (array) or single label (string)
+  const fromLabels = Array.isArray(fromLabel) ? fromLabel : [fromLabel];
+  const toLabels = Array.isArray(toLabel) ? toLabel : [toLabel];
+  const fromLabelString = fromLabels.map(l => `:${l}`).join('');
+  const toLabelString = toLabels.map(l => `:${l}`).join('');
+  
   const query = `
-    MATCH (from:${fromLabel} {${fromKey}: $fromValue})
-    MATCH (to:${toLabel} {${toKey}: $toValue})
+    MATCH (from${fromLabelString} {${fromKey}: $fromValue})
+    MATCH (to${toLabelString} {${toKey}: $toValue})
     MERGE (from)-[r:${relationshipType}]->(to)
     RETURN r
   `;
@@ -236,21 +265,21 @@ export async function createEmailGraph(emailData) {
     if (sender) {
       const fromDomain = extractDomain(sender);
       
-      // Create FROM Address
-      await mergeNode(session, 'Address', { email: sender }, 'email');
+      // Create FROM Address with Sender label
+      await mergeNode(session, ['Address', 'Sender'], { email: sender }, 'email');
       
-      // Create DisplayName node if available
+      // Create DisplayName node if available with Sender label
       if (displayName) {
-        await mergeNode(session, 'DisplayName', { name: displayName }, 'name');
+        await mergeNode(session, ['DisplayName', 'Sender'], { name: displayName }, 'name');
         
         // Create relationship Address -> HAS_DISPLAY_NAME -> DisplayName
         await createRelationship(
           session,
-          'Address',
+          ['Address', 'Sender'],
           'email',
           sender,
           'HAS_DISPLAY_NAME',
-          'DisplayName',
+          ['DisplayName', 'Sender'],
           'name',
           displayName
         );
@@ -263,7 +292,7 @@ export async function createEmailGraph(emailData) {
         'id',
         emailId,
         'FROM',
-        'Address',
+        ['Address', 'Sender'],
         'email',
         sender
       );
@@ -273,7 +302,7 @@ export async function createEmailGraph(emailData) {
         await mergeNode(session, 'Domain', { name: fromDomain }, 'name');
         await createRelationship(
           session,
-          'Address',
+          ['Address', 'Sender'],
           'email',
           sender,
           'HAS_DOMAIN',
@@ -321,21 +350,21 @@ export async function createEmailGraph(emailData) {
       if (toEmail) {
         const toDomain = extractDomain(toEmail);
         
-        // Create TO Address
-        await mergeNode(session, 'Address', { email: toEmail }, 'email');
+        // Create TO Address with Receiver label
+        await mergeNode(session, ['Address', 'Receiver'], { email: toEmail }, 'email');
         
-        // Create DisplayName node if available
+        // Create DisplayName node if available with Receiver label
         if (toDisplayName) {
-          await mergeNode(session, 'DisplayName', { name: toDisplayName }, 'name');
+          await mergeNode(session, ['DisplayName', 'Receiver'], { name: toDisplayName }, 'name');
           
           // Create relationship Address -> HAS_DISPLAY_NAME -> DisplayName
           await createRelationship(
             session,
-            'Address',
+            ['Address', 'Receiver'],
             'email',
             toEmail,
             'HAS_DISPLAY_NAME',
-            'DisplayName',
+            ['DisplayName', 'Receiver'],
             'name',
             toDisplayName
           );
@@ -348,7 +377,7 @@ export async function createEmailGraph(emailData) {
           'id',
           emailId,
           'TO',
-          'Address',
+          ['Address', 'Receiver'],
           'email',
           toEmail
         );
@@ -358,7 +387,7 @@ export async function createEmailGraph(emailData) {
           await mergeNode(session, 'Domain', { name: toDomain }, 'name');
           await createRelationship(
             session,
-            'Address',
+            ['Address', 'Receiver'],
             'email',
             toEmail,
             'HAS_DOMAIN',
@@ -368,9 +397,9 @@ export async function createEmailGraph(emailData) {
           );
         }
       } else if (toDisplayName) {
-        // If we only have a display name (no email), create DisplayName node
+        // If we only have a display name (no email), create DisplayName node with Receiver label
         // but we can't create an Address without an email, so just create the DisplayName
-        await mergeNode(session, 'DisplayName', { name: toDisplayName }, 'name');
+        await mergeNode(session, ['DisplayName', 'Receiver'], { name: toDisplayName }, 'name');
         // Note: We don't create a TO relationship here since we need an Address node
         // which requires an email. This is a limitation but handles the edge case.
         console.log('Recipient has display name but no email:', toDisplayName);
