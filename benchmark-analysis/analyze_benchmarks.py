@@ -144,11 +144,14 @@ def load_benchmark_results(results_dir: str = "../benchmark-results") -> List[Di
                 # Extract model name from filename dynamically
                 # Pattern: benchmark_results_<model_name>_seed<number>.json
                 filename = os.path.basename(file_path)
-                # Remove prefix and extension
-                model_name = filename.replace("benchmark_results_", "").replace(".json", "")
-                # Remove seed suffix if present (e.g., "_seed42")
+                # Extract everything between "benchmark_results_" and "_seed"
                 import re
-                model_name = re.sub(r'_seed\d+$', '', model_name)
+                match = re.search(r'benchmark_results_(.+?)_seed\d+', filename)
+                if match:
+                    model_name = match.group(1)
+                else:
+                    # Fallback: if no seed pattern, extract everything after prefix and before .json
+                    model_name = filename.replace("benchmark_results_", "").replace(".json", "")
                 data['model_name'] = model_name
                 results.append(data)
         except Exception as e:
@@ -219,6 +222,18 @@ def extract_per_email_metrics(results: List[Dict[str, Any]]) -> pd.DataFrame:
         detailed = accuracy.get('detailed_results', [])
         
         for item in detailed:
+            # Handle ERROR/timeout cases - they don't have a status but should be tracked
+            status = item.get('status', '')
+            if item.get('prediction') == 'ERROR' or 'error' in item:
+                # Categorize different types of errors
+                error_msg = item.get('error', '').lower()
+                if 'timeout' in error_msg or item.get('duration', 0) >= 60:
+                    status = 'TIMEOUT'
+                elif 'parse' in error_msg and 'json' in error_msg:
+                    status = 'JSON_ERROR'
+                else:
+                    status = 'ERROR'
+            
             per_email_data.append({
                 'model': model_name,
                 'index': item.get('index', 0),
@@ -226,8 +241,9 @@ def extract_per_email_metrics(results: List[Dict[str, Any]]) -> pd.DataFrame:
                 'prediction': item.get('prediction', 0),
                 'score': item.get('score', 0),
                 'correct': item.get('correct', False),
-                'status': item.get('status', ''),
+                'status': status,
                 'duration': item.get('duration', 0),
+                'has_error': item.get('prediction') == 'ERROR' or 'error' in item,
             })
     
     return pd.DataFrame(per_email_data)
@@ -904,14 +920,40 @@ def plot_per_email_statistics(per_email_df: pd.DataFrame, output_dir: str, model
     ax2.legend(fontsize=8, loc='upper right')
     ax2.grid(alpha=0.3, axis='y')
     
-    # 3. Status breakdown (TP, TN, FP, FN) by model
+    # 3. Status breakdown (TP, TN, FP, FN, TIMEOUT, ERROR) by model
     ax3 = axes[1, 0]
     status_counts = per_email_df.groupby(['model', 'status']).size().unstack(fill_value=0)
-    status_counts.plot(kind='barh', stacked=True, ax=ax3, color=['green', 'blue', 'orange', 'red'])
+    
+    # Define color mapping for all possible statuses
+    status_colors = {
+        'TP': 'green',
+        'TN': 'blue', 
+        'FP': 'orange',
+        'FN': 'red',
+        'TIMEOUT': 'gray',
+        'JSON_ERROR': 'purple',
+        'ERROR': 'darkred'
+    }
+    
+    # Get all statuses and assign colors
+    all_statuses = status_counts.columns.tolist()
+    colors = [status_colors.get(status, 'lightgray') for status in all_statuses]
+    
+    status_counts.plot(kind='barh', stacked=True, ax=ax3, color=colors)
     ax3.set_xlabel('Count')
-    ax3.set_title('Prediction Status Breakdown by Model')
+    ax3.set_title('Prediction Status Breakdown by Model\n(Includes timeouts/errors)')
     ax3.legend(title='Status', fontsize=8)
     ax3.grid(axis='x', alpha=0.3)
+    
+    # Add note about timeouts/errors if any model has them
+    error_statuses = ['TIMEOUT', 'JSON_ERROR', 'ERROR']
+    has_errors = any(status in all_statuses for status in error_statuses)
+    if has_errors:
+        error_models = per_email_df[per_email_df['status'].isin(error_statuses)]['model'].unique()
+        if len(error_models) > 0:
+            ax3.text(0.98, 0.02, f'WARNING: {len(error_models)} model(s) have timeouts/errors', 
+                    transform=ax3.transAxes, fontsize=8, ha='right',
+                    bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
     
     # 4. Duration distribution by model
     ax4 = axes[1, 1]
@@ -1189,7 +1231,7 @@ def dataframe_to_markdown(df: pd.DataFrame) -> str:
     
     return markdown
 
-def generate_summary_report(df: pd.DataFrame, repeat_df: pd.DataFrame, output_dir: str):
+def generate_summary_report(df: pd.DataFrame, repeat_df: pd.DataFrame, output_dir: str, per_email_df: pd.DataFrame = None):
     """Generate a comprehensive text report."""
     report_path = os.path.join(output_dir, 'ANALYSIS_REPORT.md')
     
@@ -1337,12 +1379,50 @@ def generate_summary_report(df: pd.DataFrame, repeat_df: pd.DataFrame, output_di
         # Per-email statistics summary
         f.write("## Per-Email Statistics Analysis\n\n")
         f.write("This section analyzes individual email-level performance patterns:\n\n")
+        
+        # Check for timeout/error issues
+        if per_email_df is not None and not per_email_df.empty:
+            error_statuses = ['TIMEOUT', 'JSON_ERROR', 'ERROR']
+            error_models = per_email_df[per_email_df['status'].isin(error_statuses)]['model'].unique()
+            if len(error_models) > 0:
+                f.write("### WARNING: Timeout/Error Warnings\n\n")
+                f.write("The following models experienced timeouts or errors during evaluation:\n\n")
+                for model in error_models:
+                    model_data = per_email_df[per_email_df['model'] == model]
+                    total = len(model_data)
+                    timeouts = len(model_data[model_data['status'] == 'TIMEOUT'])
+                    json_errors = len(model_data[model_data['status'] == 'JSON_ERROR'])
+                    other_errors = len(model_data[model_data['status'] == 'ERROR'])
+                    total_errors = timeouts + json_errors + other_errors
+                    successful = total - total_errors
+                    
+                    error_details = []
+                    if timeouts > 0:
+                        error_details.append(f"{timeouts} timeouts")
+                    if json_errors > 0:
+                        error_details.append(f"{json_errors} JSON parsing errors")
+                    if other_errors > 0:
+                        error_details.append(f"{other_errors} other errors")
+                    
+                    f.write(f"- **{model}**: {', '.join(error_details)} out of {total} total ({successful} successful, {(total_errors/total*100):.1f}% failed)\n")
+                    if json_errors > 0:
+                        f.write(f"  - JSON parsing errors indicate the model output was not valid JSON format\n")
+                    if timeouts > 0:
+                        f.write(f"  - Timeouts suggest the model is too slow for production use\n")
+                    f.write(f"  - **Important**: Failed predictions are not included in TP/TN/FP/FN counts, which can make accuracy metrics misleading\n")
+                    f.write(f"  - Consider increasing timeout limits, fixing JSON output format, or optimizing model performance for future benchmarks\n\n")
+                f.write("\n")
+        
         f.write("### Key Findings from Per-Email Data:\n\n")
         f.write("- **Score Distribution**: Shows model confidence patterns and calibration\n")
         f.write("  - Well-calibrated models show higher scores for correct predictions\n")
         f.write("  - Overconfident models show high scores even when incorrect\n")
-        f.write("- **Status Breakdown**: Detailed TP, TN, FP, FN counts per model\n")
+        f.write("- **Status Breakdown**: Detailed TP, TN, FP, FN, TIMEOUT, JSON_ERROR, ERROR counts per model\n")
         f.write("  - Reveals the composition of errors (false positives vs false negatives)\n")
+        f.write("  - TIMEOUT: Model exceeded time limit (typically 60 seconds)\n")
+        f.write("  - JSON_ERROR: Model output was not valid JSON format\n")
+        f.write("  - ERROR: Other types of errors (network, API, etc.)\n")
+        f.write("  - These error cases indicate incomplete evaluations that should be addressed\n")
         f.write("- **Duration Distribution**: Shows latency variability across emails\n")
         f.write("  - Identifies if inference time is consistent or has outliers\n")
         f.write("\n")
@@ -1418,7 +1498,7 @@ def main():
         plot_per_email_statistics(per_email_df, viz_dir, model_colors)
     
     print("\n📝 Generating summary report...")
-    generate_summary_report(df, repeat_df, str(output_dir))
+    generate_summary_report(df, repeat_df, str(output_dir), per_email_df)
     
     # Save raw data as CSV
     df.to_csv(os.path.join(output_dir, 'summary_metrics.csv'), index=False)
